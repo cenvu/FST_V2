@@ -57,15 +57,18 @@ public struct TransferControlsView: View {
 
                 Button(action: handleActionButton) {
                     HStack {
-                        Image(systemName: actionButtonIcon)
-                        Text(actionButtonTitle)
+                        Image(systemName: TransferControlsActionPresentation.icon(for: viewModel.transferState))
+                        Text(TransferControlsActionPresentation.title(
+                            for: viewModel.transferState,
+                            errorMessage: viewModel.errorMessage
+                        ))
                             .fontWeight(.bold)
                             .lineLimit(1)
                             .minimumScaleFactor(0.9)
                     }
                     .font(.system(size: 18))
                     .frame(width: 300, height: 68)
-                    .background(buttonColor)
+                    .background(TransferControlsActionPresentation.buttonColor(for: viewModel.transferState))
                     .foregroundColor(.white)
                     .cornerRadius(9)
                 }
@@ -173,34 +176,6 @@ public struct TransferControlsView: View {
         return String(format: "%02d:%02d", minutes, seconds)
     }
 
-    private var actionButtonTitle: String {
-        switch viewModel.transferState {
-        case .copying, .validating:
-            return "TRANSFERRING"
-        case .verifying:
-            return "VERIFYING"
-        case .copyComplete, .safeToFormat:
-            return "SAFE TO FORMAT"
-        case .error:
-            return "MANUAL CHECK REQUIRED"
-        case .ready, .cancelled:
-            return "START"
-        }
-    }
-
-    private var actionButtonIcon: String {
-        switch viewModel.transferState {
-        case .copying, .validating, .verifying:
-            return "arrow.triangle.2.circlepath"
-        case .copyComplete, .safeToFormat:
-            return "checkmark.circle.fill"
-        case .error:
-            return "exclamationmark.triangle.fill"
-        case .ready, .cancelled:
-            return "play.fill"
-        }
-    }
-
     private var isActionButtonEnabled: Bool {
         switch viewModel.transferState {
         case .copying, .verifying:
@@ -219,19 +194,86 @@ public struct TransferControlsView: View {
             viewModel.startTransfer()
         }
     }
+}
 
-    private var buttonColor: Color {
-        switch viewModel.transferState {
+nonisolated public enum TransferControlsVisualRole: Equatable, Sendable {
+    case idle
+    case transferring
+    case verifying
+    case copyOnlyComplete
+    case safeToFormat
+    case error
+}
+
+nonisolated public enum TransferControlsActionPresentation {
+    public static func visualRole(for state: TransferState) -> TransferControlsVisualRole {
+        switch state {
+        case .ready, .cancelled:
+            return .idle
         case .copying, .validating:
+            return .transferring
+        case .verifying:
+            return .verifying
+        case .copyComplete:
+            return .copyOnlyComplete
+        case .safeToFormat:
+            return .safeToFormat
+        case .error:
+            return .error
+        }
+    }
+
+    public static func title(for state: TransferState, errorMessage: String? = nil) -> String {
+        switch visualRole(for: state) {
+        case .transferring:
+            return "TRANSFERRING"
+        case .verifying:
+            return "VERIFYING"
+        case .copyOnlyComplete:
+            return "TRANSFER COMPLETE"
+        case .safeToFormat:
+            return "SAFE TO EJECT"
+        case .error:
+            return isManualCheckRequired(errorMessage: errorMessage) ? "MANUAL CHECK REQUIRED" : "TRANSFER ERROR"
+        case .idle:
+            return "START"
+        }
+    }
+
+    public static func icon(for state: TransferState) -> String {
+        switch visualRole(for: state) {
+        case .transferring, .verifying:
+            return "arrow.triangle.2.circlepath"
+        case .copyOnlyComplete:
+            return "doc.on.doc"
+        case .safeToFormat:
+            return "checkmark.circle.fill"
+        case .error:
+            return "exclamationmark.triangle.fill"
+        case .idle:
+            return "play.fill"
+        }
+    }
+
+    public static func buttonColor(for state: TransferState) -> Color {
+        switch visualRole(for: state) {
+        case .transferring:
             return Color(red: 0.78, green: 0.60, blue: 0.36)
         case .verifying:
             return Color(red: 0.82, green: 0.52, blue: 0.34)
-        case .copyComplete, .safeToFormat:
+        case .copyOnlyComplete:
+            return Color(red: 0.42, green: 0.60, blue: 0.78)
+        case .safeToFormat:
             return Color(red: 0.43, green: 0.65, blue: 0.48)
         case .error:
             return Color(red: 0.70, green: 0.38, blue: 0.36)
-        case .ready, .cancelled:
+        case .idle:
             return Color(red: 0.42, green: 0.60, blue: 0.78)
         }
+    }
+
+    public static func isManualCheckRequired(errorMessage: String?) -> Bool {
+        guard let errorMessage else { return false }
+        return errorMessage.localizedCaseInsensitiveContains("MANUAL CHECK REQUIRED")
     }
 }

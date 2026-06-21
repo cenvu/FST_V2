@@ -16,9 +16,13 @@ public actor ReportEngine {
         
         let finalStatusText: String
         if report.finalStatus == .safeToFormat {
-            finalStatusText = "SAFE TO FORMAT"
+            finalStatusText = "SAFE TO EJECT"
         } else if report.finalStatus == .copyComplete {
-            finalStatusText = "COPY COMPLETE"
+            finalStatusText = "TRANSFER COMPLETE"
+        } else if report.finalStatus == .error, report.verificationResult == .failed {
+            finalStatusText = "MANUAL CHECK REQUIRED"
+        } else if report.finalStatus == .error {
+            finalStatusText = "TRANSFER ERROR"
         } else {
             finalStatusText = report.finalStatus.rawValue.uppercased()
         }

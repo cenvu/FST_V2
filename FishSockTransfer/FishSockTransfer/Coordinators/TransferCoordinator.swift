@@ -104,8 +104,9 @@ public actor TransferCoordinator {
                 throw NSError(domain: "TransferCoordinator", code: 1, userInfo: [NSLocalizedDescriptionKey: "Insufficient free space on destination."])
             }
         } catch {
-            await log(category: .error, message: "Validation failed: \(error.localizedDescription)")
-            await onError?(error.localizedDescription)
+            let message = "TRANSFER ERROR: \(error.localizedDescription)"
+            await log(category: .error, message: message)
+            await onError?(message)
             await updateState(.error)
             return
         }
@@ -127,7 +128,7 @@ public actor TransferCoordinator {
         
         if !rsyncSuccess {
             if let err = rsyncError {
-                await onError?(err.localizedDescription)
+                await onError?("TRANSFER ERROR: \(err.localizedDescription)")
             }
             await updateState(.error)
             return
@@ -136,7 +137,7 @@ public actor TransferCoordinator {
         // Mode None -> Fast Exit
         if mode == .none {
             await updateState(.copyComplete)
-            await log(category: .system, message: "Copy complete. Verification disabled.")
+            await log(category: .system, message: "TRANSFER COMPLETE. Verification disabled.")
             return
         }
         
@@ -153,15 +154,15 @@ public actor TransferCoordinator {
         
         if !verifySuccess {
             if let err = verifyError {
-                await onError?(err.localizedDescription)
+                await onError?("MANUAL CHECK REQUIRED: \(err.localizedDescription)")
             }
             await updateState(.error)
             return
         }
         
-        // STATE: SAFE_TO_FORMAT (Only reachable if both Copy and Verify succeed)
+        // Internal state name is legacy; operator-facing language is SAFE TO EJECT.
         await updateState(.safeToFormat)
-        await log(category: .system, message: "Verification Passed. SAFE TO FORMAT.")
+        await log(category: .system, message: "Verification Passed. SAFE TO EJECT.")
     }
     
     private func executeRsync(request: TransferRequest) async -> (Bool, Error?) {
@@ -204,7 +205,7 @@ public actor TransferCoordinator {
                         continuation.resume(returning: (false, nil))
                         didResume = true
                     case .failed(let err):
-                        await self.log(category: .error, message: "Transfer Failed: \(err.localizedDescription)")
+                        await self.log(category: .error, message: "TRANSFER ERROR: \(err.localizedDescription)")
                         continuation.resume(returning: (false, err))
                         didResume = true
                     }
@@ -250,7 +251,7 @@ public actor TransferCoordinator {
                             continuation.resume(returning: (true, nil))
                         } else {
                             let err = NSError(domain: "VerifyEngine", code: 2, userInfo: [NSLocalizedDescriptionKey: "Verification failed."])
-                            await self.log(category: .error, message: err.localizedDescription)
+                            await self.log(category: .error, message: "MANUAL CHECK REQUIRED: \(err.localizedDescription)")
                             continuation.resume(returning: (false, err))
                         }
                         didResume = true
@@ -259,8 +260,7 @@ public actor TransferCoordinator {
                         continuation.resume(returning: (false, nil))
                         didResume = true
                     case .failed(let err):
-                        await self.log(category: .error, message: "VerificationError reached TransferCoordinator: \(String(describing: err))")
-                        await self.log(category: .error, message: err.localizedDescription)
+                        await self.log(category: .error, message: "MANUAL CHECK REQUIRED: \(err.localizedDescription)")
                         continuation.resume(returning: (false, err))
                         didResume = true
                     }
