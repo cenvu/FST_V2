@@ -1,20 +1,287 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
-</div>
+# FST - FishSock Transfer
 
-# Run and deploy your AI Studio app
+FST / FishSock Transfer is a native macOS media offload app for DITs, Data Wranglers, and production crews.
 
-This contains everything you need to run your app locally.
+It exists to answer one question:
 
-View your app in AI Studio: https://ai.studio/apps/842e93d2-16dd-4e03-818a-07616a7efc0c
+```text
+Can the source media be safely formatted?
+```
 
-## Run Locally
+Workflow:
 
-**Prerequisites:**  Node.js
+```text
+SOURCE -> COPY -> VERIFY -> SAFE TO FORMAT
+```
 
+Priority:
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+```text
+Data Safety -> Reliability -> Repeatability -> Maintainability -> Performance -> Convenience
+```
+
+If the final status is unclear, unsafe, or misleading, the product has failed.
+
+---
+
+## Current Status
+
+FST is in MVP development.
+
+Current focus:
+
+- bundled rsync 3.4.4 validation
+- transfer pipeline correctness
+- bandwidth limiter correctness
+- progress parser accuracy
+- `.DS_Store` hang investigation
+- cancellation safety
+- xxHash64 verification
+- SAFE TO FORMAT enforcement
+- TXT report truthfulness
+
+Do not add feature expansion before these audit targets are stable.
+
+---
+
+## MVP Scope
+
+In scope:
+
+- one source folder
+- one destination folder
+- one active job
+- drag/drop and folder picker
+- security-scoped bookmarks
+- storage validation
+- bundled rsync 3.4.4 transfer
+- bandwidth control
+- real-time progress and logs
+- cancellation
+- xxHash64 verification
+- TXT report
+- SAFE TO FORMAT gate
+
+Out of scope:
+
+- transfer queue
+- multiple simultaneous jobs
+- multiple destinations
+- mirrored copy
+- cloud sync
+- DAM/MAM
+- database/history engine
+- proxy generation
+- LTO
+- MHL
+- AI features inside the app
+
+---
+
+## Technical Baseline
+
+- Platform: macOS 13+
+- Language: Swift 5.9+ / Swift 6 compatible
+- Framework: SwiftUI
+- Architecture: MVVM + Coordinator + Engine + Service
+- Transfer engine: bundled rsync 3.4.4 only
+- Verification: xxHash64
+- Report: plain TXT
+
+Production transfer must not silently fallback to Apple `/usr/bin/rsync`.
+
+---
+
+## Repository Layout
+
+Expected layout:
+
+```text
+FST_V2/
+  AGENTS.md
+  README.md
+  docs/
+    00_AI_AGENT_START_HERE.md
+    01_PRD.md
+    02_FST_TECHNICAL_GUIDE.md
+    03_PROJECT_MASTER_GUIDELINE.md
+    archive/
+
+  FishSockTransfer/
+    FishSockTransfer.xcodeproj
+    FishSockTransfer/
+      Assets.xcassets
+      Coordinators/
+      Engines/
+      Models/
+      Services/
+      ViewModels/
+      Views/
+      FishSockTransferApp.swift
+      rsync
+    Tests/
+
+  assets/
+```
+
+Rules:
+
+- Active docs live in `docs/`.
+- Swift app code lives in `FishSockTransfer/FishSockTransfer/`.
+- Old prototype files must not be treated as production app code.
+
+---
+
+## Active Documentation
+
+Read these files before changing code:
+
+```text
+1. AGENTS.md
+2. docs/00_AI_AGENT_START_HERE.md
+3. docs/01_PRD.md
+4. docs/02_FST_TECHNICAL_GUIDE.md
+5. docs/03_PROJECT_MASTER_GUIDELINE.md
+```
+
+`docs/archive/` is historical only.
+
+---
+
+## Architecture
+
+Allowed dependency flow:
+
+```text
+SwiftUI View -> TransferViewModel -> TransferCoordinator -> Engines -> Services
+```
+
+Only `TransferCoordinator` may change transfer state.
+
+Allowed states:
+
+```text
+ready, validating, copying, verifying, copyComplete, safeToFormat, error, cancelled
+```
+
+SAFE TO FORMAT rule:
+
+```text
+copy success AND verification pass
+```
+
+If verification mode is `none`, final state must be:
+
+```text
+copyComplete
+```
+
+Never show SAFE TO FORMAT after verification `none`, copy failure, verification failure, or cancellation.
+
+---
+
+## Rsync
+
+FST uses bundled rsync 3.4.4 for production transfer.
+
+Required behavior:
+
+- resolve bundled rsync path
+- validate executable permission
+- validate rsync version
+- log rsync path
+- log rsync version separately from app version
+- capture stdout and stderr
+- parse real progress output
+- support cancellation
+- fail fast if bundled rsync is missing or invalid
+
+Forbidden:
+
+- silent fallback to `/usr/bin/rsync`
+- destructive flags
+- source mutation
+- fake success state
+
+---
+
+## Verification
+
+Supported modes:
+
+```text
+none, random33, full
+```
+
+Algorithm:
+
+```text
+xxHash64
+```
+
+Rules:
+
+- `none` skips hashing and ends at COPY COMPLETE.
+- `random33` verifies about one third of files.
+- `full` verifies all files.
+- Any verification failure blocks SAFE TO FORMAT.
+
+---
+
+## Development Rules
+
+Keep changes small and auditable.
+
+For coding agents, every implementation response must include:
+
+```text
+PHASE:
+FILES:
+LAYER CHECK:
+PATCH:
+TESTS:
+VERIFY:
+```
+
+Do not perform broad rewrites, architecture changes, or feature expansion unless explicitly requested.
+
+---
+
+## Build and Test
+
+Open the Xcode project:
+
+```text
+FishSockTransfer/FishSockTransfer.xcodeproj
+```
+
+Build and test from Xcode, or use `xcodebuild` once the active scheme is confirmed.
+
+Suggested verification areas:
+
+- `ProgressParserTests`
+- `RsyncBandwidthLimitTests`
+- `TransferCoordinatorTests`
+- `VerifyEngineTests`
+- `ReportEngineTests`
+- `BundledRsyncServiceTests`
+
+Manual smoke tests:
+
+- small folder transfer
+- folder containing `.DS_Store`
+- bandwidth-limited transfer
+- unlimited transfer
+- cancel during copy
+- verification `none`
+- verification `random33`
+- verification `full`
+- failed verify must not show SAFE TO FORMAT
+
+---
+
+## Final Product Rule
+
+A first-time DIT must be able to launch FST, select source, select destination, choose speed, choose verification mode, start transfer, and understand the final result without training.
+
+Data safety beats speed, UI polish, and clever code.

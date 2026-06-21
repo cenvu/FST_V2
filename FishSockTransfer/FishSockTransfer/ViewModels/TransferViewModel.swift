@@ -1,0 +1,241 @@
+import Foundation
+import Combine
+
+@MainActor
+public final class TransferViewModel: ObservableObject {
+    @Published public var sourceURL: URL?
+    @Published public var destinationURL: URL?
+    @Published public var bandwidthLimit: Int? = nil
+    @Published public var verificationMode: VerificationMode = .random33
+    
+    @Published public var transferState: TransferState = .ready
+    @Published public var progress: Double = 0.0
+    @Published public var speed: Double = 0.0
+    @Published public var eta: TimeInterval = 0.0
+    @Published public var currentFile: String = ""
+    @Published public var logs: [LogEntry] = []
+    @Published public var errorMessage: String? = nil
+    @Published public var sourceMetadata: SourceStorageMetadata?
+    @Published public var destinationMetadata: DestinationStorageMetadata?
+    @Published public var storageWarningMessage: String? = nil
+    @Published public var bundledRsyncInfo: BundledRsyncInfo = .unavailable(
+        version: BundledRsyncService.bundledVersion,
+        diagnostics: []
+    )
+    
+    private let coordinator: TransferCoordinator
+    private let driveService: DriveService
+    private let bundledRsyncService: BundledRsyncService
+    private var callbacksConfiguredTask: Task<Void, Never>?
+    private var sourceMetadataTask: Task<Void, Never>?
+    private var destinationMetadataTask: Task<Void, Never>?
+    
+    public init(
+        coordinator: TransferCoordinator? = nil,
+        driveService: DriveService? = nil,
+        bundledRsyncService: BundledRsyncService = BundledRsyncService()
+    ) {
+        self.bundledRsyncService = bundledRsyncService
+        self.coordinator = coordinator ?? TransferCoordinator(bundledRsyncService: bundledRsyncService)
+        self.driveService = driveService ?? DriveService()
+        setupBindings()
+        refreshBundledRsyncInfo()
+    }
+
+    @discardableResult
+    public func selectSourceFolder(_ url: URL) -> Bool {
+        guard isDirectory(url) else {
+            errorMessage = "Source selection must be a folder."
+            return false
+        }
+
+        sourceURL = url
+        sourceMetadata = nil
+        refreshSourceMetadata(for: url)
+        errorMessage = nil
+        return true
+    }
+
+    @discardableResult
+    public func selectDestinationFolder(_ url: URL) -> Bool {
+        guard isDirectory(url) else {
+            errorMessage = "Destination selection must be a folder."
+            return false
+        }
+
+        destinationURL = url
+        destinationMetadata = nil
+        refreshDestinationMetadata(for: url)
+        errorMessage = nil
+        return true
+    }
+    
+    private func setupBindings() {
+        callbacksConfiguredTask = Task { [weak self, coordinator] in
+            await coordinator.configureCallbacks(
+                onStateChanged: { [weak self] state in
+                    self?.transferState = state
+                    if state == .ready {
+                        self?.resetTransferMetrics()
+                    }
+                },
+                onProgress: { [weak self] p in
+                    self?.progress = p
+                },
+                onSpeed: { [weak self] s in
+                    self?.speed = s
+                },
+                onETA: { [weak self] e in
+                    self?.eta = e
+                },
+                onCurrentFile: { [weak self] f in
+                    self?.currentFile = f
+                },
+                onError: { [weak self] message in
+                    self?.errorMessage = message
+                    self?.addLog(category: .error, message: message)
+                },
+                onLog: { [weak self] entry in
+                    self?.appendLog(entry)
+                }
+            )
+        }
+    }
+    
+    public func startTransfer() {
+        guard bundledRsyncInfo.isAvailable else {
+            errorMessage = "Bundled rsync executable was not found."
+            addLog(category: .error, message: "Bundled rsync executable was not found.")
+            return
+        }
+
+        guard let sourceURL = sourceURL, let destinationURL = destinationURL else {
+            errorMessage = "Please select both source and destination folders."
+            return
+        }
+
+        guard !hasInsufficientDestinationSpace else {
+            errorMessage = "Not enough destination space."
+            addLog(category: .warning, message: "Not enough destination space.")
+            return
+        }
+        
+        resetTransferMetrics()
+        errorMessage = nil
+        addLog(category: .info, message: "Starting transfer workflow")
+        addLog(category: .info, message: "Source: \(sourceURL.lastPathComponent)")
+        addLog(category: .info, message: "Destination: \(destinationURL.lastPathComponent)")
+        
+        let callbacksConfiguredTask = callbacksConfiguredTask
+        Task { [coordinator, sourceURL, destinationURL, bandwidthLimit, verificationMode, callbacksConfiguredTask] in
+            await callbacksConfiguredTask?.value
+            await coordinator.startTransfer(
+                source: sourceURL,
+                destination: destinationURL,
+                bandwidthLimit: bandwidthLimit,
+                mode: verificationMode
+            )
+        }
+    }
+    
+    public func cancelTransfer() {
+        addLog(category: .warning, message: "User requested transfer cancellation")
+        Task { [coordinator] in
+            await coordinator.cancelTransfer()
+        }
+    }
+    
+    private func resetTransferMetrics() {
+        progress = 0.0
+        speed = 0.0
+        eta = 0.0
+        currentFile = ""
+    }
+
+    private func isDirectory(_ url: URL) -> Bool {
+        var isDirectory: ObjCBool = false
+        return FileManager.default.fileExists(atPath: url.path, isDirectory: &isDirectory) && isDirectory.boolValue
+    }
+
+    public var hasInsufficientDestinationSpace: Bool {
+        guard let sourceMetadata, let destinationMetadata else { return false }
+        return sourceMetadata.totalSizeBytes > destinationMetadata.freeSpaceBytes
+    }
+
+    public var canStartTransfer: Bool {
+        guard bundledRsyncInfo.isAvailable else { return false }
+        guard !hasInsufficientDestinationSpace else { return false }
+
+        switch transferState {
+        case .ready, .error, .cancelled, .copyComplete, .safeToFormat:
+            return true
+        case .copying, .verifying, .validating:
+            return false
+        }
+    }
+
+    private func refreshSourceMetadata(for url: URL) {
+        sourceMetadataTask?.cancel()
+        sourceMetadataTask = Task { [driveService, weak self] in
+            do {
+                let metadata = try await driveService.sourceMetadata(for: url)
+                try Task.checkCancellation()
+                await MainActor.run {
+                    self?.sourceMetadata = metadata
+                    self?.refreshStorageWarning()
+                }
+            } catch is CancellationError {
+                return
+            } catch {
+                await MainActor.run {
+                    self?.sourceMetadata = nil
+                    self?.storageWarningMessage = nil
+                    self?.errorMessage = "Unable to analyze source folder."
+                }
+            }
+        }
+    }
+
+    private func refreshDestinationMetadata(for url: URL) {
+        destinationMetadataTask?.cancel()
+        destinationMetadataTask = Task { [driveService, weak self] in
+            do {
+                let metadata = try await driveService.destinationMetadata(for: url)
+                try Task.checkCancellation()
+                await MainActor.run {
+                    self?.destinationMetadata = metadata
+                    self?.refreshStorageWarning()
+                }
+            } catch is CancellationError {
+                return
+            } catch {
+                await MainActor.run {
+                    self?.destinationMetadata = nil
+                    self?.storageWarningMessage = nil
+                    self?.errorMessage = "Unable to analyze destination folder."
+                }
+            }
+        }
+    }
+
+    private func refreshStorageWarning() {
+        storageWarningMessage = hasInsufficientDestinationSpace ? "Not enough destination space." : nil
+    }
+
+    private func refreshBundledRsyncInfo() {
+        Task { [weak self, bundledRsyncService] in
+            let bundledInfo = await bundledRsyncService.bundledInfo()
+            await MainActor.run {
+                self?.bundledRsyncInfo = bundledInfo
+            }
+        }
+    }
+    
+    private func addLog(category: LogCategory, message: String) {
+        appendLog(LogEntry(category: category, message: message))
+    }
+
+    private func appendLog(_ entry: LogEntry) {
+        logs.append(entry)
+    }
+}

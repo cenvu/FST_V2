@@ -1,0 +1,355 @@
+# FST Agent Instructions
+
+Version: 2026-06-21  
+Status: Active root instruction file  
+Applies to: Codex, ChatGPT, Claude, and human contributors
+
+---
+
+## Project
+
+FST / FishSock Transfer is a native macOS DIT/Data Wrangler media offload app.
+
+The app exists to answer one operational question:
+
+```text
+Can the source media be safely formatted?
+```
+
+Required workflow:
+
+```text
+SOURCE -> COPY -> VERIFY -> SAFE TO FORMAT
+```
+
+Priority order:
+
+```text
+Data Safety -> Reliability -> Repeatability -> Maintainability -> Performance -> Convenience
+```
+
+Do not add features that do not reduce media-loss risk.
+
+---
+
+## Required Reading
+
+Before editing code, read these active docs in order:
+
+```text
+1. docs/00_AI_AGENT_START_HERE.md
+2. docs/01_PRD.md
+3. docs/02_FST_TECHNICAL_GUIDE.md
+4. docs/03_PROJECT_MASTER_GUIDELINE.md
+5. Existing Swift code relevant to the task
+```
+
+Ignore `docs/archive/` unless the user explicitly asks for historical context.
+
+---
+
+## Repository Layout
+
+Expected layout:
+
+```text
+FST_V2/
+  AGENTS.md
+  README.md
+  docs/
+    00_AI_AGENT_START_HERE.md
+    01_PRD.md
+    02_FST_TECHNICAL_GUIDE.md
+    03_PROJECT_MASTER_GUIDELINE.md
+    archive/
+
+  FishSockTransfer/
+    FishSockTransfer.xcodeproj
+    FishSockTransfer/
+      Assets.xcassets
+      Coordinators/
+      Engines/
+      Models/
+      Services/
+      ViewModels/
+      Views/
+      FishSockTransferApp.swift
+      rsync
+    Tests/
+
+  assets/
+```
+
+Rules:
+
+- Active documentation lives in `docs/`.
+- Swift app code lives in `FishSockTransfer/FishSockTransfer/`.
+- Do not put project guides inside the app source folder.
+- Do not treat old React, Vite, AI Studio, or prototype files as production app code.
+- Do not invent new folders unless the task explicitly requests file-structure cleanup.
+
+---
+
+## Architecture Rules
+
+Allowed dependency flow only:
+
+```text
+SwiftUI View -> TransferViewModel -> TransferCoordinator -> Engines -> Services
+```
+
+Forbidden:
+
+- View calls Engine or Service directly.
+- ViewModel launches rsync, hashes files, or owns workflow transitions.
+- Engine imports SwiftUI.
+- Service changes `TransferState`.
+- Coordinator renders UI.
+- Hidden global workflow state.
+
+Layer ownership:
+
+| Layer | Owns | Must Not Do |
+|---|---|---|
+| Views | layout, rendering, user actions | rsync, hashing, workflow decisions |
+| ViewModel | published UI state, bindings, formatting | process execution, filesystem work, state machine ownership |
+| Coordinator | validation, orchestration, state transitions, SAFE TO FORMAT gate | SwiftUI rendering, low-level shell details |
+| Engines | transfer, progress parsing, verification, report generation | UI state, SwiftUI imports |
+| Services | macOS APIs, bookmarks, rsync lookup, logging wrappers | workflow decisions |
+| Models | data contracts | side effects |
+
+Only `TransferCoordinator` may change `TransferState`.
+
+---
+
+## State Machine
+
+Allowed states only:
+
+```text
+ready, validating, copying, verifying, copyComplete, safeToFormat, error, cancelled
+```
+
+Success flows:
+
+```text
+ready -> validating -> copying -> verifying -> safeToFormat
+ready -> validating -> copying -> copyComplete
+```
+
+Rules:
+
+- Verification `none` ends at `copyComplete`.
+- `safeToFormat` requires copy success and verification pass.
+- No skipped validation.
+- No new or renamed states without explicit spec update.
+- No automatic reset after terminal states unless explicitly implemented and reviewed.
+
+Terminal states:
+
+```text
+copyComplete, safeToFormat, error, cancelled
+```
+
+---
+
+## Rsync Rules
+
+Production transfer must use bundled rsync 3.4.4 only.
+
+Must:
+
+- Resolve the bundled rsync path through `BundledRsyncService`.
+- Validate executable permission.
+- Validate rsync version.
+- Log rsync path.
+- Log rsync version separately from app version.
+- Fail fast if bundled rsync is missing, not executable, or wrong version.
+
+Forbidden:
+
+- Silent fallback to `/usr/bin/rsync`.
+- Destructive rsync flags.
+- Source mutation.
+- Fake success based only on UI progress.
+
+Required production flags:
+
+```text
+-a
+-h
+--info=progress2
+```
+
+Optional:
+
+```text
+--bwlimit=<converted_limit>
+```
+
+---
+
+## Bandwidth Rules
+
+UI labels are MB/s.
+
+Rsync `--bwlimit` must receive converted KiB/s-style values.
+
+Required conversions:
+
+```text
+50 MB/s  -> 51200
+120 MB/s -> 122880
+240 MB/s -> 245760
+Unlimited -> omit --bwlimit
+```
+
+Custom range:
+
+```text
+20...300 MB/s
+```
+
+Conversion must be covered by tests.
+
+---
+
+## Verification Rules
+
+Supported modes:
+
+```text
+none, random33, full
+```
+
+Algorithm:
+
+```text
+xxHash64
+```
+
+Rules:
+
+- `none` means no SAFE TO FORMAT.
+- `random33` verifies about one third of files, with a minimum of one file when files exist.
+- `full` verifies all files.
+- Compare relative paths and file sizes before hashing.
+- Any verification failure blocks SAFE TO FORMAT.
+- Verify off the MainActor.
+- Do not add SHA256, MD5, CRC32, MHL, database, queue, or multi-destination behavior unless the spec changes.
+
+`VerifyEngine` emits verification result. `TransferCoordinator` decides final state.
+
+---
+
+## Source Safety
+
+FST must never modify source media.
+
+Forbidden on source:
+
+- delete
+- rename
+- move
+- metadata write
+- hidden cleanup
+- quarantine changes
+- destructive rsync operation
+
+If there is uncertainty, fail safely and tell the operator not to format the source.
+
+---
+
+## Current Audit Priority
+
+Fix before feature expansion:
+
+```text
+1. Bundled rsync path/version accuracy
+2. App version vs rsync version separation
+3. Speed limiter correctness
+4. .DS_Store hang investigation
+5. Progress reporting accuracy
+6. Transfer pipeline validation
+7. Cancellation safety
+8. SAFE TO FORMAT enforcement
+9. TXT report truthfulness
+```
+
+---
+
+## Coding Rules
+
+Use:
+
+- simple, explicit Swift
+- clear names
+- small changes
+- guard clauses
+- async/await where appropriate
+- tests for engines, parsers, coordinators, bandwidth conversion, verification, and reports
+
+Avoid:
+
+- broad rewrites
+- clever abstractions
+- new dependencies
+- vague `Manager`, `Helper`, or `Utils` files
+- silent `catch {}`
+- unsafe `try?`
+- force unwraps unless impossible to fail and documented
+- TODO placeholders replacing required logic
+
+Never run rsync, hashing, scanning, or report generation on the MainActor.
+
+---
+
+## Required Agent Response Format
+
+Every coding response must use:
+
+```text
+PHASE:
+FILES:
+LAYER CHECK:
+PATCH:
+TESTS:
+VERIFY:
+```
+
+Keep responses short. Code first. No speculative redesign.
+
+Before editing:
+
+```text
+1. Inspect existing files.
+2. Identify the owning layer.
+3. Patch the smallest safe surface.
+4. Add or update tests when changing engine/parser/coordinator/report behavior.
+5. Provide a verification command or manual verification step.
+```
+
+---
+
+## Forbidden Scope Creep
+
+Do not add unless explicitly requested:
+
+- transfer queue
+- multi-destination copy
+- mirrored copy
+- NAS, RAID, LTO, MHL, proxy workflow
+- cloud sync
+- DAM/MAM
+- history database
+- AI features inside the app
+- React/Vite frontend revival
+- Node/Gemini/AI Studio deployment workflow
+
+---
+
+## Final Rule
+
+At 3:00 AM on set, with a producer behind the DIT, choose the implementation that is easiest to inspect, explain, cancel, and verify.
+
+Data safety beats everything.
