@@ -6,10 +6,8 @@ public struct TransferControlsView: View {
     // Limits represented in KiB/s for rsync 3.x --bwlimit semantics.
     private let bandwidthOptions: [(label: String, value: Int?)] = [
         ("50 MB/s", RsyncBandwidthLimit.kibPerSecond(for: 50)),
-        ("100 MB/s", RsyncBandwidthLimit.kibPerSecond(for: 100)),
-        ("150 MB/s", RsyncBandwidthLimit.kibPerSecond(for: 150)),
-        ("200 MB/s", RsyncBandwidthLimit.kibPerSecond(for: 200)),
-        ("250 MB/s", RsyncBandwidthLimit.kibPerSecond(for: 250)),
+        ("120 MB/s", RsyncBandwidthLimit.kibPerSecond(for: 120)),
+        ("240 MB/s", RsyncBandwidthLimit.kibPerSecond(for: 240)),
         ("Unlimited", nil)
     ]
     

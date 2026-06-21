@@ -26,6 +26,14 @@ public actor VerifyEngine {
             log("Phase: Source inventory build completed", onEvent: onEvent)
             log("Source File Count: \(sourceInventory.count)", onEvent: onEvent)
 
+            if request.mode != .none && sourceInventory.isEmpty {
+                log("No transferable files found after exclusions", onEvent: onEvent)
+                log("VerificationError created: noTransferableFiles", onEvent: onEvent)
+                log("VerificationError propagated from VerifyEngine: noTransferableFiles", onEvent: onEvent)
+                onEvent(.failed(.noTransferableFiles))
+                return
+            }
+
             log("Phase: Destination inventory build started", onEvent: onEvent)
             let destInventory = try await buildInventory(at: request.destinationURL, label: "Destination", onEvent: onEvent)
             log("Phase: Destination inventory build completed", onEvent: onEvent)
@@ -221,7 +229,7 @@ public actor VerifyEngine {
             }
             guard resourceValues.isRegularFile == true else { continue }
             
-            let relativePath = fileURL.path.replacingOccurrences(of: url.path + "/", with: "")
+            let relativePath = TransferFileExclusionPolicy.relativePath(for: fileURL, rootURL: url)
             let size = Int64(resourceValues.fileSize ?? 0)
             
             inventory[relativePath] = FileInfo(relativePath: relativePath, size: size)

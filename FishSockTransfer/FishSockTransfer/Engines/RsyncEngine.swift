@@ -26,7 +26,16 @@ public actor RsyncEngine {
             return
         }
 
-        let command = RsyncCommand(bundledInfo: bundledInfo, request: request)
+        let command: RsyncCommand
+        do {
+            command = try RsyncCommand(bundledInfo: bundledInfo, request: request)
+        } catch {
+            onEvent(.log("Invalid bandwidth limit: \(error.localizedDescription)"))
+            onEvent(.failed(.invalidBandwidthLimit))
+            cleanup()
+            return
+        }
+
         for diagnostic in command.diagnostics {
             onEvent(.log(diagnostic))
         }
@@ -150,7 +159,7 @@ nonisolated private struct RsyncCommand: Sendable {
         "\(versionDescription) at \(executableURL.path)"
     }
 
-    init(bundledInfo: BundledRsyncInfo, request: TransferRequest) {
+    init(bundledInfo: BundledRsyncInfo, request: TransferRequest) throws {
         guard let executableURL = bundledInfo.executableURL else {
             preconditionFailure("RsyncCommand requires an available rsync executable.")
         }
@@ -161,15 +170,15 @@ nonisolated private struct RsyncCommand: Sendable {
 
         var arguments = ["-a", "-h", "--info=progress2"]
 
-        if let bwlimitKiBPerSecond = request.bandwidthLimit {
-            let bandwidthArgumentValue = bwlimitKiBPerSecond
-            let selectedLimitDescription = Self.selectedLimitDescription(kibPerSecond: bwlimitKiBPerSecond)
+        if let bwlimitArgument = try RsyncBandwidthLimit.rsyncArgument(forKiBPerSecond: request.bandwidthLimit),
+           let bwlimitKiBPerSecond = request.bandwidthLimit {
+            let selectedLimitDescription = RsyncBandwidthLimit.displayDescription(kibPerSecond: bwlimitKiBPerSecond)
 
-            arguments.append("--bwlimit=\(bandwidthArgumentValue)")
+            arguments.append(bwlimitArgument)
             self.bandwidthDiagnosticSummary = [
                 "Selected Limit: \(selectedLimitDescription)",
                 "Converted Limit: \(bwlimitKiBPerSecond) KiB/s",
-                "Rsync Bwlimit Argument: --bwlimit=\(bandwidthArgumentValue)",
+                "Rsync Bwlimit Argument: \(bwlimitArgument)",
                 "Rsync Version: \(versionDescription)"
             ].joined(separator: " | ")
         } else {
@@ -185,13 +194,5 @@ nonisolated private struct RsyncCommand: Sendable {
         arguments.append(request.sourceURL.path)
         arguments.append(request.destinationURL.path + "/")
         self.arguments = arguments
-    }
-
-    private static func selectedLimitDescription(kibPerSecond: Int) -> String {
-        let mibPerSecond = Double(kibPerSecond) / 1024.0
-        if mibPerSecond.rounded() == mibPerSecond {
-            return "\(Int(mibPerSecond)) MB/s"
-        }
-        return String(format: "%.2f MB/s", mibPerSecond)
     }
 }

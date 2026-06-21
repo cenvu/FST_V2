@@ -15,7 +15,7 @@ nonisolated public enum TransferFileExclusionPolicy {
     }
 
     public static func shouldExclude(_ url: URL, rootURL: URL) -> Bool {
-        let relativePath = url.path.replacingOccurrences(of: rootURL.path + "/", with: "")
+        let relativePath = relativePath(for: url, rootURL: rootURL)
         let components = relativePath.split(separator: "/").map(String.init)
 
         return components.contains { component in
@@ -26,5 +26,16 @@ nonisolated public enum TransferFileExclusionPolicy {
             component == ".fseventsd" ||
             component == ".TemporaryItems"
         }
+    }
+
+    public static func relativePath(for url: URL, rootURL: URL) -> String {
+        let rootPath = rootURL.resolvingSymlinksInPath().standardizedFileURL.path
+        let itemPath = url.resolvingSymlinksInPath().standardizedFileURL.path
+
+        guard itemPath.hasPrefix(rootPath + "/") else {
+            return url.lastPathComponent
+        }
+
+        return String(itemPath.dropFirst(rootPath.count + 1))
     }
 }

@@ -5,7 +5,7 @@ public actor ReportEngine {
     public init() {}
     
     public func generateReportText(report: TransferReport, bandwidthLimit: Int?) -> String {
-        let limitString = bandwidthLimit.map { "\($0 / 1024) MB/s" } ?? "UNLIMITED"
+        let limitString = RsyncBandwidthLimit.displayDescription(kibPerSecond: bandwidthLimit).uppercased()
         let verifyResultStr = report.verificationResult?.rawValue.uppercased() ?? "N/A"
         let sizeMB = Double(report.totalSize) / 1_048_576.0
         

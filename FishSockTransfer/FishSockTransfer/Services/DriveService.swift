@@ -17,8 +17,8 @@ public actor DriveService {
             throw TransferError.sourceUnavailable
         }
         
-        let contents = try? fileManager.contentsOfDirectory(atPath: url.path)
-        guard let contents = contents, !contents.isEmpty else {
+        let scan = try scanFolder(at: url)
+        guard scan.fileCount > 0 else {
             throw TransferError.sourceEmpty
         }
     }

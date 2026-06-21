@@ -119,6 +119,16 @@ public final class TransferViewModel: ObservableObject {
             addLog(category: .warning, message: "Not enough destination space.")
             return
         }
+
+        if let bandwidthLimit {
+            do {
+                _ = try RsyncBandwidthLimit.validate(kibPerSecond: bandwidthLimit)
+            } catch {
+                errorMessage = error.localizedDescription
+                addLog(category: .error, message: error.localizedDescription)
+                return
+            }
+        }
         
         resetTransferMetrics()
         errorMessage = nil
@@ -165,6 +175,7 @@ public final class TransferViewModel: ObservableObject {
     public var canStartTransfer: Bool {
         guard bundledRsyncInfo.isAvailable else { return false }
         guard !hasInsufficientDestinationSpace else { return false }
+        guard isBandwidthLimitValid else { return false }
 
         switch transferState {
         case .ready, .error, .cancelled, .copyComplete, .safeToFormat:
@@ -172,6 +183,11 @@ public final class TransferViewModel: ObservableObject {
         case .copying, .verifying, .validating:
             return false
         }
+    }
+
+    private var isBandwidthLimitValid: Bool {
+        guard let bandwidthLimit else { return true }
+        return (try? RsyncBandwidthLimit.validate(kibPerSecond: bandwidthLimit)) != nil
     }
 
     private func refreshSourceMetadata(for url: URL) {

@@ -8,6 +8,7 @@ nonisolated public enum TransferError: Error, Equatable, LocalizedError, Sendabl
     case insufficientSpace
     case rsyncExit(Int32)
     case rsyncNotFound
+    case invalidBandwidthLimit
     case interrupted
     case timeout
     case unknown
@@ -28,6 +29,8 @@ nonisolated public enum TransferError: Error, Equatable, LocalizedError, Sendabl
             return "Transfer process exited with error code \(code)."
         case .rsyncNotFound:
             return "Bundled rsync is missing, not executable, or not version 3.4.4."
+        case .invalidBandwidthLimit:
+            return "Invalid bandwidth limit. Choose Unlimited or 20-300 MB/s."
         case .interrupted:
             return "The transfer was interrupted."
         case .timeout:
