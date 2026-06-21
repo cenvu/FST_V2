@@ -87,8 +87,51 @@ nonisolated public final class ProgressParser: Sendable {
     }
 
     private func isByteCount(_ string: String) -> Bool {
-        let characters = Array(string)
-        guard characters.contains(where: { $0.isNumber }) else { return false }
-        return characters.allSatisfy { $0.isNumber || $0 == "," }
+        if isCommaSeparatedInteger(string) {
+            return true
+        }
+
+        guard let unit = string.last, "KMGT".contains(unit) else {
+            return false
+        }
+
+        return isPlainNumber(String(string.dropLast()))
+    }
+
+    private func isCommaSeparatedInteger(_ string: String) -> Bool {
+        let groups = string.split(separator: ",", omittingEmptySubsequences: false)
+        guard let firstGroup = groups.first,
+              !firstGroup.isEmpty,
+              firstGroup.allSatisfy(\.isNumber) else {
+            return false
+        }
+
+        if groups.count == 1 {
+            return true
+        }
+
+        guard (1...3).contains(firstGroup.count) else {
+            return false
+        }
+
+        return groups.dropFirst().allSatisfy { group in
+            group.count == 3 && group.allSatisfy(\.isNumber)
+        }
+    }
+
+    private func isPlainNumber(_ string: String) -> Bool {
+        let parts = string.split(separator: ".", omittingEmptySubsequences: false)
+
+        switch parts.count {
+        case 1:
+            return !parts[0].isEmpty && parts[0].allSatisfy(\.isNumber)
+        case 2:
+            return !parts[0].isEmpty
+                && !parts[1].isEmpty
+                && parts[0].allSatisfy(\.isNumber)
+                && parts[1].allSatisfy(\.isNumber)
+        default:
+            return false
+        }
     }
 }
