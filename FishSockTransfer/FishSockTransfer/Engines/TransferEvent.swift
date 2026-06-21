@@ -27,7 +27,7 @@ nonisolated public enum TransferError: Error, Equatable, LocalizedError, Sendabl
         case .rsyncExit(let code):
             return "Transfer process exited with error code \(code)."
         case .rsyncNotFound:
-            return "Bundled rsync executable was not found."
+            return "Bundled rsync is missing, not executable, or not version 3.4.4."
         case .interrupted:
             return "The transfer was interrupted."
         case .timeout:
