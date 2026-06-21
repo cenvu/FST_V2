@@ -75,9 +75,7 @@ public final class TransferViewModel: ObservableObject {
             await coordinator.configureCallbacks(
                 onStateChanged: { [weak self] state in
                     self?.transferState = state
-                    if state == .ready {
-                        self?.resetTransferMetrics()
-                    }
+                    self?.handleTransferStateChange(state)
                 },
                 onProgress: { [weak self] p in
                     self?.progress = p
@@ -157,6 +155,29 @@ public final class TransferViewModel: ObservableObject {
     
     private func resetTransferMetrics() {
         progress = 0.0
+        speed = 0.0
+        eta = 0.0
+        currentFile = ""
+    }
+
+    private func handleTransferStateChange(_ state: TransferState) {
+        switch state {
+        case .ready:
+            resetTransferMetrics()
+        case .verifying:
+            progress = 0.0
+            clearCopyRuntimeMetrics()
+        case .copyComplete, .safeToFormat:
+            progress = 100.0
+            clearCopyRuntimeMetrics()
+        case .error, .cancelled:
+            clearCopyRuntimeMetrics()
+        case .validating, .copying:
+            break
+        }
+    }
+
+    private func clearCopyRuntimeMetrics() {
         speed = 0.0
         eta = 0.0
         currentFile = ""

@@ -16,6 +16,7 @@ public actor RsyncEngine {
     public func startTransfer(request: TransferRequest, onEvent: @escaping @Sendable (TransferEvent) -> Void) async {
         isCancelled = false
         onEvent(.started)
+        emitCopyRuntimeMetricsCleared(onEvent: onEvent)
         let bundledInfo = await bundledRsyncService.bundledInfo()
         guard bundledInfo.isAvailable else {
             for diagnostic in bundledInfo.diagnostics {
@@ -90,16 +91,22 @@ public actor RsyncEngine {
             
             let status = rsyncProcess.terminationStatus
             if isCancelled || status == 20 || status == 9 {
+                emitCopyRuntimeMetricsCleared(onEvent: onEvent)
                 onEvent(.cancelled)
             } else if status == 0 {
+                onEvent(.progress(ProgressParser.completedCopyProgress))
+                emitCopyRuntimeMetricsCleared(onEvent: onEvent)
                 onEvent(.completed)
             } else {
+                emitCopyRuntimeMetricsCleared(onEvent: onEvent)
                 onEvent(.failed(mapExitCode(status)))
             }
         } catch {
             if isCancelled {
+                emitCopyRuntimeMetricsCleared(onEvent: onEvent)
                 onEvent(.cancelled)
             } else {
+                emitCopyRuntimeMetricsCleared(onEvent: onEvent)
                 onEvent(.failed(.processLaunchFailed))
             }
         }
@@ -119,15 +126,17 @@ public actor RsyncEngine {
         onEvent(.log("[STDOUT] \(trimmed)"))
         
         if let data = parser.parse(line: line) {
-            onEvent(.progress(data.progress))
+            onEvent(.progress(ProgressParser.activeCopyProgress(data.progress)))
             onEvent(.speed(data.speedMBps))
             onEvent(.eta(data.eta))
             onEvent(.log(String(format: "Actual Runtime Speed: %.2f MB/s", data.speedMBps)))
-        } else {
-            if !trimmed.contains("bytes/sec") && !trimmed.contains("total size is") {
-                onEvent(.currentFile(trimmed))
-            }
         }
+    }
+
+    private func emitCopyRuntimeMetricsCleared(onEvent: @Sendable (TransferEvent) -> Void) {
+        onEvent(.currentFile(""))
+        onEvent(.speed(0.0))
+        onEvent(.eta(0.0))
     }
     
     private func mapExitCode(_ code: Int32) -> TransferError {
