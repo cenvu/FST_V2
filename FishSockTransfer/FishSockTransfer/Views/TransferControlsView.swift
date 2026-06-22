@@ -50,6 +50,11 @@ public struct TransferControlsView: View {
                         .pickerStyle(.menu)
                         .labelsHidden()
                         .frame(width: 200, alignment: .leading)
+
+                        Text(viewModel.verificationMode.operatorDescription)
+                            .font(.system(.footnote, design: .rounded))
+                            .foregroundColor(.gray)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
                 }
                 .disabled(viewModel.isTransferConfigurationLocked)
@@ -111,6 +116,18 @@ public struct TransferControlsView: View {
                 }
                 .font(.system(.subheadline, design: .rounded))
                 .foregroundColor(TransferControlsActionPresentation.buttonColor(for: .cancelled))
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+
+            if let reportStatusMessage = viewModel.reportStatusMessage {
+                HStack(spacing: 8) {
+                    Image(systemName: reportStatusMessage.hasPrefix("Report saved: ") ? "doc.text.fill" : "exclamationmark.triangle.fill")
+                    Text(reportStatusMessage)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                }
+                .font(.system(.subheadline, design: .rounded))
+                .foregroundColor(reportStatusMessage.hasPrefix("Report saved: ") ? Color.gray : Color(red: 0.86, green: 0.60, blue: 0.28))
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
 
@@ -219,6 +236,19 @@ public struct TransferControlsView: View {
             viewModel.cancelTransfer()
         } else {
             viewModel.startTransfer()
+        }
+    }
+}
+
+public extension VerificationMode {
+    var operatorDescription: String {
+        switch self {
+        case .none:
+            return "Copy only. No hash verification by FST."
+        case .random33:
+            return "Sample verification. Faster, not full coverage."
+        case .full:
+            return "Full hash verification. Safest, slower."
         }
     }
 }

@@ -39,6 +39,15 @@ public struct DestinationCardView: View {
                             .foregroundColor(.gray)
                             .padding(.top, 4)
                     }
+
+                    if let destinationTargetPreview = viewModel.destinationTargetPreview {
+                        Text(destinationTargetPreview)
+                            .font(.system(.footnote, design: .monospaced))
+                            .foregroundColor(.green.opacity(0.9))
+                            .lineLimit(1)
+                            .truncationMode(.middle)
+                            .padding(.top, 4)
+                    }
                 } else {
                     Text("Select Destination")
                         .font(.headline)

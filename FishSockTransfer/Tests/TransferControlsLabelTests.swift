@@ -42,6 +42,72 @@ struct TransferControlsLabelTests {
     }
 
     private static func testActionPresentation() {
+        let sourceURL = URL(fileURLWithPath: "/Volumes/CARD_A", isDirectory: true)
+        let destinationURL = URL(fileURLWithPath: "/Volumes/BACKUP_01", isDirectory: true)
+
+        assertEqual(
+            TransferDestinationPreview.message(source: sourceURL, destination: destinationURL),
+            "Will create: BACKUP_01/CARD_A",
+            "destination target preview"
+        )
+        assertNil(
+            TransferDestinationPreview.message(source: nil, destination: destinationURL),
+            "missing source must not render target preview"
+        )
+        assertNil(
+            TransferDestinationPreview.message(source: sourceURL, destination: nil),
+            "missing destination must not render target preview"
+        )
+
+        assertEqual(
+            VerificationMode.none.operatorDescription,
+            "Copy only. No hash verification by FST.",
+            "none verification description"
+        )
+        assertTrue(
+            VerificationMode.none.operatorDescription.localizedCaseInsensitiveContains("No hash verification"),
+            "none description must not imply verification"
+        )
+        assertEqual(
+            VerificationMode.random33.operatorDescription,
+            "Sample verification. Faster, not full coverage.",
+            "random33 verification description"
+        )
+        assertTrue(
+            VerificationMode.random33.operatorDescription.localizedCaseInsensitiveContains("not full coverage"),
+            "random33 description must not imply full verification"
+        )
+        assertEqual(
+            VerificationMode.full.operatorDescription,
+            "Full hash verification. Safest, slower.",
+            "full verification description"
+        )
+        assertTrue(
+            VerificationMode.full.operatorDescription.localizedCaseInsensitiveContains("Full hash verification"),
+            "full description must say full hash verification"
+        )
+
+        assertEqual(
+            TransferReportStatusPresentation.message(forLogMessage: "Report saved: /tmp/FST_Report.txt"),
+            "Report saved: /tmp/FST_Report.txt",
+            "report saved status"
+        )
+        assertEqual(
+            TransferReportStatusPresentation.message(forLogMessage: "Report skipped: unsafe report destination for preflight failure."),
+            "Report skipped: unsafe destination for report",
+            "report skipped status"
+        )
+        assertEqual(
+            TransferReportStatusPresentation.message(forLogMessage: "Report write failed: Disk full."),
+            "Report warning: Disk full.",
+            "report warning status"
+        )
+        assertNotEqual(
+            TransferReportStatusPresentation.message(forLogMessage: "Report skipped: unsafe report destination for preflight failure."),
+            "Report saved: unsafe destination for report",
+            "report skipped must not imply saved success"
+        )
+
         assertEqual(
             TransferControlsActionPresentation.title(for: .ready),
             "START",

@@ -29,6 +29,7 @@ public final class TransferViewModel: ObservableObject {
     @Published public var sourceMetadata: SourceStorageMetadata?
     @Published public var destinationMetadata: DestinationStorageMetadata?
     @Published public var storageWarningMessage: String? = nil
+    @Published public var reportStatusMessage: String? = nil
     @Published public var bundledRsyncInfo: BundledRsyncInfo = .unavailable(
         version: BundledRsyncService.bundledVersion,
         diagnostics: []
@@ -122,6 +123,8 @@ public final class TransferViewModel: ObservableObject {
     }
     
     public func startTransfer() {
+        reportStatusMessage = nil
+
         guard bundledRsyncInfo.isAvailable else {
             errorMessage = "Bundled rsync executable was not found."
             addLog(category: .error, message: "Bundled rsync executable was not found.")
@@ -216,6 +219,11 @@ public final class TransferViewModel: ObservableObject {
 
     public var isTransferConfigurationLocked: Bool {
         TransferInteractionLock.isConfigurationLocked(for: transferState)
+    }
+
+    public var destinationTargetPreview: String? {
+        guard let sourceURL, let destinationURL else { return nil }
+        return TransferDestinationPreview.message(source: sourceURL, destination: destinationURL)
     }
 
     public var canStartTransfer: Bool {
@@ -333,5 +341,38 @@ public final class TransferViewModel: ObservableObject {
 
     private func appendLog(_ entry: LogEntry) {
         logs.append(entry)
+        if let message = TransferReportStatusPresentation.message(forLogMessage: entry.message) {
+            reportStatusMessage = message
+        }
+    }
+}
+
+nonisolated public enum TransferDestinationPreview {
+    public static func message(source: URL?, destination: URL?) -> String? {
+        guard let source, let destination else { return nil }
+        return message(source: source, destination: destination)
+    }
+
+    public static func message(source: URL, destination: URL) -> String {
+        "Will create: \(destination.lastPathComponent)/\(source.lastPathComponent)"
+    }
+}
+
+nonisolated public enum TransferReportStatusPresentation {
+    public static func message(forLogMessage logMessage: String) -> String? {
+        if logMessage.hasPrefix("Report saved: ") {
+            return logMessage
+        }
+
+        if logMessage.hasPrefix("Report skipped: ") {
+            return "Report skipped: unsafe destination for report"
+        }
+
+        if logMessage.hasPrefix("Report write failed: ") {
+            let reason = String(logMessage.dropFirst("Report write failed: ".count))
+            return "Report warning: \(reason)"
+        }
+
+        return nil
     }
 }
