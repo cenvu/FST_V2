@@ -1,6 +1,17 @@
 import Foundation
 import Combine
 
+nonisolated public enum TransferInteractionLock {
+    public static func isConfigurationLocked(for state: TransferState) -> Bool {
+        switch state {
+        case .validating, .copying, .verifying:
+            return true
+        case .ready, .copyComplete, .safeToFormat, .error, .cancelled:
+            return false
+        }
+    }
+}
+
 @MainActor
 public final class TransferViewModel: ObservableObject {
     @Published public var sourceURL: URL?
@@ -44,6 +55,11 @@ public final class TransferViewModel: ObservableObject {
 
     @discardableResult
     public func selectSourceFolder(_ url: URL) -> Bool {
+        guard !isTransferConfigurationLocked else {
+            errorMessage = "Transfer in progress. Source and destination are locked."
+            return false
+        }
+
         guard isDirectory(url) else {
             errorMessage = "Source selection must be a folder."
             return false
@@ -58,6 +74,11 @@ public final class TransferViewModel: ObservableObject {
 
     @discardableResult
     public func selectDestinationFolder(_ url: URL) -> Bool {
+        guard !isTransferConfigurationLocked else {
+            errorMessage = "Transfer in progress. Source and destination are locked."
+            return false
+        }
+
         guard isDirectory(url) else {
             errorMessage = "Destination selection must be a folder."
             return false
@@ -193,7 +214,13 @@ public final class TransferViewModel: ObservableObject {
         return sourceMetadata.totalSizeBytes > destinationMetadata.freeSpaceBytes
     }
 
+    public var isTransferConfigurationLocked: Bool {
+        TransferInteractionLock.isConfigurationLocked(for: transferState)
+    }
+
     public var canStartTransfer: Bool {
+        guard sourceURL != nil else { return false }
+        guard destinationURL != nil else { return false }
         guard bundledRsyncInfo.isAvailable else { return false }
         guard !hasInsufficientDestinationSpace else { return false }
         guard isBandwidthLimitValid else { return false }
@@ -201,9 +228,41 @@ public final class TransferViewModel: ObservableObject {
         switch transferState {
         case .ready, .error, .cancelled, .copyComplete, .safeToFormat:
             return true
-        case .copying, .verifying, .validating:
+        case .validating, .copying, .verifying:
             return false
         }
+    }
+
+    public var startBlockedReason: String? {
+        if isTransferConfigurationLocked {
+            return "Transfer in progress. Source, destination, and settings locked."
+        }
+
+        if sourceURL == nil {
+            return "Select a source folder."
+        }
+
+        if destinationURL == nil {
+            return "Select a destination folder."
+        }
+
+        if !bundledRsyncInfo.isAvailable {
+            return bundledRsyncInfo.diagnostics.first ?? "Bundled rsync unavailable."
+        }
+
+        if hasInsufficientDestinationSpace {
+            return "Not enough destination space."
+        }
+
+        if !isBandwidthLimitValid {
+            return "Invalid bandwidth limit."
+        }
+
+        if transferState == .error, let errorMessage {
+            return errorMessage
+        }
+
+        return nil
     }
 
     private var isBandwidthLimitValid: Bool {

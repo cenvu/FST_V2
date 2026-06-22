@@ -47,16 +47,26 @@ public struct SourceCardView: View {
                         .font(.system(.subheadline, design: .monospaced))
                         .foregroundColor(.gray)
                 }
+
+                if viewModel.isTransferConfigurationLocked {
+                    Label("Selection locked during transfer", systemImage: "lock.fill")
+                        .font(.system(.caption, design: .rounded))
+                        .foregroundColor(.blue.opacity(0.85))
+                        .padding(.top, 4)
+                }
             }
             .frame(maxWidth: .infinity, minHeight: 142)
 
             Button {
+                guard !viewModel.isTransferConfigurationLocked else { return }
                 guard let url = FolderPicker.chooseFolder() else { return }
                 viewModel.selectSourceFolder(url)
             } label: {
                 Label("Choose Folder", systemImage: "folder")
             }
             .buttonStyle(.bordered)
+            .disabled(viewModel.isTransferConfigurationLocked)
+            .opacity(viewModel.isTransferConfigurationLocked ? 0.55 : 1.0)
             .frame(width: 160)
             
             Spacer()
@@ -68,16 +78,17 @@ public struct SourceCardView: View {
         .overlay(
             RoundedRectangle(cornerRadius: 12)
                 .stroke(
-                    isDropTargeted ? Color.blue :
-                        (viewModel.transferState == .copying ? viewModel.transferState.statusColor : Color.blue.opacity(0.5)),
+                    viewModel.isTransferConfigurationLocked ? viewModel.transferState.statusColor :
+                        (isDropTargeted ? Color.blue : Color.blue.opacity(0.5)),
                     style: StrokeStyle(lineWidth: isDropTargeted ? 2 : 1, dash: [5])
                 )
         )
         .dropDestination(for: URL.self) { urls, _ in
+            guard !viewModel.isTransferConfigurationLocked else { return false }
             guard let url = urls.first else { return false }
             return viewModel.selectSourceFolder(url)
         } isTargeted: { isTargeted in
-            isDropTargeted = isTargeted
+            isDropTargeted = isTargeted && !viewModel.isTransferConfigurationLocked
         }
     }
 

@@ -12,9 +12,36 @@ private func assertNotEqual<T: Equatable>(_ actual: T, _ expected: T, _ message:
     }
 }
 
+private func assertFalse(_ condition: Bool, _ message: String) {
+    guard !condition else {
+        fatalError(message)
+    }
+}
+
+private func assertTrue(_ condition: Bool, _ message: String) {
+    guard condition else {
+        fatalError(message)
+    }
+}
+
+private func assertNil<T>(_ value: T?, _ message: String) {
+    guard value == nil else {
+        fatalError(message)
+    }
+}
+
 @main
 struct TransferControlsLabelTests {
-    static func main() {
+    static func main() async throws {
+        testActionPresentation()
+        try await MainActor.run {
+            try testViewModelStartGateAndSelectionLock()
+        }
+
+        print("TransferControlsLabelTests passed")
+    }
+
+    private static func testActionPresentation() {
         assertEqual(
             TransferControlsActionPresentation.title(for: .ready),
             "START",
@@ -65,6 +92,30 @@ struct TransferControlsLabelTests {
             ),
             "MANUAL CHECK REQUIRED",
             "verification failure label"
+        )
+        assertEqual(
+            TransferControlsActionPresentation.visualRole(
+                for: .error,
+                errorMessage: "MANUAL CHECK REQUIRED: Verification failed."
+            ),
+            .manualCheckRequired,
+            "manual check visual role"
+        )
+        assertNotEqual(
+            TransferControlsActionPresentation.visualRole(
+                for: .error,
+                errorMessage: "MANUAL CHECK REQUIRED: Verification failed."
+            ),
+            TransferControlsActionPresentation.visualRole(for: .error),
+            "manual check role must differ from transfer error role"
+        )
+        assertNotEqual(
+            TransferControlsActionPresentation.icon(
+                for: .error,
+                errorMessage: "MANUAL CHECK REQUIRED: Verification failed."
+            ),
+            TransferControlsActionPresentation.icon(for: .error),
+            "manual check icon must differ from transfer error icon"
         )
         assertEqual(
             TransferControlsActionPresentation.icon(for: .copyComplete),
@@ -123,10 +174,114 @@ struct TransferControlsLabelTests {
         )
         assertEqual(
             TransferControlsActionPresentation.title(for: .cancelled),
-            "START",
+            "CANCELLED",
             "cancelled label"
         )
+        assertEqual(
+            TransferControlsActionPresentation.title(for: .cancelled, canStartTransfer: true),
+            "START NEW TRANSFER",
+            "cancelled restart action label"
+        )
 
-        print("TransferControlsLabelTests passed")
+        assertEqual(
+            TransferControlsActionPresentation.visualRole(for: .cancelled),
+            .cancelled,
+            "cancelled visual role"
+        )
+        assertNotEqual(
+            TransferControlsActionPresentation.visualRole(for: .cancelled),
+            TransferControlsActionPresentation.visualRole(for: .safeToFormat),
+            "cancelled role must not look safe"
+        )
+        assertNotEqual(
+            TransferControlsActionPresentation.icon(for: .cancelled),
+            TransferControlsActionPresentation.icon(for: .safeToFormat),
+            "cancelled icon must not look safe"
+        )
+        assertNotEqual(
+            TransferControlsActionPresentation.title(for: .cancelled),
+            "SAFE TO EJECT",
+            "cancelled must not display safe-to-eject label"
+        )
+    }
+
+    @MainActor
+    private static func testViewModelStartGateAndSelectionLock() throws {
+        let temporaryRoot = URL(fileURLWithPath: NSTemporaryDirectory())
+            .appendingPathComponent("FSTTransferControlsLabelTests-\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: temporaryRoot, withIntermediateDirectories: true)
+        defer {
+            try? FileManager.default.removeItem(at: temporaryRoot)
+        }
+
+        let sourceURL = try folder(named: "SOURCE", in: temporaryRoot)
+        let destinationURL = try folder(named: "DESTINATION", in: temporaryRoot)
+        let alternateSourceURL = try folder(named: "ALT_SOURCE", in: temporaryRoot)
+        let alternateDestinationURL = try folder(named: "ALT_DESTINATION", in: temporaryRoot)
+
+        let viewModel = TransferViewModel()
+        viewModel.bundledRsyncInfo = BundledRsyncInfo(
+            executableURL: URL(fileURLWithPath: "/tmp/fst-test-rsync"),
+            version: "3.4.4",
+            diagnostics: []
+        )
+
+        assertFalse(viewModel.canStartTransfer, "missing source must disable start")
+        assertEqual(viewModel.startBlockedReason, "Select a source folder.", "missing source reason")
+
+        viewModel.sourceURL = sourceURL
+        assertFalse(viewModel.canStartTransfer, "missing destination must disable start")
+        assertEqual(viewModel.startBlockedReason, "Select a destination folder.", "missing destination reason")
+
+        viewModel.destinationURL = destinationURL
+        assertTrue(viewModel.canStartTransfer, "selected source and destination should enable ready start")
+
+        viewModel.transferState = .cancelled
+        assertTrue(viewModel.canStartTransfer, "cancelled with valid selections must allow restart")
+        assertNil(viewModel.startBlockedReason, "cancelled restart must not show blocked reason")
+
+        viewModel.sourceURL = nil
+        assertFalse(viewModel.canStartTransfer, "cancelled missing source must disable start")
+        assertEqual(viewModel.startBlockedReason, "Select a source folder.", "cancelled missing source reason")
+
+        viewModel.sourceURL = sourceURL
+        viewModel.destinationURL = nil
+        assertFalse(viewModel.canStartTransfer, "cancelled missing destination must disable start")
+        assertEqual(viewModel.startBlockedReason, "Select a destination folder.", "cancelled missing destination reason")
+
+        viewModel.destinationURL = destinationURL
+
+        for state in [TransferState.validating, .copying, .verifying] {
+            viewModel.transferState = state
+            assertFalse(viewModel.canStartTransfer, "\(state.rawValue) must disable start")
+            assertTrue(
+                TransferInteractionLock.isConfigurationLocked(for: state),
+                "\(state.rawValue) must lock source, destination, and settings"
+            )
+            assertEqual(
+                viewModel.startBlockedReason,
+                "Transfer in progress. Source, destination, and settings locked.",
+                "\(state.rawValue) lock reason"
+            )
+        }
+
+        viewModel.transferState = .validating
+        assertFalse(viewModel.selectSourceFolder(alternateSourceURL), "active validation must reject source changes")
+        assertEqual(viewModel.sourceURL, sourceURL, "locked source selection must remain unchanged")
+        assertFalse(viewModel.selectDestinationFolder(alternateDestinationURL), "active validation must reject destination changes")
+        assertEqual(viewModel.destinationURL, destinationURL, "locked destination selection must remain unchanged")
+
+        for state in [TransferState.ready, .copyComplete, .safeToFormat, .error, .cancelled] {
+            assertFalse(
+                TransferInteractionLock.isConfigurationLocked(for: state),
+                "\(state.rawValue) must not be treated as active lock state"
+            )
+        }
+    }
+
+    private static func folder(named name: String, in parentURL: URL) throws -> URL {
+        let folderURL = parentURL.appendingPathComponent(name, isDirectory: true)
+        try FileManager.default.createDirectory(at: folderURL, withIntermediateDirectories: true)
+        return folderURL
     }
 }
