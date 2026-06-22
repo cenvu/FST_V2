@@ -43,6 +43,15 @@
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       shouldUseLaunchSchemeArgsEnv = "YES"
       shouldAutocreateTestPlan = "YES">
+      <MacroExpansion>
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "7D9475BE2FDF1FF300F41AE2"
+            BuildableName = "FishSockTransfer.app"
+            BlueprintName = "FishSockTransfer"
+            ReferencedContainer = "container:FishSockTransfer.xcodeproj">
+         </BuildableReference>
+      </MacroExpansion>
       <Testables>
          <TestableReference
             skipped = "NO"
@@ -56,15 +65,6 @@
             </BuildableReference>
          </TestableReference>
       </Testables>
-      <MacroExpansion>
-         <BuildableReference
-            BuildableIdentifier = "primary"
-            BlueprintIdentifier = "7D9475BE2FDF1FF300F41AE2"
-            BuildableName = "FishSockTransfer.app"
-            BlueprintName = "FishSockTransfer"
-            ReferencedContainer = "container:FishSockTransfer.xcodeproj">
-         </BuildableReference>
-      </MacroExpansion>
    </TestAction>
    <LaunchAction
       buildConfiguration = "Debug"
