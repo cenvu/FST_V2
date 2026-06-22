@@ -8,6 +8,8 @@ public actor TransferCoordinator {
     private let loggerService: LoggerService
     private let rsyncEngine: RsyncEngine
     private let verifyEngine: VerifyEngine
+    private let reportEngine: ReportEngine
+    private let bundledRsyncService: BundledRsyncService
     
     // Callbacks for ViewModel
     private var onStateChanged: (@MainActor @Sendable (TransferState) -> Void)?
@@ -26,12 +28,15 @@ public actor TransferCoordinator {
         loggerService: LoggerService = LoggerService(),
         rsyncEngine: RsyncEngine? = nil,
         verifyEngine: VerifyEngine = VerifyEngine(),
+        reportEngine: ReportEngine = ReportEngine(),
         bundledRsyncService: BundledRsyncService = BundledRsyncService()
     ) {
         self.driveService = driveService
         self.loggerService = loggerService
         self.rsyncEngine = rsyncEngine ?? RsyncEngine(bundledRsyncService: bundledRsyncService)
         self.verifyEngine = verifyEngine
+        self.reportEngine = reportEngine
+        self.bundledRsyncService = bundledRsyncService
     }
 
     public func configureCallbacks(
@@ -92,12 +97,16 @@ public actor TransferCoordinator {
     }
     
     private func runWorkflow(source: URL, destination: URL, bandwidthLimit: Int?, mode: VerificationMode) async {
+        let workflowStartDate = Date()
+        var sourceMetadata: SourceStorageMetadata?
+
         // STATE: VALIDATING
         await updateState(.validating)
         await log(category: .info, message: "Validating transfer requirements...")
         
         do {
             try await driveService.validateSource(at: source)
+            sourceMetadata = try await driveService.sourceMetadata(for: source)
             try await driveService.validateDestination(at: destination)
             let freeSpace = try await driveService.calculateFreeSpace(at: destination)
             if freeSpace <= 0 {
@@ -108,11 +117,35 @@ public actor TransferCoordinator {
             await log(category: .error, message: message)
             await onError?(message)
             await updateState(.error)
+            await saveTerminalReport(
+                source: source,
+                destination: destination,
+                bandwidthLimit: bandwidthLimit,
+                mode: mode,
+                finalStatus: .error,
+                verificationResult: nil,
+                sourceMetadata: sourceMetadata,
+                failureReason: message,
+                startedAt: workflowStartDate,
+                endedAt: Date()
+            )
             return
         }
         
         if isCancelled {
             await updateState(.cancelled)
+            await saveTerminalReport(
+                source: source,
+                destination: destination,
+                bandwidthLimit: bandwidthLimit,
+                mode: mode,
+                finalStatus: .cancelled,
+                verificationResult: nil,
+                sourceMetadata: sourceMetadata,
+                failureReason: "Transfer was cancelled.",
+                startedAt: workflowStartDate,
+                endedAt: Date()
+            )
             return
         }
         
@@ -123,14 +156,42 @@ public actor TransferCoordinator {
         
         if isCancelled {
             await updateState(.cancelled)
+            await saveTerminalReport(
+                source: source,
+                destination: destination,
+                bandwidthLimit: bandwidthLimit,
+                mode: mode,
+                finalStatus: .cancelled,
+                verificationResult: nil,
+                sourceMetadata: sourceMetadata,
+                failureReason: "Transfer was cancelled.",
+                startedAt: workflowStartDate,
+                endedAt: Date()
+            )
             return
         }
         
         if !rsyncSuccess {
+            let failureReason: String?
             if let err = rsyncError {
-                await onError?("TRANSFER ERROR: \(err.localizedDescription)")
+                failureReason = "TRANSFER ERROR: \(err.localizedDescription)"
+                await onError?(failureReason ?? "TRANSFER ERROR")
+            } else {
+                failureReason = "TRANSFER ERROR: Transfer failed."
             }
             await updateState(.error)
+            await saveTerminalReport(
+                source: source,
+                destination: destination,
+                bandwidthLimit: bandwidthLimit,
+                mode: mode,
+                finalStatus: .error,
+                verificationResult: nil,
+                sourceMetadata: sourceMetadata,
+                failureReason: failureReason,
+                startedAt: workflowStartDate,
+                endedAt: Date()
+            )
             return
         }
         
@@ -138,6 +199,18 @@ public actor TransferCoordinator {
         if mode == .none {
             await updateState(.copyComplete)
             await log(category: .system, message: "TRANSFER COMPLETE. Verification disabled.")
+            await saveTerminalReport(
+                source: source,
+                destination: destination,
+                bandwidthLimit: bandwidthLimit,
+                mode: mode,
+                finalStatus: .copyComplete,
+                verificationResult: nil,
+                sourceMetadata: sourceMetadata,
+                failureReason: nil,
+                startedAt: workflowStartDate,
+                endedAt: Date()
+            )
             return
         }
         
@@ -145,24 +218,64 @@ public actor TransferCoordinator {
         await updateState(.verifying)
         let verifiedDestination = destination.appendingPathComponent(source.lastPathComponent, isDirectory: true)
         let verifyRequest = VerificationRequest(sourceURL: source, destinationURL: verifiedDestination, mode: mode)
-        let (verifySuccess, verifyError) = await executeVerify(request: verifyRequest)
+        let (verifySuccess, verificationResult, verifyError) = await executeVerify(request: verifyRequest)
         
         if isCancelled {
             await updateState(.cancelled)
+            await saveTerminalReport(
+                source: source,
+                destination: destination,
+                bandwidthLimit: bandwidthLimit,
+                mode: mode,
+                finalStatus: .cancelled,
+                verificationResult: verificationResult,
+                sourceMetadata: sourceMetadata,
+                failureReason: "Transfer was cancelled.",
+                startedAt: workflowStartDate,
+                endedAt: Date()
+            )
             return
         }
         
         if !verifySuccess {
+            let failureReason: String?
             if let err = verifyError {
-                await onError?("MANUAL CHECK REQUIRED: \(err.localizedDescription)")
+                failureReason = "MANUAL CHECK REQUIRED: \(err.localizedDescription)"
+                await onError?(failureReason ?? "MANUAL CHECK REQUIRED")
+            } else {
+                failureReason = "MANUAL CHECK REQUIRED: Verification failed."
             }
             await updateState(.error)
+            await saveTerminalReport(
+                source: source,
+                destination: destination,
+                bandwidthLimit: bandwidthLimit,
+                mode: mode,
+                finalStatus: .error,
+                verificationResult: verificationResult ?? failedVerificationResult(sourceMetadata: sourceMetadata),
+                sourceMetadata: sourceMetadata,
+                failureReason: failureReason,
+                startedAt: workflowStartDate,
+                endedAt: Date()
+            )
             return
         }
         
         // Internal state name is legacy; operator-facing language is SAFE TO EJECT.
         await updateState(.safeToFormat)
         await log(category: .system, message: "Verification Passed. SAFE TO EJECT.")
+        await saveTerminalReport(
+            source: source,
+            destination: destination,
+            bandwidthLimit: bandwidthLimit,
+            mode: mode,
+            finalStatus: .safeToFormat,
+            verificationResult: verificationResult,
+            sourceMetadata: sourceMetadata,
+            failureReason: nil,
+            startedAt: workflowStartDate,
+            endedAt: Date()
+        )
     }
     
     private func executeRsync(request: TransferRequest) async -> (Bool, Error?) {
@@ -218,7 +331,7 @@ public actor TransferCoordinator {
         }
     }
     
-    private func executeVerify(request: VerificationRequest) async -> (Bool, Error?) {
+    private func executeVerify(request: VerificationRequest) async -> (Bool, VerificationResult?, Error?) {
         return await withCheckedContinuation { continuation in
             Task {
                 let eventStream = AsyncStream(VerificationEvent.self) { eventContinuation in
@@ -248,20 +361,20 @@ public actor TransferCoordinator {
                     case .completed(let result):
                         if result.status == .passed {
                             await self.log(category: .success, message: "Verification Completed")
-                            continuation.resume(returning: (true, nil))
+                            continuation.resume(returning: (true, result, nil))
                         } else {
                             let err = NSError(domain: "VerifyEngine", code: 2, userInfo: [NSLocalizedDescriptionKey: "Verification failed."])
                             await self.log(category: .error, message: "MANUAL CHECK REQUIRED: \(err.localizedDescription)")
-                            continuation.resume(returning: (false, err))
+                            continuation.resume(returning: (false, result, err))
                         }
                         didResume = true
                     case .cancelled:
                         await self.log(category: .warning, message: "Verification Cancelled")
-                        continuation.resume(returning: (false, nil))
+                        continuation.resume(returning: (false, nil, nil))
                         didResume = true
                     case .failed(let err):
                         await self.log(category: .error, message: "MANUAL CHECK REQUIRED: \(err.localizedDescription)")
-                        continuation.resume(returning: (false, err))
+                        continuation.resume(returning: (false, nil, err))
                         didResume = true
                     }
 
@@ -271,6 +384,127 @@ public actor TransferCoordinator {
                 }
             }
         }
+    }
+
+    private func saveTerminalReport(
+        source: URL,
+        destination: URL,
+        bandwidthLimit: Int?,
+        mode: VerificationMode,
+        finalStatus: TransferState,
+        verificationResult: VerificationResult?,
+        sourceMetadata: SourceStorageMetadata?,
+        failureReason: String?,
+        startedAt: Date,
+        endedAt: Date
+    ) async {
+        let bundledInfo = await bundledRsyncService.bundledInfo()
+        let createdAt = Date()
+        let report = makeReport(
+            source: source,
+            destination: destination,
+            mode: mode,
+            finalStatus: finalStatus,
+            verificationResult: verificationResult,
+            sourceMetadata: sourceMetadata,
+            failureReason: failureReason,
+            startedAt: startedAt,
+            endedAt: endedAt,
+            createdAt: createdAt,
+            bundledInfo: bundledInfo
+        )
+        let reportFolder = reportDestinationFolder(source: source, destination: destination)
+
+        do {
+            let reportURL = try await reportEngine.saveReport(
+                report: report,
+                bandwidthLimit: bandwidthLimit,
+                to: reportFolder
+            )
+            await log(category: .system, message: "Report saved: \(reportURL.path)")
+        } catch {
+            await log(category: .warning, message: "Report write failed: \(error.localizedDescription)")
+        }
+    }
+
+    private func makeReport(
+        source: URL,
+        destination: URL,
+        mode: VerificationMode,
+        finalStatus: TransferState,
+        verificationResult: VerificationResult?,
+        sourceMetadata: SourceStorageMetadata?,
+        failureReason: String?,
+        startedAt: Date,
+        endedAt: Date,
+        createdAt: Date,
+        bundledInfo: BundledRsyncInfo
+    ) -> TransferReport {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd"
+        dateFormatter.locale = Locale(identifier: "en_US_POSIX")
+
+        let timeFormatter = DateFormatter()
+        timeFormatter.dateFormat = "HH:mm:ss"
+        timeFormatter.locale = Locale(identifier: "en_US_POSIX")
+
+        let verifiedFiles = verificationResult?.verifiedFiles ?? 0
+        let passedFiles = verificationResult?.passedFiles ?? 0
+        let failedFiles = verificationResult?.failedFiles ?? 0
+        let errorCount = finalStatus == .error ? max(1, failedFiles) : 0
+        let rsyncPath = bundledInfo.executableURL?.path ?? "Unavailable"
+
+        return TransferReport(
+            date: dateFormatter.string(from: createdAt),
+            time: timeFormatter.string(from: createdAt),
+            createdAt: createdAt,
+            startedAt: startedAt,
+            endedAt: endedAt,
+            sourcePath: source.path,
+            destinationPath: destination.path,
+            sourceName: sourceMetadata?.folderName ?? source.lastPathComponent,
+            destinationName: destination.lastPathComponent,
+            totalSize: sourceMetadata?.totalSizeBytes ?? 0,
+            fileCount: sourceMetadata?.fileCount ?? verificationResult?.totalFiles ?? 0,
+            transferDuration: endedAt.timeIntervalSince(startedAt),
+            averageSpeed: averageSpeedMBps(totalSizeBytes: sourceMetadata?.totalSizeBytes ?? 0, duration: endedAt.timeIntervalSince(startedAt)),
+            verificationMode: mode,
+            verificationResult: verificationResult?.status,
+            verifiedFiles: verifiedFiles,
+            passedFiles: passedFiles,
+            failedFiles: failedFiles,
+            failureReason: failureReason,
+            rsyncBinaryPath: rsyncPath,
+            rsyncVersion: bundledInfo.version,
+            errorCount: errorCount,
+            finalStatus: finalStatus
+        )
+    }
+
+    private func failedVerificationResult(sourceMetadata: SourceStorageMetadata?) -> VerificationResult {
+        VerificationResult(
+            totalFiles: sourceMetadata?.fileCount ?? 0,
+            verifiedFiles: 0,
+            passedFiles: 0,
+            failedFiles: 1,
+            duration: 0,
+            status: .failed
+        )
+    }
+
+    private func reportDestinationFolder(source: URL, destination: URL) -> URL {
+        let jobFolder = destination.appendingPathComponent(source.lastPathComponent, isDirectory: true)
+        var isDirectory: ObjCBool = false
+        if FileManager.default.fileExists(atPath: jobFolder.path, isDirectory: &isDirectory), isDirectory.boolValue {
+            return jobFolder
+        }
+
+        return destination
+    }
+
+    private func averageSpeedMBps(totalSizeBytes: Int64, duration: TimeInterval) -> Double {
+        guard duration > 0, totalSizeBytes > 0 else { return 0 }
+        return (Double(totalSizeBytes) / 1_048_576.0) / duration
     }
 
     private func logRsyncLine(_ line: String) async {
