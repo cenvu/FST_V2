@@ -6,8 +6,52 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		8A0001012FE1000000000001 /* RsyncBandwidthLimitXCTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A0000212FE1000000000001 /* RsyncBandwidthLimitXCTests.swift */; };
+		8A0001022FE1000000000001 /* ProgressParserXCTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A0000222FE1000000000001 /* ProgressParserXCTests.swift */; };
+		8A0001032FE1000000000001 /* ReportEngineXCTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A0000232FE1000000000001 /* ReportEngineXCTests.swift */; };
+		8A0001042FE1000000000001 /* BundledRsyncServiceXCTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A0000242FE1000000000001 /* BundledRsyncServiceXCTests.swift */; };
+		8A0001052FE1000000000001 /* MetadataOnlySourceSafetyXCTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A0000252FE1000000000001 /* MetadataOnlySourceSafetyXCTests.swift */; };
+		8A0001212FE1000000000001 /* RsyncBandwidthLimit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A0000412FE1000000000001 /* RsyncBandwidthLimit.swift */; };
+		8A0001222FE1000000000001 /* ProgressParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A0000422FE1000000000001 /* ProgressParser.swift */; };
+		8A0001232FE1000000000001 /* ReportEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A0000432FE1000000000001 /* ReportEngine.swift */; };
+		8A0001242FE1000000000001 /* TransferReport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A0000442FE1000000000001 /* TransferReport.swift */; };
+		8A0001252FE1000000000001 /* TransferState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A0000452FE1000000000001 /* TransferState.swift */; };
+		8A0001262FE1000000000001 /* VerificationMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A0000462FE1000000000001 /* VerificationMode.swift */; };
+		8A0001272FE1000000000001 /* VerificationResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A0000472FE1000000000001 /* VerificationResult.swift */; };
+		8A0001282FE1000000000001 /* TransferFileExclusionPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A0000482FE1000000000001 /* TransferFileExclusionPolicy.swift */; };
+		8A0001292FE1000000000001 /* BundledRsyncService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A0000492FE1000000000001 /* BundledRsyncService.swift */; };
+		8A00012A2FE1000000000001 /* StorageMetadata.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A00004A2FE1000000000001 /* StorageMetadata.swift */; };
+		8A00012B2FE1000000000001 /* VerificationRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A00004B2FE1000000000001 /* VerificationRequest.swift */; };
+		8A00012C2FE1000000000001 /* VerificationEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A00004C2FE1000000000001 /* VerificationEvent.swift */; };
+		8A00012D2FE1000000000001 /* VerifyEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A00004D2FE1000000000001 /* VerifyEngine.swift */; };
+		8A00012E2FE1000000000001 /* DriveService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A00004E2FE1000000000001 /* DriveService.swift */; };
+		8A00012F2FE1000000000001 /* TransferEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A00004F2FE1000000000001 /* TransferEvent.swift */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		7D9475BF2FDF1FF300F41AE2 /* FishSockTransfer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FishSockTransfer.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		8A0000012FE1000000000001 /* FishSockTransferTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FishSockTransferTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		8A0000212FE1000000000001 /* RsyncBandwidthLimitXCTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RsyncBandwidthLimitXCTests.swift; sourceTree = "<group>"; };
+		8A0000222FE1000000000001 /* ProgressParserXCTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressParserXCTests.swift; sourceTree = "<group>"; };
+		8A0000232FE1000000000001 /* ReportEngineXCTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReportEngineXCTests.swift; sourceTree = "<group>"; };
+		8A0000242FE1000000000001 /* BundledRsyncServiceXCTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BundledRsyncServiceXCTests.swift; sourceTree = "<group>"; };
+		8A0000252FE1000000000001 /* MetadataOnlySourceSafetyXCTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetadataOnlySourceSafetyXCTests.swift; sourceTree = "<group>"; };
+		8A0000412FE1000000000001 /* RsyncBandwidthLimit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FishSockTransfer/Models/RsyncBandwidthLimit.swift; sourceTree = SOURCE_ROOT; };
+		8A0000422FE1000000000001 /* ProgressParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FishSockTransfer/Engines/ProgressParser.swift; sourceTree = SOURCE_ROOT; };
+		8A0000432FE1000000000001 /* ReportEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FishSockTransfer/Engines/ReportEngine.swift; sourceTree = SOURCE_ROOT; };
+		8A0000442FE1000000000001 /* TransferReport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FishSockTransfer/Models/TransferReport.swift; sourceTree = SOURCE_ROOT; };
+		8A0000452FE1000000000001 /* TransferState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FishSockTransfer/Models/TransferState.swift; sourceTree = SOURCE_ROOT; };
+		8A0000462FE1000000000001 /* VerificationMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FishSockTransfer/Models/VerificationMode.swift; sourceTree = SOURCE_ROOT; };
+		8A0000472FE1000000000001 /* VerificationResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FishSockTransfer/Models/VerificationResult.swift; sourceTree = SOURCE_ROOT; };
+		8A0000482FE1000000000001 /* TransferFileExclusionPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FishSockTransfer/Models/TransferFileExclusionPolicy.swift; sourceTree = SOURCE_ROOT; };
+		8A0000492FE1000000000001 /* BundledRsyncService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FishSockTransfer/Services/BundledRsyncService.swift; sourceTree = SOURCE_ROOT; };
+		8A00004A2FE1000000000001 /* StorageMetadata.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FishSockTransfer/Models/StorageMetadata.swift; sourceTree = SOURCE_ROOT; };
+		8A00004B2FE1000000000001 /* VerificationRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FishSockTransfer/Models/VerificationRequest.swift; sourceTree = SOURCE_ROOT; };
+		8A00004C2FE1000000000001 /* VerificationEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FishSockTransfer/Engines/VerificationEvent.swift; sourceTree = SOURCE_ROOT; };
+		8A00004D2FE1000000000001 /* VerifyEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FishSockTransfer/Engines/VerifyEngine.swift; sourceTree = SOURCE_ROOT; };
+		8A00004E2FE1000000000001 /* DriveService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FishSockTransfer/Services/DriveService.swift; sourceTree = SOURCE_ROOT; };
+		8A00004F2FE1000000000001 /* TransferEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FishSockTransfer/Engines/TransferEvent.swift; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -26,6 +70,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		8A0000032FE1000000000001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -33,6 +84,8 @@
 			isa = PBXGroup;
 			children = (
 				7D9475C12FDF1FF300F41AE2 /* FishSockTransfer */,
+				8A0000102FE1000000000001 /* Tests */,
+				8A0000302FE1000000000001 /* Test Support Sources */,
 				7D9475C02FDF1FF300F41AE2 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -41,8 +94,51 @@
 			isa = PBXGroup;
 			children = (
 				7D9475BF2FDF1FF300F41AE2 /* FishSockTransfer.app */,
+				8A0000012FE1000000000001 /* FishSockTransferTests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		8A0000102FE1000000000001 /* Tests */ = {
+			isa = PBXGroup;
+			children = (
+				8A0000112FE1000000000001 /* XCTest */,
+			);
+			path = Tests;
+			sourceTree = "<group>";
+		};
+		8A0000112FE1000000000001 /* XCTest */ = {
+			isa = PBXGroup;
+			children = (
+				8A0000212FE1000000000001 /* RsyncBandwidthLimitXCTests.swift */,
+				8A0000222FE1000000000001 /* ProgressParserXCTests.swift */,
+				8A0000232FE1000000000001 /* ReportEngineXCTests.swift */,
+				8A0000242FE1000000000001 /* BundledRsyncServiceXCTests.swift */,
+				8A0000252FE1000000000001 /* MetadataOnlySourceSafetyXCTests.swift */,
+			);
+			path = XCTest;
+			sourceTree = "<group>";
+		};
+		8A0000302FE1000000000001 /* Test Support Sources */ = {
+			isa = PBXGroup;
+			children = (
+				8A0000412FE1000000000001 /* RsyncBandwidthLimit.swift */,
+				8A0000422FE1000000000001 /* ProgressParser.swift */,
+				8A0000432FE1000000000001 /* ReportEngine.swift */,
+				8A0000442FE1000000000001 /* TransferReport.swift */,
+				8A0000452FE1000000000001 /* TransferState.swift */,
+				8A0000462FE1000000000001 /* VerificationMode.swift */,
+				8A0000472FE1000000000001 /* VerificationResult.swift */,
+				8A0000482FE1000000000001 /* TransferFileExclusionPolicy.swift */,
+				8A0000492FE1000000000001 /* BundledRsyncService.swift */,
+				8A00004A2FE1000000000001 /* StorageMetadata.swift */,
+				8A00004B2FE1000000000001 /* VerificationRequest.swift */,
+				8A00004C2FE1000000000001 /* VerificationEvent.swift */,
+				8A00004D2FE1000000000001 /* VerifyEngine.swift */,
+				8A00004E2FE1000000000001 /* DriveService.swift */,
+				8A00004F2FE1000000000001 /* TransferEvent.swift */,
+			);
+			name = "Test Support Sources";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -71,6 +167,25 @@
 			productReference = 7D9475BF2FDF1FF300F41AE2 /* FishSockTransfer.app */;
 			productType = "com.apple.product-type.application";
 		};
+		8A0000022FE1000000000001 /* FishSockTransferTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 8A0000082FE1000000000001 /* Build configuration list for PBXNativeTarget "FishSockTransferTests" */;
+			buildPhases = (
+				8A0000042FE1000000000001 /* Sources */,
+				8A0000032FE1000000000001 /* Frameworks */,
+				8A0000052FE1000000000001 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = FishSockTransferTests;
+			packageProductDependencies = (
+			);
+			productName = FishSockTransferTests;
+			productReference = 8A0000012FE1000000000001 /* FishSockTransferTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -82,6 +197,9 @@
 				LastUpgradeCheck = 2630;
 				TargetAttributes = {
 					7D9475BE2FDF1FF300F41AE2 = {
+						CreatedOnToolsVersion = 26.3;
+					};
+					8A0000022FE1000000000001 = {
 						CreatedOnToolsVersion = 26.3;
 					};
 				};
@@ -101,12 +219,20 @@
 			projectRoot = "";
 			targets = (
 				7D9475BE2FDF1FF300F41AE2 /* FishSockTransfer */,
+				8A0000022FE1000000000001 /* FishSockTransferTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		7D9475BD2FDF1FF300F41AE2 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		8A0000052FE1000000000001 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -151,6 +277,33 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		8A0000042FE1000000000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				8A0001012FE1000000000001 /* RsyncBandwidthLimitXCTests.swift in Sources */,
+				8A0001022FE1000000000001 /* ProgressParserXCTests.swift in Sources */,
+				8A0001032FE1000000000001 /* ReportEngineXCTests.swift in Sources */,
+				8A0001042FE1000000000001 /* BundledRsyncServiceXCTests.swift in Sources */,
+				8A0001052FE1000000000001 /* MetadataOnlySourceSafetyXCTests.swift in Sources */,
+				8A0001212FE1000000000001 /* RsyncBandwidthLimit.swift in Sources */,
+				8A0001222FE1000000000001 /* ProgressParser.swift in Sources */,
+				8A0001232FE1000000000001 /* ReportEngine.swift in Sources */,
+				8A0001242FE1000000000001 /* TransferReport.swift in Sources */,
+				8A0001252FE1000000000001 /* TransferState.swift in Sources */,
+				8A0001262FE1000000000001 /* VerificationMode.swift in Sources */,
+				8A0001272FE1000000000001 /* VerificationResult.swift in Sources */,
+				8A0001282FE1000000000001 /* TransferFileExclusionPolicy.swift in Sources */,
+				8A0001292FE1000000000001 /* BundledRsyncService.swift in Sources */,
+				8A00012A2FE1000000000001 /* StorageMetadata.swift in Sources */,
+				8A00012B2FE1000000000001 /* VerificationRequest.swift in Sources */,
+				8A00012C2FE1000000000001 /* VerificationEvent.swift in Sources */,
+				8A00012D2FE1000000000001 /* VerifyEngine.swift in Sources */,
+				8A00012E2FE1000000000001 /* DriveService.swift in Sources */,
+				8A00012F2FE1000000000001 /* TransferEvent.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -347,6 +500,38 @@
 			};
 			name = Release;
 		};
+		8A0000062FE1000000000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@loader_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.5;
+				PRODUCT_BUNDLE_IDENTIFIER = com.cen.FishSockTransferTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		8A0000072FE1000000000001 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@loader_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.5;
+				PRODUCT_BUNDLE_IDENTIFIER = com.cen.FishSockTransferTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -364,6 +549,15 @@
 			buildConfigurations = (
 				7D9475CB2FDF1FF400F41AE2 /* Debug */,
 				7D9475CC2FDF1FF400F41AE2 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		8A0000082FE1000000000001 /* Build configuration list for PBXNativeTarget "FishSockTransferTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				8A0000062FE1000000000001 /* Debug */,
+				8A0000072FE1000000000001 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
