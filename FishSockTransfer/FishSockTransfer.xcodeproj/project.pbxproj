@@ -27,6 +27,11 @@
 		8A00012D2FE1000000000001 /* VerifyEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A00004D2FE1000000000001 /* VerifyEngine.swift */; };
 		8A00012E2FE1000000000001 /* DriveService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A00004E2FE1000000000001 /* DriveService.swift */; };
 		8A00012F2FE1000000000001 /* TransferEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A00004F2FE1000000000001 /* TransferEvent.swift */; };
+		8A0001302FE1000000000001 /* LogEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A0000502FE1000000000001 /* LogEntry.swift */; };
+		8A0001312FE1000000000001 /* TransferRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A0000512FE1000000000001 /* TransferRequest.swift */; };
+		8A0001322FE1000000000001 /* LoggerService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A0000522FE1000000000001 /* LoggerService.swift */; };
+		8A0001332FE1000000000001 /* RsyncEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A0000532FE1000000000001 /* RsyncEngine.swift */; };
+		8A0001342FE1000000000001 /* TransferCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A0000542FE1000000000001 /* TransferCoordinator.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -52,6 +57,11 @@
 		8A00004D2FE1000000000001 /* VerifyEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FishSockTransfer/Engines/VerifyEngine.swift; sourceTree = SOURCE_ROOT; };
 		8A00004E2FE1000000000001 /* DriveService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FishSockTransfer/Services/DriveService.swift; sourceTree = SOURCE_ROOT; };
 		8A00004F2FE1000000000001 /* TransferEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FishSockTransfer/Engines/TransferEvent.swift; sourceTree = SOURCE_ROOT; };
+		8A0000502FE1000000000001 /* LogEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FishSockTransfer/Models/LogEntry.swift; sourceTree = SOURCE_ROOT; };
+		8A0000512FE1000000000001 /* TransferRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FishSockTransfer/Models/TransferRequest.swift; sourceTree = SOURCE_ROOT; };
+		8A0000522FE1000000000001 /* LoggerService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FishSockTransfer/Services/LoggerService.swift; sourceTree = SOURCE_ROOT; };
+		8A0000532FE1000000000001 /* RsyncEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FishSockTransfer/Engines/RsyncEngine.swift; sourceTree = SOURCE_ROOT; };
+		8A0000542FE1000000000001 /* TransferCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FishSockTransfer/Coordinators/TransferCoordinator.swift; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -137,6 +147,11 @@
 				8A00004D2FE1000000000001 /* VerifyEngine.swift */,
 				8A00004E2FE1000000000001 /* DriveService.swift */,
 				8A00004F2FE1000000000001 /* TransferEvent.swift */,
+				8A0000502FE1000000000001 /* LogEntry.swift */,
+				8A0000512FE1000000000001 /* TransferRequest.swift */,
+				8A0000522FE1000000000001 /* LoggerService.swift */,
+				8A0000532FE1000000000001 /* RsyncEngine.swift */,
+				8A0000542FE1000000000001 /* TransferCoordinator.swift */,
 			);
 			name = "Test Support Sources";
 			sourceTree = "<group>";
@@ -304,6 +319,11 @@
 				8A00012D2FE1000000000001 /* VerifyEngine.swift in Sources */,
 				8A00012E2FE1000000000001 /* DriveService.swift in Sources */,
 				8A00012F2FE1000000000001 /* TransferEvent.swift in Sources */,
+				8A0001302FE1000000000001 /* LogEntry.swift in Sources */,
+				8A0001312FE1000000000001 /* TransferRequest.swift in Sources */,
+				8A0001322FE1000000000001 /* LoggerService.swift in Sources */,
+				8A0001332FE1000000000001 /* RsyncEngine.swift in Sources */,
+				8A0001342FE1000000000001 /* TransferCoordinator.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

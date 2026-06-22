@@ -106,12 +106,16 @@ public actor TransferCoordinator {
         
         do {
             try await driveService.validateSource(at: source)
-            sourceMetadata = try await driveService.sourceMetadata(for: source)
+            let scannedSourceMetadata = try await driveService.sourceMetadata(for: source)
+            sourceMetadata = scannedSourceMetadata
             try await driveService.validateDestination(at: destination)
-            let freeSpace = try await driveService.calculateFreeSpace(at: destination)
-            if freeSpace <= 0 {
-                throw NSError(domain: "TransferCoordinator", code: 1, userInfo: [NSLocalizedDescriptionKey: "Insufficient free space on destination."])
-            }
+            let freeSpace = try await driveService.calculateReliableFreeSpace(at: destination)
+            _ = try TransferPreflightValidator.validate(
+                source: source,
+                destination: destination,
+                sourceMetadata: scannedSourceMetadata,
+                destinationFreeSpaceBytes: freeSpace
+            )
         } catch {
             let message = "TRANSFER ERROR: \(error.localizedDescription)"
             await log(category: .error, message: message)
@@ -413,7 +417,10 @@ public actor TransferCoordinator {
             createdAt: createdAt,
             bundledInfo: bundledInfo
         )
-        let reportFolder = reportDestinationFolder(source: source, destination: destination)
+        guard let reportFolder = TransferPreflightValidator.safeReportFolder(source: source, destination: destination) else {
+            await log(category: .warning, message: "Report skipped: unsafe report destination for preflight failure.")
+            return
+        }
 
         do {
             let reportURL = try await reportEngine.saveReport(
@@ -490,16 +497,6 @@ public actor TransferCoordinator {
             duration: 0,
             status: .failed
         )
-    }
-
-    private func reportDestinationFolder(source: URL, destination: URL) -> URL {
-        let jobFolder = destination.appendingPathComponent(source.lastPathComponent, isDirectory: true)
-        var isDirectory: ObjCBool = false
-        if FileManager.default.fileExists(atPath: jobFolder.path, isDirectory: &isDirectory), isDirectory.boolValue {
-            return jobFolder
-        }
-
-        return destination
     }
 
     private func averageSpeedMBps(totalSizeBytes: Int64, duration: TimeInterval) -> Double {
