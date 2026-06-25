@@ -82,6 +82,8 @@ final class MetadataOnlySourceSafetyXCTests: XCTestCase {
         let sourceURL = try folder(named: "ds-store-only-source", in: temporaryRoot)
         try writeFile(".DS_Store", contents: "metadata", in: sourceURL)
         try await assertSourceValidationFails(sourceURL, expectedError: .sourceEmpty)
+        XCTAssertTrue(TransferError.sourceEmpty.localizedDescription.contains("No transferable files found after exclusions."))
+        XCTAssertFalse(TransferError.sourceEmpty.localizedDescription == "The selected source folder is empty.")
     }
 
     func testExcludedMetadataOnlySourceFailsValidation() async throws {
@@ -159,6 +161,10 @@ final class MetadataOnlySourceSafetyXCTests: XCTestCase {
             )
         ) { error in
             XCTAssertEqual(error as? TransferPreflightError, .sameSourceAndDestination)
+            XCTAssertEqual(
+                (error as? TransferPreflightError)?.errorDescription,
+                "Source and destination cannot be the same folder. Choose a separate destination."
+            )
         }
     }
 
@@ -176,6 +182,10 @@ final class MetadataOnlySourceSafetyXCTests: XCTestCase {
             )
         ) { error in
             XCTAssertEqual(error as? TransferPreflightError, .destinationInsideSource)
+            XCTAssertEqual(
+                (error as? TransferPreflightError)?.errorDescription,
+                "Destination cannot be inside the source folder. Choose a destination outside the source/media tree."
+            )
         }
     }
 
@@ -193,6 +203,10 @@ final class MetadataOnlySourceSafetyXCTests: XCTestCase {
             )
         ) { error in
             XCTAssertEqual(error as? TransferPreflightError, .sourceInsideDestination)
+            XCTAssertEqual(
+                (error as? TransferPreflightError)?.errorDescription,
+                "Source cannot be inside the destination folder. Choose a separate destination outside the source/media tree."
+            )
         }
     }
 
@@ -211,6 +225,10 @@ final class MetadataOnlySourceSafetyXCTests: XCTestCase {
             )
         ) { error in
             XCTAssertEqual(error as? TransferPreflightError, .destinationJobFolderAlreadyExists(existingJobURL.path))
+            XCTAssertEqual(
+                (error as? TransferPreflightError)?.errorDescription,
+                "Destination job folder already exists: \(existingJobURL.path). FST will not overwrite or merge into an existing job folder."
+            )
         }
     }
 
@@ -228,10 +246,12 @@ final class MetadataOnlySourceSafetyXCTests: XCTestCase {
             )
         ) { error in
             XCTAssertEqual(error as? TransferPreflightError, .insufficientDestinationSpace(required: 2048, available: 1024))
-            XCTAssertEqual(
-                (error as? TransferPreflightError)?.errorDescription,
-                "Insufficient destination space. Required: 2048 bytes, Available: 1024 bytes."
-            )
+            let message = (error as? TransferPreflightError)?.errorDescription ?? ""
+            XCTAssertTrue(message.contains("Required: 2 KB"))
+            XCTAssertTrue(message.contains("Available: 1 KB"))
+            XCTAssertTrue(message.contains("2,048 bytes"))
+            XCTAssertTrue(message.contains("1,024 bytes"))
+            XCTAssertFalse(message == "Insufficient destination space. Required: 2048 bytes, Available: 1024 bytes.")
         }
     }
 
@@ -249,6 +269,10 @@ final class MetadataOnlySourceSafetyXCTests: XCTestCase {
             )
         ) { error in
             XCTAssertEqual(error as? TransferPreflightError, .unableToDetermineDestinationFreeSpace)
+            XCTAssertEqual(
+                (error as? TransferPreflightError)?.errorDescription,
+                "Unable to determine destination free space. FST cannot safely start without confirming available space."
+            )
         }
     }
 
@@ -317,11 +341,11 @@ final class MetadataOnlySourceSafetyXCTests: XCTestCase {
 
         XCTAssertTrue(states.contains(.error))
         XCTAssertFalse(states.contains(.copying))
-        XCTAssertTrue(errors.contains("TRANSFER ERROR: Source and destination cannot be the same folder."))
+        XCTAssertTrue(errors.contains("TRANSFER ERROR: Source and destination cannot be the same folder. Choose a separate destination."))
         XCTAssertFalse(logMessages.contains("Transfer Started"))
         XCTAssertFalse(logMessages.contains("TRANSFER COMPLETE. Verification disabled."))
         XCTAssertFalse(logMessages.contains("Verification Passed. SAFE TO EJECT."))
-        XCTAssertTrue(logMessages.contains("Report skipped: unsafe report destination for preflight failure."))
+        XCTAssertTrue(logMessages.contains("Report skipped: no report was written because the destination was unsafe for report output."))
         XCTAssertFalse(try containsReportFile(in: sourceURL))
     }
 
@@ -358,11 +382,11 @@ final class MetadataOnlySourceSafetyXCTests: XCTestCase {
 
         XCTAssertTrue(states.contains(.error))
         XCTAssertFalse(states.contains(.copying))
-        XCTAssertTrue(errors.contains("TRANSFER ERROR: Source cannot be inside the destination folder."))
+        XCTAssertTrue(errors.contains("TRANSFER ERROR: Source cannot be inside the destination folder. Choose a separate destination outside the source/media tree."))
         XCTAssertFalse(logMessages.contains("Transfer Started"))
         XCTAssertFalse(logMessages.contains("TRANSFER COMPLETE. Verification disabled."))
         XCTAssertFalse(logMessages.contains("Verification Passed. SAFE TO EJECT."))
-        XCTAssertTrue(logMessages.contains("Report skipped: unsafe report destination for preflight failure."))
+        XCTAssertTrue(logMessages.contains("Report skipped: no report was written because the destination was unsafe for report output."))
         XCTAssertFalse(try containsReportFile(in: cardURL))
     }
 
@@ -400,7 +424,7 @@ final class MetadataOnlySourceSafetyXCTests: XCTestCase {
         let deadline = Date().addingTimeInterval(3)
         while Date() < deadline {
             if recorder.snapshotStates().contains(.error),
-               recorder.snapshotLogs().contains(where: { $0.message == "Report skipped: unsafe report destination for preflight failure." }) {
+               recorder.snapshotLogs().contains(where: { $0.message == "Report skipped: no report was written because the destination was unsafe for report output." }) {
                 return
             }
             try await Task.sleep(nanoseconds: 20_000_000)

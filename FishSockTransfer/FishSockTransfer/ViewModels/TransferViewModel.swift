@@ -137,8 +137,9 @@ public final class TransferViewModel: ObservableObject {
         }
 
         guard !hasInsufficientDestinationSpace else {
-            errorMessage = "Not enough destination space."
-            addLog(category: .warning, message: "Not enough destination space.")
+            let message = insufficientDestinationSpaceMessage ?? "Insufficient destination space."
+            errorMessage = message
+            addLog(category: .warning, message: message)
             return
         }
 
@@ -259,11 +260,11 @@ public final class TransferViewModel: ObservableObject {
         }
 
         if hasInsufficientDestinationSpace {
-            return "Not enough destination space."
+            return insufficientDestinationSpaceMessage
         }
 
-        if !isBandwidthLimitValid {
-            return "Invalid bandwidth limit."
+        if let bandwidthLimitValidationMessage {
+            return bandwidthLimitValidationMessage
         }
 
         if transferState == .error, let errorMessage {
@@ -274,8 +275,25 @@ public final class TransferViewModel: ObservableObject {
     }
 
     private var isBandwidthLimitValid: Bool {
-        guard let bandwidthLimit else { return true }
-        return (try? RsyncBandwidthLimit.validate(kibPerSecond: bandwidthLimit)) != nil
+        bandwidthLimitValidationMessage == nil
+    }
+
+    private var bandwidthLimitValidationMessage: String? {
+        guard let bandwidthLimit else { return nil }
+        do {
+            _ = try RsyncBandwidthLimit.validate(kibPerSecond: bandwidthLimit)
+            return nil
+        } catch {
+            return error.localizedDescription
+        }
+    }
+
+    private var insufficientDestinationSpaceMessage: String? {
+        guard let sourceMetadata, let destinationMetadata else { return nil }
+        return TransferPreflightError.insufficientDestinationSpace(
+            required: sourceMetadata.totalSizeBytes,
+            available: destinationMetadata.freeSpaceBytes
+        ).errorDescription
     }
 
     private func refreshSourceMetadata(for url: URL) {
@@ -323,7 +341,7 @@ public final class TransferViewModel: ObservableObject {
     }
 
     private func refreshStorageWarning() {
-        storageWarningMessage = hasInsufficientDestinationSpace ? "Not enough destination space." : nil
+        storageWarningMessage = hasInsufficientDestinationSpace ? insufficientDestinationSpaceMessage : nil
     }
 
     private func refreshBundledRsyncInfo() {
@@ -365,7 +383,7 @@ nonisolated public enum TransferReportStatusPresentation {
         }
 
         if logMessage.hasPrefix("Report skipped: ") {
-            return "Report skipped: unsafe destination for report"
+            return "Report skipped: no report was written because the destination was unsafe for report output."
         }
 
         if logMessage.hasPrefix("Report write failed: ") {

@@ -93,8 +93,8 @@ struct TransferControlsLabelTests {
             "report saved status"
         )
         assertEqual(
-            TransferReportStatusPresentation.message(forLogMessage: "Report skipped: unsafe report destination for preflight failure."),
-            "Report skipped: unsafe destination for report",
+            TransferReportStatusPresentation.message(forLogMessage: "Report skipped: no report was written because the destination was unsafe for report output."),
+            "Report skipped: no report was written because the destination was unsafe for report output.",
             "report skipped status"
         )
         assertEqual(
@@ -103,9 +103,13 @@ struct TransferControlsLabelTests {
             "report warning status"
         )
         assertNotEqual(
-            TransferReportStatusPresentation.message(forLogMessage: "Report skipped: unsafe report destination for preflight failure."),
+            TransferReportStatusPresentation.message(forLogMessage: "Report skipped: no report was written because the destination was unsafe for report output."),
             "Report saved: unsafe destination for report",
             "report skipped must not imply saved success"
+        )
+        assertTrue(
+            TransferReportStatusPresentation.message(forLogMessage: "Report skipped: no report was written because the destination was unsafe for report output.")?.contains("no report was written") == true,
+            "report skipped must say no report was written"
         )
 
         assertEqual(
@@ -343,6 +347,37 @@ struct TransferControlsLabelTests {
                 "\(state.rawValue) must not be treated as active lock state"
             )
         }
+
+        viewModel.transferState = .ready
+        viewModel.sourceURL = sourceURL
+        viewModel.destinationURL = destinationURL
+        viewModel.bandwidthLimit = 1
+        assertFalse(viewModel.canStartTransfer, "invalid bandwidth must disable start")
+        assertEqual(
+            viewModel.startBlockedReason,
+            RsyncBandwidthLimitError.belowMinimum.localizedDescription,
+            "invalid bandwidth should use exact model validation text"
+        )
+
+        viewModel.bandwidthLimit = nil
+        viewModel.sourceMetadata = SourceStorageMetadata(
+            folderName: "SOURCE",
+            fullPath: sourceURL.path,
+            totalSizeBytes: 2048,
+            fileCount: 1,
+            folderCount: 0
+        )
+        viewModel.destinationMetadata = DestinationStorageMetadata(
+            freeSpaceBytes: 1024,
+            filesystem: "TestFS",
+            isWritable: true
+        )
+        assertFalse(viewModel.canStartTransfer, "insufficient space must disable start")
+        assertEqual(
+            viewModel.startBlockedReason,
+            "Insufficient destination space. Required: 2 KB (2,048 bytes), Available: 1 KB (1,024 bytes).",
+            "insufficient space should use human-readable units"
+        )
     }
 
     private static func folder(named name: String, in parentURL: URL) throws -> URL {

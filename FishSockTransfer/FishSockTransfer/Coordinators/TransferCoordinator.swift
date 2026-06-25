@@ -418,7 +418,7 @@ public actor TransferCoordinator {
             bundledInfo: bundledInfo
         )
         guard let reportFolder = TransferPreflightValidator.safeReportFolder(source: source, destination: destination) else {
-            await log(category: .warning, message: "Report skipped: unsafe report destination for preflight failure.")
+            await log(category: .warning, message: "Report skipped: no report was written because the destination was unsafe for report output.")
             return
         }
 

@@ -170,24 +170,63 @@ nonisolated public enum TransferPreflightError: Error, Equatable, LocalizedError
     public var errorDescription: String? {
         switch self {
         case .sameSourceAndDestination:
-            return "Source and destination cannot be the same folder."
+            return "Source and destination cannot be the same folder. Choose a separate destination."
         case .destinationInsideSource:
-            return "Destination cannot be inside the source folder."
+            return "Destination cannot be inside the source folder. Choose a destination outside the source/media tree."
         case .sourceInsideDestination:
-            return "Source cannot be inside the destination folder."
+            return "Source cannot be inside the destination folder. Choose a separate destination outside the source/media tree."
         case .destinationJobFolderAlreadyExists(let path):
-            return "Destination job folder already exists: \(path)"
+            return "Destination job folder already exists: \(path). FST will not overwrite or merge into an existing job folder."
         case .noTransferableFiles:
             return "No transferable files found after exclusions."
         case .unableToDetermineDestinationFreeSpace:
-            return "Unable to determine destination free space."
+            return "Unable to determine destination free space. FST cannot safely start without confirming available space."
         case .insufficientDestinationSpace(let required, let available):
             return "Insufficient destination space. Required: \(Self.formatBytes(required)), Available: \(Self.formatBytes(available))."
         }
     }
 
     private static func formatBytes(_ bytes: Int64) -> String {
-        "\(bytes) bytes"
+        let readableSize = formatReadableBytes(bytes)
+        let exactBytes = formatExactBytes(bytes)
+        return "\(readableSize) (\(exactBytes) bytes)"
+    }
+
+    private static func formatExactBytes(_ bytes: Int64) -> String {
+        let stringValue = String(bytes)
+        let sign = stringValue.hasPrefix("-") ? "-" : ""
+        let digits = sign.isEmpty ? stringValue : String(stringValue.dropFirst())
+        var grouped = ""
+
+        for (index, character) in digits.reversed().enumerated() {
+            if index > 0, index % 3 == 0 {
+                grouped.insert(",", at: grouped.startIndex)
+            }
+            grouped.insert(character, at: grouped.startIndex)
+        }
+
+        return sign + grouped
+    }
+
+    private static func formatReadableBytes(_ bytes: Int64) -> String {
+        let units = ["bytes", "KB", "MB", "GB", "TB"]
+        var value = Double(bytes)
+        var unitIndex = 0
+
+        while value >= 1024, unitIndex < units.count - 1 {
+            value /= 1024
+            unitIndex += 1
+        }
+
+        if unitIndex == 0 {
+            return "\(bytes) bytes"
+        }
+
+        if value.rounded(.towardZero) == value {
+            return "\(Int(value)) \(units[unitIndex])"
+        }
+
+        return String(format: "%.1f %@", locale: Locale(identifier: "en_US_POSIX"), value, units[unitIndex])
     }
 }
 

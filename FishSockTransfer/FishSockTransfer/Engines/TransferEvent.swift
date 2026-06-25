@@ -16,7 +16,7 @@ nonisolated public enum TransferError: Error, Equatable, LocalizedError, Sendabl
     public var errorDescription: String? {
         switch self {
         case .sourceEmpty:
-            return "The selected source folder is empty."
+            return "No transferable files found after exclusions. Metadata-only files are ignored."
         case .processLaunchFailed:
             return "Failed to launch the underlying transfer process."
         case .sourceUnavailable:
