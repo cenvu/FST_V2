@@ -21,7 +21,7 @@ public struct ContentView: View {
 
                 Spacer()
 
-                Text(viewModel.bundledRsyncInfo.badgeText)
+                Text("Bundled rsync 3.4.4")
                     .font(.system(.caption, design: .monospaced))
                     .padding(.horizontal, 10)
                     .padding(.vertical, 5)
