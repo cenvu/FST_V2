@@ -22,7 +22,7 @@ public struct TransferControlsView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
 
                 actionStatusButton
-                    .frame(width: 320)
+                    .frame(minWidth: 390, idealWidth: 420, maxWidth: 440)
             }
             .frame(maxWidth: .infinity)
 
@@ -71,26 +71,24 @@ public struct TransferControlsView: View {
             VStack(alignment: .leading, spacing: 12) {
                 HStack {
                     Text("Transfer Progress")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                        .bold()
+                        .font(.headline)
+                        .foregroundColor(.primary)
                     Spacer()
                     Text("\(Int(displayProgress.rounded()))%")
-                        .font(.system(.subheadline, design: .monospaced))
+                        .font(.system(.title3, design: .monospaced, weight: .semibold))
                         .foregroundColor(viewModel.transferState.statusColor)
-                        .bold()
                 }
 
                 ProgressView(value: displayProgress, total: 100)
                     .progressViewStyle(.linear)
 
-                HStack(spacing: 20) {
+                HStack(spacing: 12) {
                     runtimeMetric(title: "CURRENT FILE", value: displayCurrentFile)
                     runtimeMetric(title: "SPEED", value: formatSpeed(viewModel.speed))
                     runtimeMetric(title: "ETA", value: formatETA(viewModel.eta))
                 }
             }
-            .padding(14)
+            .padding(16)
             .frame(maxWidth: .infinity)
             .background(Color(NSColor.textBackgroundColor).opacity(0.30))
             .cornerRadius(8)
@@ -107,13 +105,13 @@ public struct TransferControlsView: View {
     }
 
     private var settingsPanel: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 14) {
             Text("Transfer Settings")
                 .font(.headline)
                 .foregroundColor(.primary)
 
-            HStack(alignment: .top, spacing: 18) {
-                VStack(alignment: .leading, spacing: 6) {
+            HStack(alignment: .top, spacing: 14) {
+                VStack(alignment: .leading, spacing: 7) {
                     Text("Bandwidth Limit")
                         .font(.caption)
                         .foregroundColor(.secondary)
@@ -127,9 +125,14 @@ public struct TransferControlsView: View {
                     .pickerStyle(.menu)
                     .labelsHidden()
                     .frame(width: 170, alignment: .leading)
-                }
 
-                VStack(alignment: .leading, spacing: 6) {
+                    Text("Copy speed cap")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+                VStack(alignment: .leading, spacing: 7) {
                     Text("Verification Mode")
                         .font(.caption)
                         .foregroundColor(.secondary)
@@ -149,11 +152,12 @@ public struct TransferControlsView: View {
                         .foregroundColor(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
         }
         .disabled(viewModel.isTransferConfigurationLocked)
-        .opacity(viewModel.isTransferConfigurationLocked ? 0.62 : 1)
-        .padding(14)
+        .opacity(viewModel.isTransferConfigurationLocked ? 0.70 : 1)
+        .padding(16)
         .background(Color(NSColor.textBackgroundColor).opacity(0.30))
         .cornerRadius(8)
     }
@@ -170,10 +174,13 @@ public struct TransferControlsView: View {
                     for: viewModel.transferState,
                     errorMessage: viewModel.errorMessage
                 ))
-                .font(.system(size: 24, weight: .semibold))
+                .font(.system(size: 22, weight: .semibold))
                 .foregroundColor(statusColor)
+                .frame(width: 34, height: 34)
+                .background(statusColor.opacity(0.13))
+                .clipShape(RoundedRectangle(cornerRadius: 8))
 
-                VStack(alignment: .leading, spacing: 3) {
+                VStack(alignment: .leading, spacing: 4) {
                     Text("Status")
                         .font(.caption)
                         .fontWeight(.semibold)
@@ -187,12 +194,20 @@ public struct TransferControlsView: View {
                         .foregroundColor(.primary)
                         .lineLimit(1)
                         .minimumScaleFactor(0.86)
+                    Text(TransferControlsActionPresentation.subtitle(
+                        for: viewModel.transferState,
+                        errorMessage: viewModel.errorMessage,
+                        canStartTransfer: viewModel.canStartTransfer
+                    ))
+                        .font(.system(.footnote, design: .rounded))
+                        .foregroundColor(.secondary)
+                        .lineLimit(2)
                 }
 
                 Spacer(minLength: 0)
             }
             .padding(16)
-            .frame(maxWidth: .infinity, minHeight: 92, alignment: .leading)
+            .frame(maxWidth: .infinity, minHeight: 112, alignment: .leading)
             .background(statusColor.opacity(isActionButtonEnabled ? 0.14 : 0.07))
             .cornerRadius(8)
             .overlay(
@@ -227,13 +242,16 @@ public struct TransferControlsView: View {
                 .foregroundColor(.secondary)
                 .bold()
             Text(value)
-                .font(.system(.caption, design: .monospaced))
+                .font(.system(.footnote, design: .monospaced))
                 .foregroundColor(.primary)
                 .lineLimit(1)
                 .truncationMode(.middle)
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
+        .padding(10)
         .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color(NSColor.controlBackgroundColor).opacity(0.34))
+        .cornerRadius(7)
     }
 
     private func formatSpeed(_ speed: Double) -> String {
@@ -358,8 +376,10 @@ nonisolated public enum TransferControlsActionPresentation {
 
     public static func icon(for state: TransferState, errorMessage: String? = nil) -> String {
         switch visualRole(for: state, errorMessage: errorMessage) {
-        case .transferring, .verifying:
+        case .transferring:
             return "arrow.triangle.2.circlepath"
+        case .verifying:
+            return "checkmark.shield"
         case .copyOnlyComplete:
             return "doc.on.doc"
         case .safeToFormat:
@@ -375,24 +395,49 @@ nonisolated public enum TransferControlsActionPresentation {
         }
     }
 
-    public static func buttonColor(for state: TransferState, errorMessage: String? = nil) -> Color {
+    public static func subtitle(
+        for state: TransferState,
+        errorMessage: String? = nil,
+        canStartTransfer: Bool = false
+    ) -> String {
+        if state == .cancelled, canStartTransfer {
+            return "Ready to start another transfer."
+        }
+
         switch visualRole(for: state, errorMessage: errorMessage) {
         case .transferring:
-            return Color(red: 0.78, green: 0.60, blue: 0.36)
+            return "Copy in progress. Do not remove media."
         case .verifying:
-            return Color(red: 0.82, green: 0.52, blue: 0.34)
+            return "Comparing source and destination hashes."
         case .copyOnlyComplete:
-            return Color(red: 0.42, green: 0.60, blue: 0.78)
+            return "Copy completed. Verification was disabled."
         case .safeToFormat:
-            return Color(red: 0.43, green: 0.65, blue: 0.48)
+            return "Verification completed successfully."
         case .manualCheckRequired:
-            return Color(red: 0.86, green: 0.60, blue: 0.28)
+            return "Verification did not pass. Review before using media."
         case .error:
-            return Color(red: 0.70, green: 0.38, blue: 0.36)
+            return "Review the error before retrying."
         case .cancelled:
-            return Color(red: 0.50, green: 0.50, blue: 0.50)
+            return "Transfer was cancelled."
         case .idle:
-            return Color(red: 0.42, green: 0.60, blue: 0.78)
+            return "Ready to start transfer."
+        }
+    }
+
+    public static func buttonColor(for state: TransferState, errorMessage: String? = nil) -> Color {
+        switch visualRole(for: state, errorMessage: errorMessage) {
+        case .transferring, .verifying:
+            return .orange
+        case .copyOnlyComplete, .idle:
+            return .blue
+        case .safeToFormat:
+            return .green
+        case .manualCheckRequired:
+            return .orange
+        case .error:
+            return .red
+        case .cancelled:
+            return .gray
         }
     }
 

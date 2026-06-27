@@ -1,10 +1,14 @@
 import SwiftUI
 
 public struct ContentView: View {
+    private static let defaultCollapsedForOperatorMode = true
+
     @StateObject private var viewModel = TransferViewModel()
-    @State private var isShowingTechnicalLogs = false
+    @State private var isShowingTechnicalLogs: Bool
     
-    public init() {}
+    public init() {
+        _isShowingTechnicalLogs = State(initialValue: !Self.defaultCollapsedForOperatorMode)
+    }
     
     public var body: some View {
         VStack(spacing: 18) {
@@ -21,7 +25,7 @@ public struct ContentView: View {
 
                 Spacer()
 
-                Text("Bundled rsync 3.4.4")
+                Text(rsyncHeaderBadgeText)
                     .font(.system(.caption, design: .monospaced))
                     .padding(.horizontal, 10)
                     .padding(.vertical, 5)
@@ -49,9 +53,10 @@ public struct ContentView: View {
                 Text("FishSock Transfer by CenVu")
                 Text("DIT Workflow Tool • hungvh.hfs@gmail.com")
             }
-            .font(.caption)
+            .font(.caption2)
             .foregroundColor(.secondary)
             .multilineTextAlignment(.center)
+            .opacity(0.74)
             .padding(.top, 2)
         }
         .padding(24)
@@ -105,5 +110,32 @@ public struct ContentView: View {
 
     private var rsyncBadgeForegroundColor: Color {
         viewModel.bundledRsyncInfo.isAvailable ? Color.secondary : Color.orange
+    }
+
+    private var rsyncHeaderBadgeText: String {
+        let info = viewModel.bundledRsyncInfo
+
+        guard !info.isAvailable else {
+            return "Bundled rsync \(info.version)"
+        }
+
+        let diagnostic = info.diagnostics.first ?? ""
+        if diagnostic.localizedCaseInsensitiveContains("not executable") {
+            return "Bundled rsync not executable"
+        }
+        if diagnostic.localizedCaseInsensitiveContains("missing") {
+            return "Bundled rsync missing"
+        }
+        if diagnostic.localizedCaseInsensitiveContains("version mismatch") {
+            return "Bundled rsync wrong version \(info.version)"
+        }
+        if diagnostic.localizedCaseInsensitiveContains("timed out") {
+            return "Bundled rsync timeout"
+        }
+        if diagnostic.localizedCaseInsensitiveContains("unrecognized") {
+            return "Bundled rsync invalid"
+        }
+
+        return "Bundled rsync unavailable"
     }
 }

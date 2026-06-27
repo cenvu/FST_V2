@@ -9,7 +9,7 @@ public struct SourceCardView: View {
     }
     
     public var body: some View {
-        VStack(alignment: .leading, spacing: 18) {
+        VStack(alignment: .leading, spacing: 16) {
             HStack(spacing: 8) {
                 Image(systemName: "externaldrive")
                 Text("Source")
@@ -24,14 +24,14 @@ public struct SourceCardView: View {
             .font(.headline)
             .foregroundColor(.primary)
             
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: 10) {
                 if let url = viewModel.sourceURL {
                     Text(url.lastPathComponent)
-                        .font(.system(.title3, design: .rounded, weight: .semibold))
+                        .font(.system(size: 19, weight: .semibold, design: .rounded))
                         .foregroundColor(.primary)
                         .lineLimit(1)
                     Text(url.path)
-                        .font(.system(.caption, design: .monospaced))
+                        .font(.system(.footnote, design: .monospaced))
                         .foregroundColor(.secondary)
                         .lineLimit(1)
                         .truncationMode(.middle)
@@ -51,7 +51,7 @@ public struct SourceCardView: View {
                     }
                 } else {
                     Text("Select Source")
-                        .font(.system(.title3, design: .rounded, weight: .semibold))
+                        .font(.system(size: 19, weight: .semibold, design: .rounded))
                         .foregroundColor(.primary)
                     Text("Drop folder here")
                         .font(.subheadline)
@@ -67,8 +67,11 @@ public struct SourceCardView: View {
             }
             .frame(maxWidth: .infinity, minHeight: 150, alignment: .topLeading)
             .padding(14)
-            .background(Color(NSColor.textBackgroundColor).opacity(0.35))
+            .background(Color.black.opacity(0.16))
             .cornerRadius(8)
+
+            Divider()
+                .opacity(0.45)
 
             Button {
                 guard !viewModel.isTransferConfigurationLocked else { return }
@@ -85,14 +88,13 @@ public struct SourceCardView: View {
             Spacer()
         }
         .padding(18)
-        .frame(maxWidth: .infinity, minHeight: 320, maxHeight: 320, alignment: .top)
+        .frame(maxWidth: .infinity, minHeight: 330, maxHeight: 330, alignment: .top)
         .background(Color(NSColor.controlBackgroundColor).opacity(0.58))
         .cornerRadius(10)
         .overlay(
             RoundedRectangle(cornerRadius: 10)
                 .stroke(
-                    viewModel.isTransferConfigurationLocked ? viewModel.transferState.statusColor :
-                        (isDropTargeted ? Color.blue : Color.secondary.opacity(0.18)),
+                    isDropTargeted ? Color.blue.opacity(0.50) : Color.secondary.opacity(viewModel.isTransferConfigurationLocked ? 0.28 : 0.16),
                     style: StrokeStyle(lineWidth: isDropTargeted ? 2 : 1, dash: isDropTargeted ? [5] : [])
                 )
         )
@@ -119,6 +121,7 @@ public struct SourceCardView: View {
                 .foregroundColor(.secondary)
             Spacer()
             Text(value)
+                .font(.system(.footnote, design: .monospaced))
                 .fontWeight(.semibold)
                 .foregroundColor(.primary)
         }
