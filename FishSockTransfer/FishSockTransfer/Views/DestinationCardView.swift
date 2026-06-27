@@ -9,20 +9,30 @@ public struct DestinationCardView: View {
     }
     
     public var body: some View {
-        VStack(spacing: 16) {
-            Text("DESTINATION")
-                .font(.system(size: 42, weight: .bold))
-                .foregroundColor(.green)
-                .frame(maxWidth: .infinity, minHeight: 70, maxHeight: 70, alignment: .center)
+        VStack(alignment: .leading, spacing: 18) {
+            HStack(spacing: 8) {
+                Image(systemName: "tray.and.arrow.down")
+                Text("Destination")
+                    .fontWeight(.semibold)
+                Spacer()
+                if viewModel.isTransferConfigurationLocked {
+                    Image(systemName: "lock.fill")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+            }
+            .font(.headline)
+            .foregroundColor(.primary)
             
-            VStack(spacing: 6) {
+            VStack(alignment: .leading, spacing: 8) {
                 if let url = viewModel.destinationURL {
                     Text(url.lastPathComponent)
-                        .font(.headline)
-                        .foregroundColor(.white)
+                        .font(.system(.title3, design: .rounded, weight: .semibold))
+                        .foregroundColor(.primary)
+                        .lineLimit(1)
                     Text(url.path)
-                        .font(.system(.subheadline, design: .monospaced))
-                        .foregroundColor(.gray)
+                        .font(.system(.caption, design: .monospaced))
+                        .foregroundColor(.secondary)
                         .lineLimit(1)
                         .truncationMode(.middle)
 
@@ -32,39 +42,42 @@ public struct DestinationCardView: View {
                             metadataRow(title: "Free Space", value: formatBytes(destinationMetadata.freeSpaceBytes))
                             metadataRow(title: "Writable Status", value: destinationMetadata.isWritable ? "YES" : "NO")
                         }
-                        .padding(.top, 6)
+                        .padding(.top, 8)
                     } else {
                         Text("Analyzing destination metadata...")
-                            .font(.system(.footnote, design: .monospaced))
-                            .foregroundColor(.gray)
+                            .font(.footnote)
+                            .foregroundColor(.secondary)
                             .padding(.top, 4)
                     }
 
                     if let destinationTargetPreview = viewModel.destinationTargetPreview {
                         Text(destinationTargetPreview)
                             .font(.system(.footnote, design: .monospaced))
-                            .foregroundColor(.green.opacity(0.9))
+                            .foregroundColor(.secondary)
                             .lineLimit(1)
                             .truncationMode(.middle)
                             .padding(.top, 4)
                     }
                 } else {
                     Text("Select Destination")
-                        .font(.headline)
-                        .foregroundColor(.white)
+                        .font(.system(.title3, design: .rounded, weight: .semibold))
+                        .foregroundColor(.primary)
                     Text("Drop folder here")
-                        .font(.system(.subheadline, design: .monospaced))
-                        .foregroundColor(.gray)
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
                 }
 
                 if viewModel.isTransferConfigurationLocked {
                     Label("Selection locked during transfer", systemImage: "lock.fill")
                         .font(.system(.caption, design: .rounded))
-                        .foregroundColor(.green.opacity(0.85))
+                        .foregroundColor(.secondary)
                         .padding(.top, 4)
                 }
             }
-            .frame(maxWidth: .infinity, minHeight: 142)
+            .frame(maxWidth: .infinity, minHeight: 150, alignment: .topLeading)
+            .padding(14)
+            .background(Color(NSColor.textBackgroundColor).opacity(0.35))
+            .cornerRadius(8)
 
             Button {
                 guard !viewModel.isTransferConfigurationLocked else { return }
@@ -76,20 +89,20 @@ public struct DestinationCardView: View {
             .buttonStyle(.bordered)
             .disabled(viewModel.isTransferConfigurationLocked)
             .opacity(viewModel.isTransferConfigurationLocked ? 0.55 : 1.0)
-            .frame(width: 160)
+            .controlSize(.regular)
             
             Spacer()
         }
-        .padding(22)
-        .frame(maxWidth: .infinity, minHeight: 360, maxHeight: 360, alignment: .top)
-        .background(Color.black.opacity(0.10))
-        .cornerRadius(12)
+        .padding(18)
+        .frame(maxWidth: .infinity, minHeight: 320, maxHeight: 320, alignment: .top)
+        .background(Color(NSColor.controlBackgroundColor).opacity(0.58))
+        .cornerRadius(10)
         .overlay(
-            RoundedRectangle(cornerRadius: 12)
+            RoundedRectangle(cornerRadius: 10)
                 .stroke(
                     viewModel.isTransferConfigurationLocked ? viewModel.transferState.statusColor :
-                        (isDropTargeted ? Color.green : Color.green.opacity(0.5)),
-                    style: StrokeStyle(lineWidth: isDropTargeted ? 2 : 1, dash: [5])
+                        (isDropTargeted ? Color.blue : Color.secondary.opacity(0.18)),
+                    style: StrokeStyle(lineWidth: isDropTargeted ? 2 : 1, dash: isDropTargeted ? [5] : [])
                 )
         )
         .dropDestination(for: URL.self) { urls, _ in
@@ -108,13 +121,13 @@ public struct DestinationCardView: View {
     private func metadataRow(title: String, value: String) -> some View {
         HStack {
             Text(title)
-                .foregroundColor(.gray)
+                .foregroundColor(.secondary)
             Spacer()
             Text(value)
                 .fontWeight(.semibold)
-                .foregroundColor(.green)
+                .foregroundColor(.primary)
         }
-        .font(.system(.footnote, design: .monospaced))
+        .font(.system(.footnote, design: .rounded))
         .frame(maxWidth: .infinity)
     }
 }

@@ -2,43 +2,34 @@ import SwiftUI
 
 public struct ContentView: View {
     @StateObject private var viewModel = TransferViewModel()
+    @State private var isShowingTechnicalLogs = false
     
     public init() {}
     
     public var body: some View {
-        VStack(spacing: 20) {
-            // App Header
-            HStack(alignment: .top) {
-                VStack(alignment: .leading, spacing: 6) {
+        VStack(spacing: 18) {
+            HStack(alignment: .center, spacing: 16) {
+                VStack(alignment: .leading, spacing: 4) {
                     Text("FishSock Transfer")
-                        .font(.title2)
-                        .fontWeight(.bold)
-                        .foregroundColor(.white)
+                        .font(.system(.title2, design: .rounded, weight: .semibold))
+                        .foregroundColor(.primary)
                     
-                    Text(viewModel.bundledRsyncInfo.badgeText)
-                        .font(.system(.subheadline, design: .monospaced))
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(rsyncBadgeBackgroundColor)
-                        .cornerRadius(4)
-                        .foregroundColor(rsyncBadgeForegroundColor)
+                    Text("Beta DIT workflow tool")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
                 }
 
                 Spacer()
 
-                VStack(alignment: .trailing, spacing: 4) {
-                    Text("From CenVu with love")
-                    Text("📱 (+84) 842 841 222")
-                    Text("✉️ hunghv.hfs@gmail.com")
-                        .foregroundColor(.blue)
-                }
-                .font(.caption)
-                .fontWeight(.regular)
-                .foregroundColor(.secondary)
-                .opacity(0.7)
+                Text(viewModel.bundledRsyncInfo.badgeText)
+                    .font(.system(.caption, design: .monospaced))
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 5)
+                    .background(rsyncBadgeBackgroundColor)
+                    .clipShape(Capsule())
+                    .foregroundColor(rsyncBadgeForegroundColor)
             }
             
-            // Core UI Sections
             HStack(spacing: 20) {
                 SourceCardView(viewModel: viewModel)
                     .frame(maxWidth: .infinity)
@@ -50,11 +41,18 @@ public struct ContentView: View {
             TransferControlsView(viewModel: viewModel)
                 .frame(maxWidth: .infinity)
             
-            TerminalLogsView(
-                logs: viewModel.logs,
-                autoScroll: viewModel.transferState == .copying || viewModel.transferState == .verifying
-            )
-            .frame(maxWidth: .infinity)
+            technicalLogsDisclosure
+
+            Spacer(minLength: 0)
+
+            VStack(spacing: 2) {
+                Text("FishSock Transfer by CenVu")
+                Text("DIT Workflow Tool • hungvh.hfs@gmail.com")
+            }
+            .font(.caption)
+            .foregroundColor(.secondary)
+            .multilineTextAlignment(.center)
+            .padding(.top, 2)
         }
         .padding(24)
         .frame(
@@ -68,11 +66,44 @@ public struct ContentView: View {
         .background(Color(NSColor.windowBackgroundColor))
     }
 
+    private var technicalLogsDisclosure: some View {
+        DisclosureGroup(isExpanded: $isShowingTechnicalLogs) {
+            TerminalLogsView(
+                logs: viewModel.logs,
+                autoScroll: viewModel.transferState == .copying || viewModel.transferState == .verifying
+            )
+            .padding(.top, 10)
+        } label: {
+            HStack(spacing: 8) {
+                Image(systemName: "terminal")
+                Text("Technical Logs")
+                    .fontWeight(.semibold)
+                Text("\(viewModel.logs.count)")
+                    .font(.system(.caption, design: .monospaced))
+                    .foregroundColor(.secondary)
+                    .padding(.horizontal, 7)
+                    .padding(.vertical, 2)
+                    .background(Color.secondary.opacity(0.12))
+                    .clipShape(Capsule())
+                Spacer()
+            }
+            .font(.subheadline)
+            .foregroundColor(.secondary)
+        }
+        .padding(14)
+        .background(Color(NSColor.controlBackgroundColor).opacity(0.55))
+        .cornerRadius(10)
+        .overlay(
+            RoundedRectangle(cornerRadius: 10)
+                .stroke(Color.secondary.opacity(0.16), lineWidth: 1)
+        )
+    }
+
     private var rsyncBadgeBackgroundColor: Color {
-        viewModel.bundledRsyncInfo.isAvailable ? Color.gray.opacity(0.3) : Color.yellow.opacity(0.25)
+        viewModel.bundledRsyncInfo.isAvailable ? Color.secondary.opacity(0.12) : Color.orange.opacity(0.16)
     }
 
     private var rsyncBadgeForegroundColor: Color {
-        viewModel.bundledRsyncInfo.isAvailable ? Color.gray : Color.yellow.opacity(0.85)
+        viewModel.bundledRsyncInfo.isAvailable ? Color.secondary : Color.orange
     }
 }

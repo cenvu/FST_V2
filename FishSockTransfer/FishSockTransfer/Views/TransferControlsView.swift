@@ -16,76 +16,13 @@ public struct TransferControlsView: View {
     }
     
     public var body: some View {
-        VStack(spacing: 24) {
-            // Transfer Settings
-            HStack(alignment: .center, spacing: 24) {
-                VStack(alignment: .leading, spacing: 14) {
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text("BANDWIDTH LIMIT")
-                            .font(.caption)
-                            .foregroundColor(.gray)
-                            .bold()
+        VStack(spacing: 16) {
+            HStack(alignment: .top, spacing: 16) {
+                settingsPanel
+                    .frame(maxWidth: .infinity, alignment: .leading)
 
-                        Picker("", selection: $viewModel.bandwidthLimit) {
-                            ForEach(bandwidthOptions, id: \.label) { option in
-                                Text(option.label).tag(option.value)
-                            }
-                        }
-                        .pickerStyle(.menu)
-                        .labelsHidden()
-                        .frame(width: 200, alignment: .leading)
-                    }
-
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text("VERIFICATION MODE")
-                            .font(.caption)
-                            .foregroundColor(.gray)
-                            .bold()
-
-                        Picker("", selection: $viewModel.verificationMode) {
-                            Text("None").tag(VerificationMode.none)
-                            Text("Random 33%").tag(VerificationMode.random33)
-                            Text("Full 100%").tag(VerificationMode.full)
-                        }
-                        .pickerStyle(.menu)
-                        .labelsHidden()
-                        .frame(width: 200, alignment: .leading)
-
-                        Text(viewModel.verificationMode.operatorDescription)
-                            .font(.system(.footnote, design: .rounded))
-                            .foregroundColor(.gray)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-                }
-                .disabled(viewModel.isTransferConfigurationLocked)
-                .frame(maxWidth: .infinity, alignment: .leading)
-
-                Button(action: handleActionButton) {
-                    HStack {
-                        Image(systemName: TransferControlsActionPresentation.icon(
-                            for: viewModel.transferState,
-                            errorMessage: viewModel.errorMessage
-                        ))
-                        Text(TransferControlsActionPresentation.title(
-                            for: viewModel.transferState,
-                            errorMessage: viewModel.errorMessage,
-                            canStartTransfer: viewModel.canStartTransfer
-                        ))
-                            .fontWeight(.bold)
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.9)
-                    }
-                    .font(.system(size: 18))
-                    .frame(width: 300, height: 68)
-                    .background(TransferControlsActionPresentation.buttonColor(
-                        for: viewModel.transferState,
-                        errorMessage: viewModel.errorMessage
-                    ))
-                    .foregroundColor(.white)
-                    .cornerRadius(9)
-                }
-                .buttonStyle(PlainButtonStyle())
-                .disabled(!isActionButtonEnabled)
+                actionStatusButton
+                    .frame(width: 320)
             }
             .frame(maxWidth: .infinity)
 
@@ -95,7 +32,7 @@ public struct TransferControlsView: View {
                     Text(storageWarningMessage)
                 }
                 .font(.system(.subheadline, design: .rounded))
-                .foregroundColor(Color(red: 0.86, green: 0.60, blue: 0.28))
+                .foregroundColor(.orange)
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
 
@@ -105,7 +42,7 @@ public struct TransferControlsView: View {
                     Text(startBlockedReason)
                 }
                 .font(.system(.subheadline, design: .rounded))
-                .foregroundColor(Color(red: 0.72, green: 0.72, blue: 0.72))
+                .foregroundColor(.secondary)
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
 
@@ -127,21 +64,20 @@ public struct TransferControlsView: View {
                         .truncationMode(.middle)
                 }
                 .font(.system(.subheadline, design: .rounded))
-                .foregroundColor(reportStatusMessage.hasPrefix("Report saved: ") ? Color.gray : Color(red: 0.86, green: 0.60, blue: 0.28))
+                .foregroundColor(reportStatusMessage.hasPrefix("Report saved: ") ? Color.secondary : Color.orange)
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
 
-            // Runtime Feedback
             VStack(alignment: .leading, spacing: 12) {
                 HStack {
-                    Text("TRANSFER PROGRESS")
+                    Text("Transfer Progress")
                         .font(.caption)
-                        .foregroundColor(.gray)
+                        .foregroundColor(.secondary)
                         .bold()
                     Spacer()
                     Text("\(Int(displayProgress.rounded()))%")
                         .font(.system(.subheadline, design: .monospaced))
-                        .foregroundColor(.blue)
+                        .foregroundColor(viewModel.transferState.statusColor)
                         .bold()
                 }
 
@@ -154,20 +90,119 @@ public struct TransferControlsView: View {
                     runtimeMetric(title: "ETA", value: formatETA(viewModel.eta))
                 }
             }
-            .padding()
+            .padding(14)
             .frame(maxWidth: .infinity)
-            .background(Color.black.opacity(0.18))
+            .background(Color(NSColor.textBackgroundColor).opacity(0.30))
             .cornerRadius(8)
             
         }
-        .padding()
+        .padding(16)
         .frame(maxWidth: .infinity)
-        .background(Color(NSColor.controlBackgroundColor).opacity(0.5))
-        .cornerRadius(12)
+        .background(Color(NSColor.controlBackgroundColor).opacity(0.55))
+        .cornerRadius(10)
         .overlay(
-            RoundedRectangle(cornerRadius: 12)
-                .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+            RoundedRectangle(cornerRadius: 10)
+                .stroke(Color.secondary.opacity(0.16), lineWidth: 1)
         )
+    }
+
+    private var settingsPanel: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Transfer Settings")
+                .font(.headline)
+                .foregroundColor(.primary)
+
+            HStack(alignment: .top, spacing: 18) {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Bandwidth Limit")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .fontWeight(.semibold)
+
+                    Picker("", selection: $viewModel.bandwidthLimit) {
+                        ForEach(bandwidthOptions, id: \.label) { option in
+                            Text(option.label).tag(option.value)
+                        }
+                    }
+                    .pickerStyle(.menu)
+                    .labelsHidden()
+                    .frame(width: 170, alignment: .leading)
+                }
+
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Verification Mode")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .fontWeight(.semibold)
+
+                    Picker("", selection: $viewModel.verificationMode) {
+                        Text("None").tag(VerificationMode.none)
+                        Text("Random 33%").tag(VerificationMode.random33)
+                        Text("Full 100%").tag(VerificationMode.full)
+                    }
+                    .pickerStyle(.menu)
+                    .labelsHidden()
+                    .frame(width: 170, alignment: .leading)
+
+                    Text(viewModel.verificationMode.operatorDescription)
+                        .font(.system(.footnote, design: .rounded))
+                        .foregroundColor(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+        }
+        .disabled(viewModel.isTransferConfigurationLocked)
+        .opacity(viewModel.isTransferConfigurationLocked ? 0.62 : 1)
+        .padding(14)
+        .background(Color(NSColor.textBackgroundColor).opacity(0.30))
+        .cornerRadius(8)
+    }
+
+    private var actionStatusButton: some View {
+        let statusColor = TransferControlsActionPresentation.buttonColor(
+            for: viewModel.transferState,
+            errorMessage: viewModel.errorMessage
+        )
+
+        return Button(action: handleActionButton) {
+            HStack(spacing: 12) {
+                Image(systemName: TransferControlsActionPresentation.icon(
+                    for: viewModel.transferState,
+                    errorMessage: viewModel.errorMessage
+                ))
+                .font(.system(size: 24, weight: .semibold))
+                .foregroundColor(statusColor)
+
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("Status")
+                        .font(.caption)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.secondary)
+                    Text(TransferControlsActionPresentation.title(
+                        for: viewModel.transferState,
+                        errorMessage: viewModel.errorMessage,
+                        canStartTransfer: viewModel.canStartTransfer
+                    ))
+                        .font(.system(size: 17, weight: .bold, design: .rounded))
+                        .foregroundColor(.primary)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.86)
+                }
+
+                Spacer(minLength: 0)
+            }
+            .padding(16)
+            .frame(maxWidth: .infinity, minHeight: 92, alignment: .leading)
+            .background(statusColor.opacity(isActionButtonEnabled ? 0.14 : 0.07))
+            .cornerRadius(8)
+            .overlay(
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(statusColor.opacity(isActionButtonEnabled ? 0.45 : 0.20), lineWidth: 1)
+            )
+        }
+        .buttonStyle(PlainButtonStyle())
+        .disabled(!isActionButtonEnabled)
+        .opacity(isActionButtonEnabled ? 1 : 0.68)
     }
 
     private var displayProgress: Double {
@@ -189,11 +224,11 @@ public struct TransferControlsView: View {
         VStack(alignment: .leading, spacing: 4) {
             Text(title)
                 .font(.caption2)
-                .foregroundColor(.gray)
+                .foregroundColor(.secondary)
                 .bold()
             Text(value)
                 .font(.system(.caption, design: .monospaced))
-                .foregroundColor(.white)
+                .foregroundColor(.primary)
                 .lineLimit(1)
                 .truncationMode(.middle)
                 .frame(maxWidth: .infinity, alignment: .leading)
