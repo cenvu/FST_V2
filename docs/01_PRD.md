@@ -16,13 +16,15 @@ FST is a native macOS media offload application for DITs, Data Wranglers, and pr
 It exists to answer one question:
 
 ```text
-Can the source media be safely formatted?
+Can the source media be safely ejected and handed off?
 ```
+
+FST does not format cards or media. It provides copy and verification evidence for operator handoff.
 
 Workflow:
 
 ```text
-SOURCE -> COPY -> VERIFY -> SAFE TO FORMAT
+SOURCE -> COPY -> VERIFY -> SAFE TO EJECT / OPERATOR HANDOFF
 ```
 
 Product priority:
@@ -99,7 +101,7 @@ A first-time operator can launch FST, select source, select destination, choose 
 - xxHash64 verification
 - logs
 - TXT report
-- SAFE TO FORMAT gate
+- Safe To Eject gate
 
 ### Out of Scope
 
@@ -286,7 +288,7 @@ Must:
 - terminate rsync safely
 - preserve logs
 - set state to `cancelled`
-- never show SAFE TO FORMAT after cancel
+- never show SAFE TO EJECT after cancel
 - keep UI responsive
 
 ### FR-009 Verification
@@ -308,25 +310,33 @@ Rules:
 - `none` skips hashing and ends at COPY COMPLETE.
 - `random33` verifies about one third of transferred files.
 - `full` verifies all transferred files.
-- Any failure blocks SAFE TO FORMAT.
+- Any failure blocks SAFE TO EJECT.
 - No SHA256, MD5, CRC32, or MHL in MVP.
 
-### FR-010 SAFE TO FORMAT
+### FR-010 SAFE TO EJECT
 
 Absolute rule:
 
 ```text
-SAFE TO FORMAT = copy success AND verification success
+SAFE TO EJECT = copy success AND verification success
 ```
 
 If verification mode is `none`:
 
 ```text
 Final state = COPY COMPLETE
-Never SAFE TO FORMAT
+Never SAFE TO EJECT
 ```
 
 No operator override. No warning bypass. No auto-approval.
+
+Operator-facing terminal language:
+
+- Copy-only success with verification disabled = TRANSFER COMPLETE
+- Verified success = SAFE TO EJECT
+- Verification failure = MANUAL CHECK REQUIRED
+- Transfer, preflight, or rsync failure = TRANSFER ERROR
+- Cancelled = CANCELLED
 
 ### FR-011 Logging
 
@@ -376,7 +386,7 @@ Must include:
 - error count
 - final state
 
-Report must never claim SAFE TO FORMAT unless Coordinator state is `safeToFormat`.
+Report must never claim SAFE TO EJECT unless Coordinator state is the internal legacy `safeToFormat` state.
 
 ---
 
@@ -387,6 +397,8 @@ Allowed states:
 ```text
 ready, validating, copying, verifying, copyComplete, safeToFormat, error, cancelled
 ```
+
+Note: `safeToFormat` is a legacy internal state name for verified success. It must not be displayed to operators; use SAFE TO EJECT in UI, logs, reports, and docs.
 
 Rules:
 
@@ -458,7 +470,7 @@ MVP is complete only when:
 - verification none ends COPY COMPLETE
 - random33 verification works
 - full verification works
-- SAFE TO FORMAT cannot bypass verification
+- SAFE TO EJECT cannot bypass verification
 - logs and TXT report reflect final truth
 - production-scale transfer test passes without crash
 

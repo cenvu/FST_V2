@@ -5,13 +5,15 @@ FST / FishSock Transfer is a native macOS media offload app for DITs, Data Wrang
 It exists to answer one question:
 
 ```text
-Can the source media be safely formatted?
+Can the source media be safely ejected and handed off?
 ```
+
+FST does not format cards or media. It provides copy and verification evidence for operator handoff.
 
 Workflow:
 
 ```text
-SOURCE -> COPY -> VERIFY -> SAFE TO FORMAT
+SOURCE -> COPY -> VERIFY -> SAFE TO EJECT / OPERATOR HANDOFF
 ```
 
 Priority:
@@ -37,7 +39,7 @@ Current focus:
 - `.DS_Store` hang investigation
 - cancellation safety
 - xxHash64 verification
-- SAFE TO FORMAT enforcement
+- Safe To Eject enforcement
 - TXT report truthfulness
 
 Do not add feature expansion before these audit targets are stable.
@@ -60,7 +62,7 @@ In scope:
 - cancellation
 - xxHash64 verification
 - TXT report
-- SAFE TO FORMAT gate
+- Safe To Eject gate
 
 Out of scope:
 
@@ -164,7 +166,9 @@ Allowed states:
 ready, validating, copying, verifying, copyComplete, safeToFormat, error, cancelled
 ```
 
-SAFE TO FORMAT rule:
+Note: `safeToFormat` is a legacy internal state name for verified success. Operator-facing UI, logs, and reports must use SAFE TO EJECT.
+
+Safe To Eject rule:
 
 ```text
 copy success AND verification pass
@@ -176,7 +180,7 @@ If verification mode is `none`, final state must be:
 copyComplete
 ```
 
-Never show SAFE TO FORMAT after verification `none`, copy failure, verification failure, or cancellation.
+Never show SAFE TO EJECT after verification `none`, copy failure, verification failure, or cancellation.
 
 ---
 
@@ -224,7 +228,7 @@ Rules:
 - `none` skips hashing and ends at COPY COMPLETE.
 - `random33` verifies about one third of files.
 - `full` verifies all files.
-- Any verification failure blocks SAFE TO FORMAT.
+- Any verification failure blocks SAFE TO EJECT.
 
 ---
 
@@ -276,7 +280,7 @@ Manual smoke tests:
 - verification `none`
 - verification `random33`
 - verification `full`
-- failed verify must not show SAFE TO FORMAT
+- failed verify must not show SAFE TO EJECT
 
 ---
 

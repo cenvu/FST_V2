@@ -10,11 +10,13 @@ Applies To: Codex, Claude, ChatGPT, human contributors
 
 FST exists to answer one operational question:
 
-Can the source media be safely formatted?
+Can the source media be safely ejected and handed off?
+
+FST does not format cards or media. It provides copy and verification evidence for operator handoff.
 
 Workflow:
 
-SOURCE -> COPY -> VERIFY -> SAFE TO FORMAT
+SOURCE -> COPY -> VERIFY -> SAFE TO EJECT / OPERATOR HANDOFF
 
 Priority order:
 
@@ -146,7 +148,7 @@ Owns:
 - start/cancel workflow
 - transfer state transitions
 - orchestration: validate -> copy -> verify -> report
-- SAFE TO FORMAT gate
+- Safe To Eject gate
 
 Must not:
 
@@ -345,14 +347,16 @@ Terminal states:
 - `error`
 - `cancelled`
 
+Note: `safeToFormat` is a legacy internal state name for verified success. Operator-facing UI, logs, and reports must say `SAFE TO EJECT`.
+
 ---
 
-## 5. SAFE TO FORMAT Gate
+## 5. SAFE TO EJECT Gate
 
 Absolute rule:
 
 ```text
-SAFE TO FORMAT = copy success AND verification success
+SAFE TO EJECT = copy success AND verification success
 ```
 
 If verification mode is `none`:
@@ -373,7 +377,7 @@ Rsync moves data.
 
 VerifyEngine establishes trust.
 
-TransferCoordinator authorizes SAFE TO FORMAT.
+TransferCoordinator authorizes SAFE TO EJECT.
 
 ---
 
@@ -459,7 +463,7 @@ rsync exit 23
 Good:
 
 ```text
-Transfer incomplete. Some files were not copied. Do not format source media.
+Transfer incomplete. Some files were not copied. Do not erase or reuse source media.
 ```
 
 ---
@@ -549,8 +553,8 @@ Mode behavior:
 | Mode | Behavior | Final Success State |
 |---|---|---|
 | none | skip hashing | copyComplete |
-| random33 | verify approx. 33% | safeToFormat if passed |
-| full | verify all files | safeToFormat if passed |
+| random33 | verify approx. 33% | internal `safeToFormat`; operator sees SAFE TO EJECT if passed |
+| full | verify all files | internal `safeToFormat`; operator sees SAFE TO EJECT if passed |
 
 Verification must:
 
@@ -607,7 +611,7 @@ Rules:
 
 - App version and rsync version are separate fields.
 - Do not display rsync version as app version.
-- Report must never claim SAFE TO FORMAT unless state is `safeToFormat`.
+- Report must never claim SAFE TO EJECT unless state is the internal legacy `safeToFormat` state.
 
 ---
 
@@ -663,11 +667,11 @@ Status colors:
 | copying | blue |
 | verifying | orange |
 | copyComplete | neutral/success-muted |
-| safeToFormat | green |
+| safeToFormat | green; internal legacy name, displayed as SAFE TO EJECT |
 | error | red |
 | cancelled | yellow |
 
-UI must not show SAFE TO FORMAT before coordinator state is `safeToFormat`.
+UI must not show SAFE TO EJECT before coordinator state is the internal legacy `safeToFormat` state.
 
 ---
 
@@ -916,7 +920,7 @@ These older assumptions are no longer source-of-truth:
 Current priority:
 
 ```text
-Rsync correctness -> speed limiter -> progress accuracy -> verification -> SAFE TO FORMAT -> report integrity -> UI polish
+Rsync correctness -> speed limiter -> progress accuracy -> verification -> SAFE TO EJECT -> report integrity -> UI polish
 ```
 
 ---

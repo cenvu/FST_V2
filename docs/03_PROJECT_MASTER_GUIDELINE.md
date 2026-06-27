@@ -13,10 +13,10 @@ Build a safe native macOS DIT media offload tool.
 Workflow:
 
 ```text
-SOURCE -> COPY -> VERIFY -> SAFE TO FORMAT
+SOURCE -> COPY -> VERIFY -> SAFE TO EJECT / OPERATOR HANDOFF
 ```
 
-The app exists to prove whether source media can be erased.
+FST does not format cards or media. The app exists to provide copy and verification evidence for operator handoff.
 
 Data safety beats speed, UI convenience, and clever code.
 
@@ -200,6 +200,8 @@ Allowed states:
 ready, validating, copying, verifying, copyComplete, safeToFormat, error, cancelled
 ```
 
+Note: `safeToFormat` is a legacy internal state name for verified success. Operator-facing UI, logs, and reports must say SAFE TO EJECT.
+
 Rules:
 
 - one active state
@@ -207,7 +209,7 @@ Rules:
 - no added or renamed states
 - no skipped validation
 
-SAFE TO FORMAT rule:
+Safe To Eject rule:
 
 ```text
 copy success AND verification pass
@@ -283,7 +285,7 @@ Rules:
 - `none` ends COPY COMPLETE
 - `random33` samples about one third
 - `full` checks all files
-- failed verification blocks SAFE TO FORMAT
+- failed verification blocks SAFE TO EJECT
 - no SHA256/MD5/CRC32/MHL unless spec changes
 
 ---
@@ -416,8 +418,8 @@ Verify before claiming stable:
 - [ ] `.DS_Store` cannot hang transfer
 - [ ] progress/speed/ETA credible
 - [ ] cancellation creates no false success
-- [ ] verification none never shows SAFE TO FORMAT
-- [ ] verification pass required for SAFE TO FORMAT
+- [ ] verification none never shows SAFE TO EJECT
+- [ ] verification pass required for SAFE TO EJECT
 - [ ] logs survive failure
 - [ ] TXT report reflects final truth
 

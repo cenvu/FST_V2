@@ -15,13 +15,15 @@ FST is a native macOS DIT/Data Wrangler media offload app.
 Operational question:
 
 ```text
-Can the source media be safely formatted?
+Can the source media be safely ejected and handed off?
 ```
+
+FST does not format cards or media. It provides copy and verification evidence for operator handoff.
 
 Workflow:
 
 ```text
-SOURCE -> COPY -> VERIFY -> SAFE TO FORMAT
+SOURCE -> COPY -> VERIFY -> SAFE TO EJECT / OPERATOR HANDOFF
 ```
 
 Priority order:
@@ -177,6 +179,8 @@ Allowed states only:
 ready, validating, copying, verifying, copyComplete, safeToFormat, error, cancelled
 ```
 
+Note: `safeToFormat` is a legacy internal state name only. Operator-facing UI, logs, and reports must say `SAFE TO EJECT` for verified success.
+
 Rules:
 
 - Only `TransferCoordinator` changes state.
@@ -234,10 +238,10 @@ xxHash64
 
 Rules:
 
-- `none` means no SAFE TO FORMAT.
+- `none` means copy-only success: TRANSFER COMPLETE, not SAFE TO EJECT.
 - `random33` verifies about one third of files.
 - `full` verifies all files.
-- Any verification failure blocks SAFE TO FORMAT.
+- Any verification failure blocks SAFE TO EJECT.
 - No SHA256, MD5, CRC32, MHL in MVP unless spec changes.
 
 ---
@@ -254,7 +258,7 @@ Fix before feature expansion:
 5. Progress reporting accuracy
 6. Transfer pipeline validation
 7. Cancellation safety
-8. SAFE TO FORMAT enforcement
+8. Safe To Eject enforcement
 9. TXT report truthfulness
 ```
 

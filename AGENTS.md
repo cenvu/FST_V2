@@ -13,13 +13,15 @@ FST / FishSock Transfer is a native macOS DIT/Data Wrangler media offload app.
 The app exists to answer one operational question:
 
 ```text
-Can the source media be safely formatted?
+Can the source media be safely ejected and handed off?
 ```
+
+FST does not format cards or media. It provides copy and verification evidence for operator handoff.
 
 Required workflow:
 
 ```text
-SOURCE -> COPY -> VERIFY -> SAFE TO FORMAT
+SOURCE -> COPY -> VERIFY -> SAFE TO EJECT / OPERATOR HANDOFF
 ```
 
 Priority order:
@@ -113,7 +115,7 @@ Layer ownership:
 |---|---|---|
 | Views | layout, rendering, user actions | rsync, hashing, workflow decisions |
 | ViewModel | published UI state, bindings, formatting | process execution, filesystem work, state machine ownership |
-| Coordinator | validation, orchestration, state transitions, SAFE TO FORMAT gate | SwiftUI rendering, low-level shell details |
+| Coordinator | validation, orchestration, state transitions, Safe To Eject gate | SwiftUI rendering, low-level shell details |
 | Engines | transfer, progress parsing, verification, report generation | UI state, SwiftUI imports |
 | Services | macOS APIs, bookmarks, rsync lookup, logging wrappers | workflow decisions |
 | Models | data contracts | side effects |
@@ -129,6 +131,8 @@ Allowed states only:
 ```text
 ready, validating, copying, verifying, copyComplete, safeToFormat, error, cancelled
 ```
+
+Note: `safeToFormat` is a legacy internal state name only. UI, logs, reports, and docs for operators must use `SAFE TO EJECT`, not formatting language.
 
 Success flows:
 
@@ -230,11 +234,11 @@ xxHash64
 
 Rules:
 
-- `none` means no SAFE TO FORMAT.
+- `none` means copy-only success: TRANSFER COMPLETE, not SAFE TO EJECT.
 - `random33` verifies about one third of files, with a minimum of one file when files exist.
 - `full` verifies all files.
 - Compare relative paths and file sizes before hashing.
-- Any verification failure blocks SAFE TO FORMAT.
+- Any verification failure blocks SAFE TO EJECT.
 - Verify off the MainActor.
 - Do not add SHA256, MD5, CRC32, MHL, database, queue, or multi-destination behavior unless the spec changes.
 
@@ -256,7 +260,7 @@ Forbidden on source:
 - quarantine changes
 - destructive rsync operation
 
-If there is uncertainty, fail safely and tell the operator not to format the source.
+If there is uncertainty, fail safely and tell the operator not to erase or reuse the source.
 
 ---
 
@@ -272,7 +276,7 @@ Fix before feature expansion:
 5. Progress reporting accuracy
 6. Transfer pipeline validation
 7. Cancellation safety
-8. SAFE TO FORMAT enforcement
+8. Safe To Eject enforcement
 9. TXT report truthfulness
 ```
 
