@@ -38,7 +38,7 @@ Current focus:
 - progress parser accuracy
 - `.DS_Store` hang investigation
 - cancellation safety
-- xxHash64 verification
+- SHA256 sample verification and xxHash64 full verification
 - Safe To Eject enforcement
 - TXT report truthfulness
 
@@ -60,7 +60,7 @@ In scope:
 - bandwidth control
 - real-time progress and logs
 - cancellation
-- xxHash64 verification
+- SHA256 sample verification and xxHash64 full verification
 - TXT report
 - Safe To Eject gate
 
@@ -87,7 +87,7 @@ Out of scope:
 - Framework: SwiftUI
 - Architecture: MVVM + Coordinator + Engine + Service
 - Transfer engine: bundled rsync 3.4.4 only
-- Verification: xxHash64
+- Verification: SHA256 Sample 33% or xxHash64 Full 100%
 - Report: plain TXT
 
 Production transfer must not silently fallback to Apple `/usr/bin/rsync`.
@@ -217,17 +217,18 @@ Supported modes:
 none, random33, full
 ```
 
-Algorithm:
+Algorithms:
 
 ```text
-xxHash64
+random33 -> SHA256
+full -> xxHash64
 ```
 
 Rules:
 
 - `none` skips hashing and ends at COPY COMPLETE.
-- `random33` verifies about one third of files.
-- `full` verifies all files.
+- `random33` verifies about one third of files with SHA256.
+- `full` verifies all files with xxHash64 fast non-cryptographic verification.
 - Any verification failure blocks SAFE TO EJECT.
 
 ---

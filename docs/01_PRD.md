@@ -98,7 +98,7 @@ A first-time operator can launch FST, select source, select destination, choose 
 - bandwidth control
 - real-time monitoring
 - cancellation
-- xxHash64 verification
+- SHA256 sample verification and xxHash64 full verification
 - logs
 - TXT report
 - Safe To Eject gate
@@ -299,19 +299,20 @@ Modes:
 none, random33, full
 ```
 
-Algorithm:
+Algorithms:
 
 ```text
-xxHash64
+random33 -> SHA256
+full -> xxHash64
 ```
 
 Rules:
 
 - `none` skips hashing and ends at COPY COMPLETE.
-- `random33` verifies about one third of transferred files.
-- `full` verifies all transferred files.
+- `random33` verifies about one third of transferred files with SHA256.
+- `full` verifies all transferred files with xxHash64 fast non-cryptographic verification.
 - Any failure blocks SAFE TO EJECT.
-- No SHA256, MD5, CRC32, or MHL in MVP.
+- No MD5, CRC32, or MHL in MVP.
 
 ### FR-010 SAFE TO EJECT
 

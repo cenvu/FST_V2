@@ -230,19 +230,20 @@ Modes:
 none, random33, full
 ```
 
-Algorithm:
+Algorithms:
 
 ```text
-xxHash64
+random33 -> SHA256
+full -> xxHash64
 ```
 
 Rules:
 
 - `none` means copy-only success: TRANSFER COMPLETE, not SAFE TO EJECT.
-- `random33` verifies about one third of files.
-- `full` verifies all files.
+- `random33` verifies about one third of files with SHA256.
+- `full` verifies all files with xxHash64 fast non-cryptographic verification.
 - Any verification failure blocks SAFE TO EJECT.
-- No SHA256, MD5, CRC32, MHL in MVP unless spec changes.
+- No MD5, CRC32, MHL in MVP unless spec changes.
 
 ---
 

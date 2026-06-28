@@ -29,6 +29,9 @@ final class ReportEngineXCTests: XCTestCase {
         )
 
         XCTAssertTrue(text.contains("Final Status:        SAFE TO EJECT"))
+        XCTAssertTrue(text.contains("Verification Mode:   xxHash64 Full 100%"))
+        XCTAssertTrue(text.contains("Hash Algorithm:      xxHash64"))
+        XCTAssertTrue(text.contains("Fast non-cryptographic hash verification"))
         XCTAssertTrue(text.contains("Verification Result: PASSED"))
         XCTAssertTrue(text.contains("Verified Files:      10"))
         XCTAssertTrue(text.contains("Passed Files:        10"))
@@ -53,6 +56,8 @@ final class ReportEngineXCTests: XCTestCase {
         )
 
         XCTAssertTrue(text.contains("Final Status:        MANUAL CHECK REQUIRED"))
+        XCTAssertTrue(text.contains("Verification Mode:   SHA256 Sample 33%"))
+        XCTAssertTrue(text.contains("Hash Algorithm:      SHA256"))
         XCTAssertTrue(text.contains("Failure Reason:      MANUAL CHECK REQUIRED: Verification failed."))
         XCTAssertTrue(text.contains("Failed Files:        1"))
         XCTAssertFalse(text.contains("Final Status:        SAFE TO EJECT"))

@@ -274,19 +274,20 @@ Modes:
 none, random33, full
 ```
 
-Algorithm:
+Algorithms:
 
 ```text
-xxHash64
+random33 -> SHA256
+full -> xxHash64
 ```
 
 Rules:
 
 - `none` ends COPY COMPLETE
-- `random33` samples about one third
-- `full` checks all files
+- `random33` samples about one third with SHA256
+- `full` checks all files with xxHash64 fast non-cryptographic verification
 - failed verification blocks SAFE TO EJECT
-- no SHA256/MD5/CRC32/MHL unless spec changes
+- no MD5/CRC32/MHL unless spec changes
 
 ---
 

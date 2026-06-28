@@ -14,7 +14,14 @@ public actor VerifyEngine {
     public func startVerification(request: VerificationRequest, onEvent: @escaping @Sendable (VerificationEvent) -> Void) async {
         isCancelled = false
         onEvent(.started)
-        log("Verification Mode: \(request.mode.rawValue)", onEvent: onEvent)
+        log("Verification Mode: \(request.mode.reportLabel)", onEvent: onEvent)
+        log("Verification Coverage: \(request.mode.coverageDescription)", onEvent: onEvent)
+        if let algorithm = request.mode.hashAlgorithm {
+            log("Hash Algorithm: \(algorithm.displayName)", onEvent: onEvent)
+            log("Hash Note: \(algorithm.verificationNote)", onEvent: onEvent)
+        } else {
+            log("Hash Algorithm: none", onEvent: onEvent)
+        }
         log("Source Path: \(request.sourceURL.path)", onEvent: onEvent)
         log("Destination Path: \(request.destinationURL.path)", onEvent: onEvent)
         log("Phase: Verification run initialized", onEvent: onEvent)
@@ -102,6 +109,11 @@ public actor VerifyEngine {
             }
             
             // 4. Hash generation and comparison
+            guard let hashAlgorithm = request.mode.hashAlgorithm else {
+                log("VerificationError created: unknown", onEvent: onEvent)
+                onEvent(.failed(.unknown))
+                return
+            }
             log("Phase: Hash comparison started", onEvent: onEvent)
             for file in filesToVerify {
                 if isCancelled {
@@ -118,8 +130,8 @@ public actor VerifyEngine {
                 log("Hash comparison started: \(file.relativePath)", onEvent: onEvent)
                 log("Hash source path: \(sourceURL.path)", onEvent: onEvent)
                 log("Hash destination path: \(destURL.path)", onEvent: onEvent)
-                let sourceHash = try await generateHash(url: sourceURL, label: "Source", relativePath: file.relativePath, onEvent: onEvent)
-                let destHash = try await generateHash(url: destURL, label: "Destination", relativePath: file.relativePath, onEvent: onEvent)
+                let sourceHash = try await generateHash(url: sourceURL, algorithm: hashAlgorithm, label: "Source", relativePath: file.relativePath, onEvent: onEvent)
+                let destHash = try await generateHash(url: destURL, algorithm: hashAlgorithm, label: "Destination", relativePath: file.relativePath, onEvent: onEvent)
                 
                 // Fast failure: a single mismatch instantly fails verification
                 if sourceHash != destHash {
@@ -241,10 +253,13 @@ public actor VerifyEngine {
         return inventory
     }
     
-    internal func generateHash(url: URL, label: String, relativePath: String, onEvent: @Sendable (VerificationEvent) -> Void) async throws -> String {
-        // NOTE: SHA256 is used here as an approved fallback for compilation/MVP constraints.
-        // It provides the identical architecture pattern for streaming 4MB chunks securely.
-        // This easily swaps with an `xxHash64` package implementer using the standard init()/update()/finalize() algorithm pattern.
+    internal func generateHash(
+        url: URL,
+        algorithm: HashAlgorithm,
+        label: String,
+        relativePath: String,
+        onEvent: @Sendable (VerificationEvent) -> Void
+    ) async throws -> String {
         let handle: FileHandle
         do {
             handle = try FileHandle(forReadingFrom: url)
@@ -254,7 +269,8 @@ public actor VerifyEngine {
         }
         defer { try? handle.close() }
         
-        var hasher = SHA256()
+        var sha256Hasher = SHA256()
+        var xxHash64Hasher = XXHash64()
         let chunkSize = 4 * 1024 * 1024 // 4 MB chunks to reduce memory footprint
         
         while true {
@@ -273,12 +289,24 @@ public actor VerifyEngine {
                 log("VerificationError created: cancelled", onEvent: onEvent)
                 throw VerificationError.cancelled 
             }
-            hasher.update(data: data)
+            switch algorithm {
+            case .sha256:
+                sha256Hasher.update(data: data)
+            case .xxHash64:
+                xxHash64Hasher.update(data)
+            }
         }
-        
-        let digest = hasher.finalize()
-        let hash = digest.map { String(format: "%02hhx", $0) }.joined()
-        log("Hash generated: \(label) \(relativePath) \(hash)", onEvent: onEvent)
+
+        let hash: String
+        switch algorithm {
+        case .sha256:
+            let digest = sha256Hasher.finalize()
+            hash = digest.map { String(format: "%02hhx", $0) }.joined()
+        case .xxHash64:
+            hash = xxHash64Hasher.hexDigest()
+        }
+
+        log("Hash generated: \(label) \(relativePath) \(algorithm.displayName) \(hash)", onEvent: onEvent)
         return hash
     }
 
@@ -323,5 +351,155 @@ public actor VerifyEngine {
                 log("EXTRA: \(path)", onEvent: onEvent)
             }
         }
+    }
+}
+
+nonisolated public struct XXHash64: Sendable {
+    private static let prime1: UInt64 = 11_400_714_785_074_694_791
+    private static let prime2: UInt64 = 14_029_467_366_897_019_727
+    private static let prime3: UInt64 = 1_609_587_929_392_839_161
+    private static let prime4: UInt64 = 9_650_029_242_287_828_579
+    private static let prime5: UInt64 = 2_870_177_450_012_600_261
+
+    private let seed: UInt64
+    private var totalLength: UInt64 = 0
+    private var v1: UInt64
+    private var v2: UInt64
+    private var v3: UInt64
+    private var v4: UInt64
+    private var buffer: [UInt8] = []
+
+    public init(seed: UInt64 = 0) {
+        self.seed = seed
+        self.v1 = seed &+ Self.prime1 &+ Self.prime2
+        self.v2 = seed &+ Self.prime2
+        self.v3 = seed
+        self.v4 = seed &- Self.prime1
+    }
+
+    public mutating func update(_ data: Data) {
+        updateBytes([UInt8](data))
+    }
+
+    public mutating func digest() -> UInt64 {
+        var hash: UInt64
+
+        if totalLength >= 32 {
+            hash = Self.rotateLeft(v1, by: 1)
+                &+ Self.rotateLeft(v2, by: 7)
+                &+ Self.rotateLeft(v3, by: 12)
+                &+ Self.rotateLeft(v4, by: 18)
+            hash = Self.mergeRound(hash, v1)
+            hash = Self.mergeRound(hash, v2)
+            hash = Self.mergeRound(hash, v3)
+            hash = Self.mergeRound(hash, v4)
+        } else {
+            hash = seed &+ Self.prime5
+        }
+
+        hash &+= totalLength
+
+        var index = 0
+        while index + 8 <= buffer.count {
+            let lane = Self.readUInt64LE(buffer, at: index)
+            hash ^= Self.round(0, lane)
+            hash = Self.rotateLeft(hash, by: 27) &* Self.prime1 &+ Self.prime4
+            index += 8
+        }
+
+        if index + 4 <= buffer.count {
+            hash ^= UInt64(Self.readUInt32LE(buffer, at: index)) &* Self.prime1
+            hash = Self.rotateLeft(hash, by: 23) &* Self.prime2 &+ Self.prime3
+            index += 4
+        }
+
+        while index < buffer.count {
+            hash ^= UInt64(buffer[index]) &* Self.prime5
+            hash = Self.rotateLeft(hash, by: 11) &* Self.prime1
+            index += 1
+        }
+
+        hash ^= hash >> 33
+        hash &*= Self.prime2
+        hash ^= hash >> 29
+        hash &*= Self.prime3
+        hash ^= hash >> 32
+        return hash
+    }
+
+    public mutating func hexDigest() -> String {
+        String(format: "%016llx", digest())
+    }
+
+    private mutating func updateBytes(_ bytes: [UInt8]) {
+        totalLength &+= UInt64(bytes.count)
+        var input = bytes
+
+        if !buffer.isEmpty {
+            let needed = 32 - buffer.count
+            if input.count < needed {
+                buffer.append(contentsOf: input)
+                return
+            }
+
+            buffer.append(contentsOf: input.prefix(needed))
+            processStripe(buffer, at: 0)
+            buffer.removeAll(keepingCapacity: true)
+            input.removeFirst(needed)
+        }
+
+        var index = 0
+        while index + 32 <= input.count {
+            processStripe(input, at: index)
+            index += 32
+        }
+
+        if index < input.count {
+            buffer.append(contentsOf: input[index...])
+        }
+    }
+
+    private mutating func processStripe(_ bytes: [UInt8], at index: Int) {
+        v1 = Self.round(v1, Self.readUInt64LE(bytes, at: index))
+        v2 = Self.round(v2, Self.readUInt64LE(bytes, at: index + 8))
+        v3 = Self.round(v3, Self.readUInt64LE(bytes, at: index + 16))
+        v4 = Self.round(v4, Self.readUInt64LE(bytes, at: index + 24))
+    }
+
+    private static func round(_ accumulator: UInt64, _ input: UInt64) -> UInt64 {
+        var accumulator = accumulator
+        accumulator &+= input &* prime2
+        accumulator = rotateLeft(accumulator, by: 31)
+        accumulator &*= prime1
+        return accumulator
+    }
+
+    private static func mergeRound(_ accumulator: UInt64, _ value: UInt64) -> UInt64 {
+        var accumulator = accumulator
+        accumulator ^= round(0, value)
+        accumulator = accumulator &* prime1 &+ prime4
+        return accumulator
+    }
+
+    private static func rotateLeft(_ value: UInt64, by count: UInt64) -> UInt64 {
+        (value << count) | (value >> (64 - count))
+    }
+
+    private static func readUInt64LE(_ bytes: [UInt8], at index: Int) -> UInt64 {
+        UInt64(bytes[index])
+            | (UInt64(bytes[index + 1]) << 8)
+            | (UInt64(bytes[index + 2]) << 16)
+            | (UInt64(bytes[index + 3]) << 24)
+            | (UInt64(bytes[index + 4]) << 32)
+            | (UInt64(bytes[index + 5]) << 40)
+            | (UInt64(bytes[index + 6]) << 48)
+            | (UInt64(bytes[index + 7]) << 56)
+    }
+
+    private static func readUInt32LE(_ bytes: [UInt8], at index: Int) -> UInt32 {
+        UInt32(bytes[index])
+            | (UInt32(bytes[index + 1]) << 8)
+            | (UInt32(bytes[index + 2]) << 16)
+            | (UInt32(bytes[index + 3]) << 24)
     }
 }

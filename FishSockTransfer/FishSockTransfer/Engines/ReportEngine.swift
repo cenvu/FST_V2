@@ -31,7 +31,12 @@ public actor ReportEngine {
         text += String(format: "Average Speed:       %.2f MB/s\n", report.averageSpeed)
         text += "Copy Result:         \(copyResultDescription(for: report))\n"
         text += "----------------------------------------------------\n"
-        text += "Verification Mode:   \(report.verificationMode.rawValue.uppercased())\n"
+        text += "Verification Mode:   \(report.verificationMode.reportLabel)\n"
+        text += "Verification Coverage: \(report.verificationMode.coverageDescription)\n"
+        text += "Hash Algorithm:      \(report.verificationMode.hashAlgorithm?.displayName ?? "None")\n"
+        if let hashNote = report.verificationMode.hashAlgorithm?.verificationNote {
+            text += "Verification Note:   \(hashNote)\n"
+        }
         text += "Verification Result: \(verifyResultStr)\n"
         text += "Verified Files:      \(report.verifiedFiles)\n"
         text += "Passed Files:        \(report.passedFiles)\n"

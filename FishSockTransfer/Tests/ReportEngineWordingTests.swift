@@ -31,6 +31,8 @@ struct ReportEngineWordingTests {
             bandwidthLimit: nil
         )
         assertContains(verified, "Final Status:        SAFE TO EJECT", "verified report status")
+        assertContains(verified, "Hash Algorithm:      xxHash64", "verified report hash algorithm")
+        assertContains(verified, "Fast non-cryptographic hash verification", "verified report hash note")
         assertNotContains(verified, formerFormatLabel, "verified report must not use old format wording")
 
         let verificationFailed = await engine.generateReportText(
@@ -38,6 +40,7 @@ struct ReportEngineWordingTests {
             bandwidthLimit: nil
         )
         assertContains(verificationFailed, "Final Status:        MANUAL CHECK REQUIRED", "verification failure report status")
+        assertContains(verificationFailed, "Hash Algorithm:      SHA256", "verification failure hash algorithm")
         assertNotContains(verificationFailed, formerFormatLabel, "verification failure report must not use old format wording")
 
         let transferFailed = await engine.generateReportText(

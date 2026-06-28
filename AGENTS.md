@@ -226,21 +226,22 @@ Supported modes:
 none, random33, full
 ```
 
-Algorithm:
+Algorithms:
 
 ```text
-xxHash64
+random33 -> SHA256
+full -> xxHash64
 ```
 
 Rules:
 
 - `none` means copy-only success: TRANSFER COMPLETE, not SAFE TO EJECT.
-- `random33` verifies about one third of files, with a minimum of one file when files exist.
-- `full` verifies all files.
+- `random33` verifies about one third of files with SHA256, with a minimum of one file when files exist.
+- `full` verifies all files with xxHash64 fast non-cryptographic verification.
 - Compare relative paths and file sizes before hashing.
 - Any verification failure blocks SAFE TO EJECT.
 - Verify off the MainActor.
-- Do not add SHA256, MD5, CRC32, MHL, database, queue, or multi-destination behavior unless the spec changes.
+- Do not add MD5, CRC32, MHL, database, queue, or multi-destination behavior unless the spec changes.
 
 `VerifyEngine` emits verification result. `TransferCoordinator` decides final state.
 

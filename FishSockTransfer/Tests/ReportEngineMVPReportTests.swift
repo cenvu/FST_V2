@@ -47,6 +47,9 @@ struct ReportEngineMVPReportTests {
             bandwidthLimit: RsyncBandwidthLimit.kibPerSecond(for: 120)
         )
         assertContains(verified, "Final Status:        SAFE TO EJECT", "verified final status")
+        assertContains(verified, "Verification Mode:   xxHash64 Full 100%", "verified mode")
+        assertContains(verified, "Hash Algorithm:      xxHash64", "verified hash algorithm")
+        assertContains(verified, "Fast non-cryptographic hash verification", "xxHash64 note")
         assertContains(verified, "Verification Result: PASSED", "verified result")
         assertContains(verified, "Verified Files:      10", "verified count")
         assertContains(verified, "Passed Files:        10", "passed count")
@@ -68,6 +71,8 @@ struct ReportEngineMVPReportTests {
             bandwidthLimit: nil
         )
         assertContains(verificationFailed, "Final Status:        MANUAL CHECK REQUIRED", "verification failure final status")
+        assertContains(verificationFailed, "Verification Mode:   SHA256 Sample 33%", "verification failure mode")
+        assertContains(verificationFailed, "Hash Algorithm:      SHA256", "verification failure hash algorithm")
         assertContains(verificationFailed, "Failure Reason:      MANUAL CHECK REQUIRED: Verification failed.", "verification failure reason")
         assertContains(verificationFailed, "Failed Files:        1", "verification failure count")
         assertNotContains(verificationFailed, "Final Status:        SAFE TO EJECT", "verification failure must not be safe eject")

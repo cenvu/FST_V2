@@ -12,6 +12,7 @@
 		8A0001032FE1000000000001 /* ReportEngineXCTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A0000232FE1000000000001 /* ReportEngineXCTests.swift */; };
 		8A0001042FE1000000000001 /* BundledRsyncServiceXCTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A0000242FE1000000000001 /* BundledRsyncServiceXCTests.swift */; };
 		8A0001052FE1000000000001 /* MetadataOnlySourceSafetyXCTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A0000252FE1000000000001 /* MetadataOnlySourceSafetyXCTests.swift */; };
+		8A0001062FE1000000000001 /* VerificationHashStrategyXCTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A0000262FE1000000000001 /* VerificationHashStrategyXCTests.swift */; };
 		8A0001212FE1000000000001 /* RsyncBandwidthLimit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A0000412FE1000000000001 /* RsyncBandwidthLimit.swift */; };
 		8A0001222FE1000000000001 /* ProgressParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A0000422FE1000000000001 /* ProgressParser.swift */; };
 		8A0001232FE1000000000001 /* ReportEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A0000432FE1000000000001 /* ReportEngine.swift */; };
@@ -42,6 +43,7 @@
 		8A0000232FE1000000000001 /* ReportEngineXCTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReportEngineXCTests.swift; sourceTree = "<group>"; };
 		8A0000242FE1000000000001 /* BundledRsyncServiceXCTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BundledRsyncServiceXCTests.swift; sourceTree = "<group>"; };
 		8A0000252FE1000000000001 /* MetadataOnlySourceSafetyXCTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetadataOnlySourceSafetyXCTests.swift; sourceTree = "<group>"; };
+		8A0000262FE1000000000001 /* VerificationHashStrategyXCTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerificationHashStrategyXCTests.swift; sourceTree = "<group>"; };
 		8A0000412FE1000000000001 /* RsyncBandwidthLimit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FishSockTransfer/Models/RsyncBandwidthLimit.swift; sourceTree = SOURCE_ROOT; };
 		8A0000422FE1000000000001 /* ProgressParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FishSockTransfer/Engines/ProgressParser.swift; sourceTree = SOURCE_ROOT; };
 		8A0000432FE1000000000001 /* ReportEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FishSockTransfer/Engines/ReportEngine.swift; sourceTree = SOURCE_ROOT; };
@@ -125,6 +127,7 @@
 				8A0000232FE1000000000001 /* ReportEngineXCTests.swift */,
 				8A0000242FE1000000000001 /* BundledRsyncServiceXCTests.swift */,
 				8A0000252FE1000000000001 /* MetadataOnlySourceSafetyXCTests.swift */,
+				8A0000262FE1000000000001 /* VerificationHashStrategyXCTests.swift */,
 			);
 			path = XCTest;
 			sourceTree = "<group>";
@@ -304,6 +307,7 @@
 				8A0001032FE1000000000001 /* ReportEngineXCTests.swift in Sources */,
 				8A0001042FE1000000000001 /* BundledRsyncServiceXCTests.swift in Sources */,
 				8A0001052FE1000000000001 /* MetadataOnlySourceSafetyXCTests.swift in Sources */,
+				8A0001062FE1000000000001 /* VerificationHashStrategyXCTests.swift in Sources */,
 				8A0001212FE1000000000001 /* RsyncBandwidthLimit.swift in Sources */,
 				8A0001222FE1000000000001 /* ProgressParser.swift in Sources */,
 				8A0001232FE1000000000001 /* ReportEngine.swift in Sources */,

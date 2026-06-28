@@ -70,22 +70,24 @@ struct TransferControlsLabelTests {
         )
         assertEqual(
             VerificationMode.random33.operatorDescription,
-            "Sample verification. Faster, not full coverage.",
+            "SHA256 sample verification. 33% coverage.",
             "random33 verification description"
         )
         assertTrue(
-            VerificationMode.random33.operatorDescription.localizedCaseInsensitiveContains("not full coverage"),
-            "random33 description must not imply full verification"
+            VerificationMode.random33.operatorDescription.localizedCaseInsensitiveContains("SHA256"),
+            "random33 description must disclose SHA256"
         )
         assertEqual(
             VerificationMode.full.operatorDescription,
-            "Full hash verification. Safest, slower.",
+            "xxHash64 full verification. Fast, non-cryptographic.",
             "full verification description"
         )
         assertTrue(
-            VerificationMode.full.operatorDescription.localizedCaseInsensitiveContains("Full hash verification"),
-            "full description must say full hash verification"
+            VerificationMode.full.operatorDescription.localizedCaseInsensitiveContains("non-cryptographic"),
+            "full description must disclose xxHash64 is non-cryptographic"
         )
+        assertEqual(VerificationMode.random33.operatorLabel, "SHA256 Sample 33%", "random33 picker label")
+        assertEqual(VerificationMode.full.operatorLabel, "xxHash64 Full 100%", "full picker label")
 
         assertEqual(
             TransferReportStatusPresentation.message(forLogMessage: "Report saved: /tmp/FST_Report.txt"),

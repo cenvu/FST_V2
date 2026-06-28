@@ -553,8 +553,8 @@ Mode behavior:
 | Mode | Behavior | Final Success State |
 |---|---|---|
 | none | skip hashing | copyComplete |
-| random33 | verify approx. 33% | internal `safeToFormat`; operator sees SAFE TO EJECT if passed |
-| full | verify all files | internal `safeToFormat`; operator sees SAFE TO EJECT if passed |
+| random33 | verify approx. 33% with SHA256 | internal `safeToFormat`; operator sees SAFE TO EJECT if passed |
+| full | verify all files with xxHash64 | internal `safeToFormat`; operator sees SAFE TO EJECT if passed |
 
 Verification must:
 
@@ -562,7 +562,9 @@ Verification must:
 - build destination inventory
 - compare relative paths
 - compare file sizes before hashing
-- hash selected files with xxHash64
+- hash selected files with the mode-selected algorithm
+- use SHA256 for random33 sample verification
+- use xxHash64 fast non-cryptographic verification for full verification
 - fail on first proven mismatch or report all mismatches if already implemented
 - never load full files into memory
 - run off MainActor

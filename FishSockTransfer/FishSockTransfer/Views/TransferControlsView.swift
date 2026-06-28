@@ -153,9 +153,9 @@ public struct TransferControlsView: View {
                         .fontWeight(.semibold)
 
                     Picker("", selection: $viewModel.verificationMode) {
-                        Text("None").tag(VerificationMode.none)
-                        Text("Random 33%").tag(VerificationMode.random33)
-                        Text("Full 100%").tag(VerificationMode.full)
+                        Text(VerificationMode.none.operatorLabel).tag(VerificationMode.none)
+                        Text(VerificationMode.random33.operatorLabel).tag(VerificationMode.random33)
+                        Text(VerificationMode.full.operatorLabel).tag(VerificationMode.full)
                     }
                     .pickerStyle(.menu)
                     .labelsHidden()
@@ -321,9 +321,9 @@ public extension VerificationMode {
         case .none:
             return "Copy only. No hash verification by FST."
         case .random33:
-            return "Sample verification. Faster, not full coverage."
+            return "SHA256 sample verification. 33% coverage."
         case .full:
-            return "Full hash verification. Safest, slower."
+            return "xxHash64 full verification. Fast, non-cryptographic."
         }
     }
 }
