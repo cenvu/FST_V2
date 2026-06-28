@@ -29,6 +29,11 @@ private func assertNotNil<T>(_ actual: T?, _ message: String) -> T {
 @main
 struct ProgressParserTests {
     static func main() {
+        testRsyncOutputFramerHandlesCarriageReturnRecords()
+        testRsyncOutputFramerHandlesNewlineRecords()
+        testRsyncOutputFramerHandlesCRLFRecords()
+        testRsyncOutputFramerHandlesPartialChunks()
+        try! testRsyncCommandIncludesOutputBufferArgumentAndNoFallbackPath()
         testParsesKilobytesPerSecond()
         testParsesMegabytesPerSecond()
         testParsesGigabytesPerSecond()
@@ -47,6 +52,71 @@ struct ProgressParserTests {
         testCompletedCopyProgressIsOnlyFinalHundredConstant()
 
         print("ProgressParserTests passed")
+    }
+
+    private static func testRsyncOutputFramerHandlesCarriageReturnRecords() {
+        var framer = RsyncOutputFramer()
+        let records = framer.append(Data("32.77K  3%  1.00MB/s    0:00:10\r524.29K  7%  2.00MB/s    0:00:09\r".utf8))
+
+        assertEqual(
+            records,
+            [
+                "32.77K  3%  1.00MB/s    0:00:10",
+                "524.29K  7%  2.00MB/s    0:00:09"
+            ],
+            "carriage-return framed records"
+        )
+        assertNil(framer.flush(), "carriage-return framer flush")
+    }
+
+    private static func testRsyncOutputFramerHandlesNewlineRecords() {
+        var framer = RsyncOutputFramer()
+        let records = framer.append(Data("first\nsecond\n".utf8))
+
+        assertEqual(records, ["first", "second"], "newline framed records")
+        assertNil(framer.flush(), "newline framer flush")
+    }
+
+    private static func testRsyncOutputFramerHandlesCRLFRecords() {
+        var framer = RsyncOutputFramer()
+        let records = framer.append(Data("first\r\nsecond\r\n".utf8))
+
+        assertEqual(records, ["first", "second"], "CRLF framed records")
+        assertNil(framer.flush(), "CRLF framer flush")
+    }
+
+    private static func testRsyncOutputFramerHandlesPartialChunks() {
+        var framer = RsyncOutputFramer()
+
+        assertEqual(framer.append(Data("32.77".utf8)), [], "partial first chunk")
+        assertEqual(framer.append(Data("K  3%  1.00MB/s".utf8)), [], "partial second chunk")
+        assertEqual(
+            framer.append(Data("    0:00:10\rnext".utf8)),
+            ["32.77K  3%  1.00MB/s    0:00:10"],
+            "partial chunks complete first record"
+        )
+        assertEqual(framer.flush(), "next", "partial chunk flush")
+    }
+
+    private static func testRsyncCommandIncludesOutputBufferArgumentAndNoFallbackPath() throws {
+        let rsyncURL = URL(fileURLWithPath: "/Applications/FishSockTransfer.app/Contents/Resources/rsync")
+        let command = try RsyncCommand(
+            bundledInfo: BundledRsyncInfo(executableURL: rsyncURL, version: "3.4.4", diagnostics: []),
+            request: TransferRequest(
+                sourceURL: URL(fileURLWithPath: "/Volumes/CARD_A", isDirectory: true),
+                destinationURL: URL(fileURLWithPath: "/Volumes/BACKUP", isDirectory: true),
+                bandwidthLimit: RsyncBandwidthLimit.kibPerSecond(for: 50)
+            )
+        )
+
+        assertEqual(command.executableURL, rsyncURL, "command uses supplied bundled rsync URL")
+        assertEqual(command.arguments.contains("--outbuf=L"), true, "rsync command includes line-buffered output")
+        assertEqual(command.arguments.contains("--info=progress2"), true, "rsync command keeps progress2")
+        assertEqual(command.arguments.contains("-h"), true, "rsync command keeps human-readable output")
+        assertEqual(command.arguments.contains("--bwlimit=51200"), true, "rsync command keeps converted bwlimit")
+        assertEqual(command.executableURL.path.contains("/usr/bin/rsync"), false, "command must not use system rsync")
+        assertEqual(command.executableURL.path.contains("/opt/homebrew/bin/rsync"), false, "command must not use Homebrew rsync")
+        assertEqual(command.executableURL.path.contains("/usr/local/bin/rsync"), false, "command must not use local rsync")
     }
 
     private static func testParsesKilobytesPerSecond() {

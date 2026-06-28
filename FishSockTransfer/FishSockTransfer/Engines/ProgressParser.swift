@@ -135,3 +135,55 @@ nonisolated public final class ProgressParser: Sendable {
         }
     }
 }
+
+nonisolated public struct RsyncOutputFramer: Sendable {
+    private var buffer: [UInt8] = []
+    private var lastDelimiterWasCarriageReturn = false
+    private let maximumBufferedBytes: Int
+
+    public init(maximumBufferedBytes: Int = 65_536) {
+        self.maximumBufferedBytes = maximumBufferedBytes
+    }
+
+    public mutating func append(_ data: Data) -> [String] {
+        var records: [String] = []
+
+        for byte in data {
+            switch byte {
+            case 13:
+                appendBufferedRecord(to: &records)
+                lastDelimiterWasCarriageReturn = true
+            case 10:
+                if !lastDelimiterWasCarriageReturn {
+                    appendBufferedRecord(to: &records)
+                }
+                lastDelimiterWasCarriageReturn = false
+            default:
+                buffer.append(byte)
+                lastDelimiterWasCarriageReturn = false
+                trimBufferIfNeeded()
+            }
+        }
+
+        return records
+    }
+
+    public mutating func flush() -> String? {
+        guard !buffer.isEmpty else { return nil }
+        let record = String(decoding: buffer, as: UTF8.self)
+        buffer.removeAll(keepingCapacity: true)
+        lastDelimiterWasCarriageReturn = false
+        return record
+    }
+
+    private mutating func appendBufferedRecord(to records: inout [String]) {
+        guard !buffer.isEmpty else { return }
+        records.append(String(decoding: buffer, as: UTF8.self))
+        buffer.removeAll(keepingCapacity: true)
+    }
+
+    private mutating func trimBufferIfNeeded() {
+        guard buffer.count > maximumBufferedBytes else { return }
+        buffer.removeFirst(buffer.count - maximumBufferedBytes)
+    }
+}

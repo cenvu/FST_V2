@@ -1,6 +1,63 @@
 import XCTest
 
 final class ProgressParserXCTests: XCTestCase {
+    func testRsyncOutputFramerHandlesCarriageReturnRecords() {
+        var framer = RsyncOutputFramer()
+        let records = framer.append(Data("32.77K  3%  1.00MB/s    0:00:10\r524.29K  7%  2.00MB/s    0:00:09\r".utf8))
+
+        XCTAssertEqual(records, [
+            "32.77K  3%  1.00MB/s    0:00:10",
+            "524.29K  7%  2.00MB/s    0:00:09"
+        ])
+        XCTAssertNil(framer.flush())
+    }
+
+    func testRsyncOutputFramerHandlesNewlineRecords() {
+        var framer = RsyncOutputFramer()
+        let records = framer.append(Data("first\nsecond\n".utf8))
+
+        XCTAssertEqual(records, ["first", "second"])
+        XCTAssertNil(framer.flush())
+    }
+
+    func testRsyncOutputFramerHandlesCRLFRecords() {
+        var framer = RsyncOutputFramer()
+        let records = framer.append(Data("first\r\nsecond\r\n".utf8))
+
+        XCTAssertEqual(records, ["first", "second"])
+        XCTAssertNil(framer.flush())
+    }
+
+    func testRsyncOutputFramerHandlesPartialChunks() {
+        var framer = RsyncOutputFramer()
+
+        XCTAssertEqual(framer.append(Data("32.77".utf8)), [])
+        XCTAssertEqual(framer.append(Data("K  3%  1.00MB/s".utf8)), [])
+        XCTAssertEqual(framer.append(Data("    0:00:10\rnext".utf8)), ["32.77K  3%  1.00MB/s    0:00:10"])
+        XCTAssertEqual(framer.flush(), "next")
+    }
+
+    func testRsyncCommandIncludesOutputBufferArgumentAndNoFallbackPath() throws {
+        let rsyncURL = URL(fileURLWithPath: "/Applications/FishSockTransfer.app/Contents/Resources/rsync")
+        let command = try RsyncCommand(
+            bundledInfo: BundledRsyncInfo(executableURL: rsyncURL, version: "3.4.4", diagnostics: []),
+            request: TransferRequest(
+                sourceURL: URL(fileURLWithPath: "/Volumes/CARD_A", isDirectory: true),
+                destinationURL: URL(fileURLWithPath: "/Volumes/BACKUP", isDirectory: true),
+                bandwidthLimit: RsyncBandwidthLimit.kibPerSecond(for: 50)
+            )
+        )
+
+        XCTAssertEqual(command.executableURL, rsyncURL)
+        XCTAssertTrue(command.arguments.contains("--outbuf=L"))
+        XCTAssertTrue(command.arguments.contains("--info=progress2"))
+        XCTAssertTrue(command.arguments.contains("-h"))
+        XCTAssertTrue(command.arguments.contains("--bwlimit=51200"))
+        XCTAssertFalse(command.executableURL.path.contains("/usr/bin/rsync"))
+        XCTAssertFalse(command.executableURL.path.contains("/opt/homebrew/bin/rsync"))
+        XCTAssertFalse(command.executableURL.path.contains("/usr/local/bin/rsync"))
+    }
+
     func testParsesKilobytesPerSecond() throws {
         let data = try XCTUnwrap(ProgressParser().parse(line: "        1,024   1%  512.00kB/s    0:00:10"))
         XCTAssertEqual(data.progress, 1.0, accuracy: 0.0001)

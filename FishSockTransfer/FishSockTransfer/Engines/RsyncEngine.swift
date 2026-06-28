@@ -60,17 +60,11 @@ public actor RsyncEngine {
         rsyncProcess.standardError = errPipe
         
         let outTask = Task {
-            for try await line in outPipe.fileHandleForReading.bytes.lines {
-                if self.isCancelled { break }
-                self.processOutputLine(line, onEvent: onEvent)
-            }
+            await self.streamStdoutRecords(from: outPipe.fileHandleForReading, onEvent: onEvent)
         }
         
         let errTask = Task {
-            for try await line in errPipe.fileHandleForReading.bytes.lines {
-                if self.isCancelled { break }
-                onEvent(.log("[STDERR] \(line)"))
-            }
+            await self.streamStderrRecords(from: errPipe.fileHandleForReading, onEvent: onEvent)
         }
         
         do {
@@ -133,6 +127,58 @@ public actor RsyncEngine {
         }
     }
 
+    private func streamStdoutRecords(
+        from fileHandle: FileHandle,
+        onEvent: @Sendable (TransferEvent) -> Void
+    ) async {
+        var framer = RsyncOutputFramer()
+
+        do {
+            for try await byte in fileHandle.bytes {
+                if isCancelled { break }
+                for record in framer.append(Data([byte])) {
+                    if isCancelled { break }
+                    processOutputLine(record, onEvent: onEvent)
+                }
+            }
+        } catch {
+            // Pipe closure during process termination is expected; rsync exit status remains authoritative.
+        }
+
+        if !isCancelled, let record = framer.flush() {
+            processOutputLine(record, onEvent: onEvent)
+        }
+    }
+
+    private func streamStderrRecords(
+        from fileHandle: FileHandle,
+        onEvent: @Sendable (TransferEvent) -> Void
+    ) async {
+        var framer = RsyncOutputFramer()
+
+        do {
+            for try await byte in fileHandle.bytes {
+                if isCancelled { break }
+                for record in framer.append(Data([byte])) {
+                    if isCancelled { break }
+                    processErrorLine(record, onEvent: onEvent)
+                }
+            }
+        } catch {
+            // Pipe closure during process termination is expected; rsync exit status remains authoritative.
+        }
+
+        if !isCancelled, let record = framer.flush() {
+            processErrorLine(record, onEvent: onEvent)
+        }
+    }
+
+    private func processErrorLine(_ line: String, onEvent: @Sendable (TransferEvent) -> Void) {
+        let trimmed = line.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        onEvent(.log("[STDERR] \(trimmed)"))
+    }
+
     private func emitCopyRuntimeMetricsCleared(onEvent: @Sendable (TransferEvent) -> Void) {
         onEvent(.currentFile(""))
         onEvent(.speed(0.0))
@@ -157,7 +203,7 @@ public actor RsyncEngine {
     }
 }
 
-nonisolated private struct RsyncCommand: Sendable {
+nonisolated struct RsyncCommand: Sendable {
     let executableURL: URL
     let versionDescription: String
     let arguments: [String]
@@ -177,7 +223,7 @@ nonisolated private struct RsyncCommand: Sendable {
         self.versionDescription = "bundled rsync \(bundledInfo.version)"
         self.diagnostics = bundledInfo.diagnostics
 
-        var arguments = ["-a", "-h", "--info=progress2"]
+        var arguments = ["-a", "-h", "--info=progress2", "--outbuf=L"]
 
         if let bwlimitArgument = try RsyncBandwidthLimit.rsyncArgument(forKiBPerSecond: request.bandwidthLimit),
            let bwlimitKiBPerSecond = request.bandwidthLimit {
