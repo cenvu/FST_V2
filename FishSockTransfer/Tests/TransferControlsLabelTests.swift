@@ -123,6 +123,26 @@ struct TransferControlsLabelTests {
             "copying label"
         )
         assertEqual(
+            TransferControlsActionPresentation.title(for: .validating),
+            "PREPARING TRANSFER",
+            "validating preparation label"
+        )
+        assertNotEqual(
+            TransferControlsActionPresentation.title(for: .validating),
+            "TRANSFERRING",
+            "validating must not display transferring label before rsync starts"
+        )
+        assertEqual(
+            TransferControlsActionPresentation.subtitle(for: .validating),
+            "Scanning source and checking destination...",
+            "validating preparation subtitle"
+        )
+        assertEqual(
+            TransferControlsActionPresentation.visualRole(for: .validating),
+            .preparing,
+            "validating preparation visual role"
+        )
+        assertEqual(
             TransferControlsActionPresentation.title(for: .verifying),
             "VERIFYING",
             "verifying label"

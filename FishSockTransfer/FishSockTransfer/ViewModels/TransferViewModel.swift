@@ -30,6 +30,9 @@ public final class TransferViewModel: ObservableObject {
     @Published public var destinationMetadata: DestinationStorageMetadata?
     @Published public var storageWarningMessage: String? = nil
     @Published public var reportStatusMessage: String? = nil
+    @Published public var workflowPhaseTitle: String = ""
+    @Published public var workflowPhaseMessage: String = ""
+    @Published public var workflowElapsedSeconds: Int = 0
     @Published public var bundledRsyncInfo: BundledRsyncInfo = .unavailable(
         version: BundledRsyncService.bundledVersion,
         diagnostics: []
@@ -41,6 +44,8 @@ public final class TransferViewModel: ObservableObject {
     private var callbacksConfiguredTask: Task<Void, Never>?
     private var sourceMetadataTask: Task<Void, Never>?
     private var destinationMetadataTask: Task<Void, Never>?
+    private var workflowElapsedTask: Task<Void, Never>?
+    private var workflowPhaseStartedAt: Date?
     
     public init(
         coordinator: TransferCoordinator? = nil,
@@ -154,8 +159,11 @@ public final class TransferViewModel: ObservableObject {
         }
         
         resetTransferMetrics()
+        beginPreparationPhase()
         errorMessage = nil
         addLog(category: .info, message: "Starting transfer workflow")
+        addLog(category: .info, message: "Preparing transfer...")
+        addLog(category: .info, message: "Scanning source and checking destination...")
         addLog(category: .info, message: "Source: \(sourceURL.lastPathComponent)")
         addLog(category: .info, message: "Destination: \(destinationURL.lastPathComponent)")
         
@@ -180,9 +188,8 @@ public final class TransferViewModel: ObservableObject {
     
     private func resetTransferMetrics() {
         progress = 0.0
-        speed = 0.0
-        eta = 0.0
-        currentFile = ""
+        clearCopyRuntimeMetrics()
+        clearWorkflowPhase()
     }
 
     private func handleTransferStateChange(_ state: TransferState) {
@@ -191,14 +198,24 @@ public final class TransferViewModel: ObservableObject {
             resetTransferMetrics()
         case .verifying:
             progress = 0.0
+            clearWorkflowPhase()
             clearCopyRuntimeMetrics()
         case .copyComplete, .safeToFormat:
             progress = 100.0
+            clearWorkflowPhase()
             clearCopyRuntimeMetrics()
         case .error, .cancelled:
+            clearWorkflowPhase()
             clearCopyRuntimeMetrics()
-        case .validating, .copying:
-            break
+        case .validating:
+            progress = 0.0
+            clearCopyRuntimeMetrics()
+            if workflowPhaseStartedAt == nil {
+                beginPreparationPhase()
+            }
+        case .copying:
+            clearWorkflowPhase()
+            clearCopyRuntimeMetrics()
         }
     }
 
@@ -206,6 +223,36 @@ public final class TransferViewModel: ObservableObject {
         speed = 0.0
         eta = 0.0
         currentFile = ""
+    }
+
+    private func beginPreparationPhase() {
+        workflowPhaseTitle = "PREPARING TRANSFER"
+        workflowPhaseMessage = "Scanning source and checking destination..."
+        workflowElapsedSeconds = 0
+        workflowPhaseStartedAt = Date()
+        startWorkflowElapsedTimer()
+    }
+
+    private func clearWorkflowPhase() {
+        workflowElapsedTask?.cancel()
+        workflowElapsedTask = nil
+        workflowPhaseStartedAt = nil
+        workflowPhaseTitle = ""
+        workflowPhaseMessage = ""
+        workflowElapsedSeconds = 0
+    }
+
+    private func startWorkflowElapsedTimer() {
+        workflowElapsedTask?.cancel()
+        workflowElapsedTask = Task { [weak self] in
+            while !Task.isCancelled {
+                try? await Task.sleep(nanoseconds: 1_000_000_000)
+                await MainActor.run { [weak self] in
+                    guard let self, let startedAt = self.workflowPhaseStartedAt else { return }
+                    self.workflowElapsedSeconds = max(0, Int(Date().timeIntervalSince(startedAt).rounded(.down)))
+                }
+            }
+        }
     }
 
     private func isDirectory(_ url: URL) -> Bool {

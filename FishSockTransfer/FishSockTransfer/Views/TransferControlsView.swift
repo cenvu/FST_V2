@@ -82,6 +82,20 @@ public struct TransferControlsView: View {
                 ProgressView(value: displayProgress, total: 100)
                     .progressViewStyle(.linear)
 
+                if !viewModel.workflowPhaseTitle.isEmpty {
+                    HStack(spacing: 8) {
+                        Image(systemName: "magnifyingglass")
+                        Text(viewModel.workflowPhaseTitle)
+                            .fontWeight(.semibold)
+                        Text(viewModel.workflowPhaseMessage)
+                        Spacer(minLength: 0)
+                        Text("Elapsed: \(formatElapsed(viewModel.workflowElapsedSeconds))")
+                            .font(.system(.footnote, design: .monospaced))
+                    }
+                    .font(.system(.footnote, design: .rounded))
+                    .foregroundColor(.secondary)
+                }
+
                 HStack(spacing: 12) {
                     runtimeMetric(title: "CURRENT FILE", value: displayCurrentFile)
                     runtimeMetric(title: "SPEED", value: formatSpeed(viewModel.speed))
@@ -262,6 +276,14 @@ public struct TransferControlsView: View {
     private func formatETA(_ eta: TimeInterval) -> String {
         guard eta > 0 else { return "-" }
         let totalSeconds = Int(eta.rounded())
+        return formatDuration(totalSeconds)
+    }
+
+    private func formatElapsed(_ elapsedSeconds: Int) -> String {
+        formatDuration(max(0, elapsedSeconds))
+    }
+
+    private func formatDuration(_ totalSeconds: Int) -> String {
         let hours = totalSeconds / 3600
         let minutes = (totalSeconds % 3600) / 60
         let seconds = totalSeconds % 60
@@ -308,6 +330,7 @@ public extension VerificationMode {
 
 nonisolated public enum TransferControlsVisualRole: Equatable, Sendable {
     case idle
+    case preparing
     case transferring
     case verifying
     case copyOnlyComplete
@@ -326,7 +349,9 @@ nonisolated public enum TransferControlsActionPresentation {
         switch state {
         case .ready:
             return .idle
-        case .copying, .validating:
+        case .validating:
+            return .preparing
+        case .copying:
             return .transferring
         case .verifying:
             return .verifying
@@ -355,6 +380,8 @@ nonisolated public enum TransferControlsActionPresentation {
         }
 
         switch visualRole(for: state, errorMessage: errorMessage) {
+        case .preparing:
+            return "PREPARING TRANSFER"
         case .transferring:
             return "TRANSFERRING"
         case .verifying:
@@ -376,6 +403,8 @@ nonisolated public enum TransferControlsActionPresentation {
 
     public static func icon(for state: TransferState, errorMessage: String? = nil) -> String {
         switch visualRole(for: state, errorMessage: errorMessage) {
+        case .preparing:
+            return "magnifyingglass"
         case .transferring:
             return "arrow.triangle.2.circlepath"
         case .verifying:
@@ -405,6 +434,8 @@ nonisolated public enum TransferControlsActionPresentation {
         }
 
         switch visualRole(for: state, errorMessage: errorMessage) {
+        case .preparing:
+            return "Scanning source and checking destination..."
         case .transferring:
             return "Copy in progress. Do not remove media."
         case .verifying:
@@ -426,7 +457,7 @@ nonisolated public enum TransferControlsActionPresentation {
 
     public static func buttonColor(for state: TransferState, errorMessage: String? = nil) -> Color {
         switch visualRole(for: state, errorMessage: errorMessage) {
-        case .transferring, .verifying:
+        case .preparing, .transferring, .verifying:
             return .orange
         case .copyOnlyComplete, .idle:
             return .blue
