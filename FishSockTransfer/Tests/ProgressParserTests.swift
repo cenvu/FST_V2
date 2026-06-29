@@ -50,6 +50,8 @@ struct ProgressParserTests {
         testHumanReadablePrematureHundredPercentClamps()
         testActiveCopyProgressClampsPrematureHundredPercent()
         testCompletedCopyProgressIsOnlyFinalHundredConstant()
+        testProgressDeliveryGateThrottlesDuplicateProgressButAllowsForcedFirstProgress()
+        testStdoutRecordProcessorThrottlesManyProgressRecordsWithoutSuppressingFirstProgress()
 
         print("ProgressParserTests passed")
     }
@@ -282,5 +284,73 @@ struct ProgressParserTests {
     private static func testCompletedCopyProgressIsOnlyFinalHundredConstant() {
         assertEqual(ProgressParser.completedCopyProgress, 100.0, "completed copy progress")
         assertEqual(ProgressParser.activeCopyProgress(100.0) == ProgressParser.completedCopyProgress, false, "active copy must not emit final progress")
+    }
+
+    private static func testProgressDeliveryGateThrottlesDuplicateProgressButAllowsForcedFirstProgress() {
+        let start = Date()
+        var gate = RsyncProgressDeliveryGate(minimumInterval: 60)
+
+        assertEqual(gate.shouldDeliver(now: start), true, "first progress delivery")
+        assertEqual(gate.shouldDeliver(now: start.addingTimeInterval(1)), false, "duplicate progress is throttled")
+        assertEqual(gate.shouldDeliver(now: start.addingTimeInterval(2), force: true), true, "forced first real progress delivery")
+        assertEqual(gate.shouldDeliver(now: start.addingTimeInterval(3)), false, "post-force duplicate progress is throttled")
+        assertEqual(gate.shouldDeliver(now: start.addingTimeInterval(63)), true, "interval progress delivery")
+    }
+
+    private static func testStdoutRecordProcessorThrottlesManyProgressRecordsWithoutSuppressingFirstProgress() {
+        let diagnostics = RsyncCopyTimingDiagnostics()
+        diagnostics.reset(startedAt: Date())
+        let recorder = StandaloneTransferEventRecorder()
+        var processor = RsyncStdoutRecordProcessor(
+            diagnostics: diagnostics,
+            minimumProgressDeliveryInterval: 60
+        ) { event in
+            recorder.append(event)
+        }
+        let start = Date()
+
+        processor.process("32.77K  0%  512.00kB/s    0:00:10", now: start)
+        for index in 1...100 {
+            processor.process("\(index).00M  \(min(index, 99))%  1.00MB/s    0:00:09", now: start.addingTimeInterval(Double(index) / 100.0))
+        }
+
+        let events = recorder.snapshot()
+        let progressEvents = events.compactMap { event -> Double? in
+            guard case .progress(let progress) = event else { return nil }
+            return progress
+        }
+        let diagnosticMessages = events.compactMap { event -> String? in
+            guard case .log(let message) = event, message.hasPrefix("DIAG [RSYNC TIMING]") else { return nil }
+            return message
+        }
+
+        assertEqual(progressEvents, [0.0, 1.0], "throttled processor progress delivery")
+        assertEqual(
+            diagnosticMessages.contains { $0.contains("First parsed progress2 record") },
+            true,
+            "first parsed progress2 diagnostic"
+        )
+        assertEqual(
+            diagnosticMessages.contains { $0.contains("First structured progress >0") },
+            true,
+            "first structured progress diagnostic"
+        )
+    }
+}
+
+private final class StandaloneTransferEventRecorder: @unchecked Sendable {
+    private let lock = NSLock()
+    private var events: [TransferEvent] = []
+
+    func append(_ event: TransferEvent) {
+        lock.withLock {
+            events.append(event)
+        }
+    }
+
+    func snapshot() -> [TransferEvent] {
+        lock.withLock {
+            events
+        }
     }
 }

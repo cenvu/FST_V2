@@ -321,7 +321,7 @@ final class MetadataOnlySourceSafetyXCTests: XCTestCase {
             onStateChanged: { state in recorder.appendState(state) },
             onProgress: { _ in },
             onSpeed: { _ in },
-            onETA: { _ in },
+            onTransferTime: { _ in },
             onCurrentFile: { _ in },
             onError: { error in recorder.appendError(error) },
             onLog: { log in recorder.appendLog(log) }
@@ -362,7 +362,7 @@ final class MetadataOnlySourceSafetyXCTests: XCTestCase {
             onStateChanged: { state in recorder.appendState(state) },
             onProgress: { _ in },
             onSpeed: { _ in },
-            onETA: { _ in },
+            onTransferTime: { _ in },
             onCurrentFile: { _ in },
             onError: { error in recorder.appendError(error) },
             onLog: { log in recorder.appendLog(log) }

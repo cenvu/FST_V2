@@ -46,6 +46,9 @@ public final class TransferViewModel: ObservableObject {
     private var destinationMetadataTask: Task<Void, Never>?
     private var workflowElapsedTask: Task<Void, Never>?
     private var workflowPhaseStartedAt: Date?
+    private var didLogFirstAppliedProgress = false
+    private var didLogFirstAppliedSpeed = false
+    private var didLogFirstAppliedTransferTime = false
     
     public init(
         coordinator: TransferCoordinator? = nil,
@@ -101,20 +104,19 @@ public final class TransferViewModel: ObservableObject {
         callbacksConfiguredTask = Task { [weak self, coordinator] in
             await coordinator.configureCallbacks(
                 onStateChanged: { [weak self] state in
-                    self?.transferState = state
-                    self?.handleTransferStateChange(state)
+                    self?.applyTransferState(state)
                 },
                 onProgress: { [weak self] p in
-                    self?.progress = p
+                    self?.applyTransferProgress(p)
                 },
                 onSpeed: { [weak self] s in
-                    self?.speed = s
+                    self?.applyTransferSpeed(s)
                 },
-                onETA: { [weak self] e in
-                    self?.eta = e
+                onTransferTime: { [weak self] e in
+                    self?.applyTransferTime(e)
                 },
                 onCurrentFile: { [weak self] f in
-                    self?.currentFile = f
+                    self?.applyCurrentFile(f)
                 },
                 onError: { [weak self] message in
                     self?.errorMessage = message
@@ -125,6 +127,40 @@ public final class TransferViewModel: ObservableObject {
                 }
             )
         }
+    }
+
+    internal func applyTransferState(_ state: TransferState) {
+        let previousState = transferState
+        transferState = state
+        handleTransferStateChange(state, previousState: previousState)
+    }
+
+    internal func applyTransferProgress(_ progress: Double) {
+        self.progress = progress
+        if progress > 0, !didLogFirstAppliedProgress {
+            didLogFirstAppliedProgress = true
+            addLog(category: .progress, message: String(format: "DIAG [VIEWMODEL] First progress applied: %.1f%%", progress))
+        }
+    }
+
+    internal func applyTransferSpeed(_ speed: Double) {
+        self.speed = speed
+        if speed > 0, !didLogFirstAppliedSpeed {
+            didLogFirstAppliedSpeed = true
+            addLog(category: .progress, message: String(format: "DIAG [VIEWMODEL] First speed applied: %.2f MB/s", speed))
+        }
+    }
+
+    internal func applyTransferTime(_ time: TimeInterval) {
+        self.eta = time
+        if time > 0, !didLogFirstAppliedTransferTime {
+            didLogFirstAppliedTransferTime = true
+            addLog(category: .progress, message: "DIAG [VIEWMODEL] First rsync time applied: \(TransferRuntimeMetricPresentation.timeValue(seconds: time))")
+        }
+    }
+
+    internal func applyCurrentFile(_ currentFile: String) {
+        self.currentFile = currentFile
     }
     
     public func startTransfer() {
@@ -190,9 +226,10 @@ public final class TransferViewModel: ObservableObject {
         progress = 0.0
         clearCopyRuntimeMetrics()
         clearWorkflowPhase()
+        resetRuntimeDiagnosticMarkers()
     }
 
-    private func handleTransferStateChange(_ state: TransferState) {
+    private func handleTransferStateChange(_ state: TransferState, previousState: TransferState) {
         switch state {
         case .ready:
             resetTransferMetrics()
@@ -215,7 +252,9 @@ public final class TransferViewModel: ObservableObject {
             }
         case .copying:
             clearWorkflowPhase()
-            clearCopyRuntimeMetrics()
+            if previousState != .copying {
+                clearCopyRuntimeMetrics()
+            }
         }
     }
 
@@ -223,6 +262,12 @@ public final class TransferViewModel: ObservableObject {
         speed = 0.0
         eta = 0.0
         currentFile = ""
+    }
+
+    private func resetRuntimeDiagnosticMarkers() {
+        didLogFirstAppliedProgress = false
+        didLogFirstAppliedSpeed = false
+        didLogFirstAppliedTransferTime = false
     }
 
     private func beginPreparationPhase() {
@@ -439,5 +484,45 @@ nonisolated public enum TransferReportStatusPresentation {
         }
 
         return nil
+    }
+}
+
+nonisolated public enum TransferRuntimeMetricPresentation {
+    public static func currentFileTitle(currentFile: String, state: TransferState) -> String {
+        if state == .copying && currentFile.isEmpty {
+            return "COPY PROGRESS"
+        }
+
+        return "CURRENT FILE"
+    }
+
+    public static func currentFileValue(currentFile: String, state: TransferState) -> String {
+        guard currentFile.isEmpty else {
+            return currentFile
+        }
+
+        if state == .copying {
+            return "Tracking total rsync progress"
+        }
+
+        if state == .verifying {
+            return "Preparing verification..."
+        }
+
+        return "-"
+    }
+
+    public static func timeValue(seconds: TimeInterval) -> String {
+        guard seconds > 0 else { return "-" }
+        let totalSeconds = Int(seconds.rounded())
+        let hours = totalSeconds / 3600
+        let minutes = (totalSeconds % 3600) / 60
+        let seconds = totalSeconds % 60
+
+        if hours > 0 {
+            return String(format: "%d:%02d:%02d", hours, minutes, seconds)
+        }
+
+        return String(format: "%02d:%02d", minutes, seconds)
     }
 }

@@ -15,7 +15,7 @@ public actor TransferCoordinator {
     private var onStateChanged: (@MainActor @Sendable (TransferState) -> Void)?
     private var onProgress: (@MainActor @Sendable (Double) -> Void)?
     private var onSpeed: (@MainActor @Sendable (Double) -> Void)?
-    private var onETA: (@MainActor @Sendable (TimeInterval) -> Void)?
+    private var onTransferTime: (@MainActor @Sendable (TimeInterval) -> Void)?
     private var onCurrentFile: (@MainActor @Sendable (String) -> Void)?
     private var onError: (@MainActor @Sendable (String) -> Void)?
     private var onLog: (@MainActor @Sendable (LogEntry) -> Void)?
@@ -43,7 +43,7 @@ public actor TransferCoordinator {
         onStateChanged: (@MainActor @Sendable @escaping (TransferState) -> Void),
         onProgress: (@MainActor @Sendable @escaping (Double) -> Void),
         onSpeed: (@MainActor @Sendable @escaping (Double) -> Void),
-        onETA: (@MainActor @Sendable @escaping (TimeInterval) -> Void),
+        onTransferTime: (@MainActor @Sendable @escaping (TimeInterval) -> Void),
         onCurrentFile: (@MainActor @Sendable @escaping (String) -> Void),
         onError: (@MainActor @Sendable @escaping (String) -> Void),
         onLog: (@MainActor @Sendable @escaping (LogEntry) -> Void)
@@ -51,7 +51,7 @@ public actor TransferCoordinator {
         self.onStateChanged = onStateChanged
         self.onProgress = onProgress
         self.onSpeed = onSpeed
-        self.onETA = onETA
+        self.onTransferTime = onTransferTime
         self.onCurrentFile = onCurrentFile
         self.onError = onError
         self.onLog = onLog
@@ -295,17 +295,42 @@ public actor TransferCoordinator {
                 }
 
                 var didResume = false
+                let rsyncEventStartedAt = Date()
+                var didLogFirstProgressForward = false
+                var didLogFirstSpeedForward = false
+                var didLogFirstTransferTimeForward = false
                 for await event in eventStream {
                     switch event {
                     case .progress(let p):
                         await self.onProgress?(p)
+                        if p > 0, !didLogFirstProgressForward {
+                            didLogFirstProgressForward = true
+                            await self.log(
+                                category: .progress,
+                                message: String(format: "DIAG [COORDINATOR] First progress forwarded: %.1f%% at +%ds", p, self.elapsedSeconds(since: rsyncEventStartedAt))
+                            )
+                        }
                         await self.log(category: .progress, message: "Progress \(Int(p.rounded()))%")
                     case .speed(let s):
                         await self.onSpeed?(s)
+                        if s > 0, !didLogFirstSpeedForward {
+                            didLogFirstSpeedForward = true
+                            await self.log(
+                                category: .progress,
+                                message: String(format: "DIAG [COORDINATOR] First speed forwarded: %.2f MB/s at +%ds", s, self.elapsedSeconds(since: rsyncEventStartedAt))
+                            )
+                        }
                         await self.log(category: .progress, message: String(format: "Speed %.2f MB/s", s))
                     case .eta(let e):
-                        await self.onETA?(e)
-                        await self.log(category: .progress, message: "ETA \(self.formatETA(e))")
+                        await self.onTransferTime?(e)
+                        if e > 0, !didLogFirstTransferTimeForward {
+                            didLogFirstTransferTimeForward = true
+                            await self.log(
+                                category: .progress,
+                                message: "DIAG [COORDINATOR] First rsync time forwarded: \(self.formatTransferTime(e)) at +\(self.elapsedSeconds(since: rsyncEventStartedAt))s"
+                            )
+                        }
+                        await self.log(category: .progress, message: "Rsync Time \(self.formatTransferTime(e))")
                     case .currentFile(let f):
                         await self.onCurrentFile?(f)
                         await self.log(category: .file, message: f)
@@ -514,9 +539,9 @@ public actor TransferCoordinator {
         }
     }
 
-    private func formatETA(_ eta: TimeInterval) -> String {
-        guard eta > 0 else { return "--:--" }
-        let totalSeconds = Int(eta.rounded())
+    private func formatTransferTime(_ time: TimeInterval) -> String {
+        guard time > 0 else { return "--:--" }
+        let totalSeconds = Int(time.rounded())
         let hours = totalSeconds / 3600
         let minutes = (totalSeconds % 3600) / 60
         let seconds = totalSeconds % 60
@@ -526,5 +551,9 @@ public actor TransferCoordinator {
         }
 
         return String(format: "%02d:%02d", minutes, seconds)
+    }
+
+    private func elapsedSeconds(since startDate: Date) -> Int {
+        max(0, Int(Date().timeIntervalSince(startDate).rounded(.down)))
     }
 }

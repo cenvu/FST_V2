@@ -4,9 +4,10 @@ public actor RsyncEngine {
     private var process: Process?
     private var stdoutPipe: Pipe?
     private var stderrPipe: Pipe?
-    private let parser = ProgressParser()
     
     private var isCancelled = false
+    private let copyTimingDiagnostics = RsyncCopyTimingDiagnostics()
+    private var copyTimingHeartbeatTask: Task<Void, Never>?
     private let bundledRsyncService: BundledRsyncService
     
     public init(bundledRsyncService: BundledRsyncService = BundledRsyncService()) {
@@ -59,12 +60,21 @@ public actor RsyncEngine {
         rsyncProcess.standardOutput = outPipe
         rsyncProcess.standardError = errPipe
         
-        let outTask = Task {
-            await self.streamStdoutRecords(from: outPipe.fileHandleForReading, onEvent: onEvent)
+        let copyTimingDiagnostics = copyTimingDiagnostics
+        let outTask = Task.detached(priority: .userInitiated) {
+            RsyncPipeDrainer.streamStdout(
+                from: outPipe.fileHandleForReading,
+                diagnostics: copyTimingDiagnostics,
+                onEvent: onEvent
+            )
         }
         
-        let errTask = Task {
-            await self.streamStderrRecords(from: errPipe.fileHandleForReading, onEvent: onEvent)
+        let errTask = Task.detached(priority: .userInitiated) {
+            RsyncPipeDrainer.streamStderr(
+                from: errPipe.fileHandleForReading,
+                diagnostics: copyTimingDiagnostics,
+                onEvent: onEvent
+            )
         }
         
         do {
@@ -75,6 +85,9 @@ public actor RsyncEngine {
                 
                 do {
                     try rsyncProcess.run()
+                    Task {
+                        self.markRsyncProcessStarted(onEvent: onEvent)
+                    }
                 } catch {
                     continuation.resume(throwing: error)
                 }
@@ -82,6 +95,7 @@ public actor RsyncEngine {
             
             _ = await outTask.result
             _ = await errTask.result
+            stopRsyncTimingHeartbeat()
             
             let status = rsyncProcess.terminationStatus
             if isCancelled || status == 20 || status == 9 {
@@ -96,6 +110,7 @@ public actor RsyncEngine {
                 onEvent(.failed(mapExitCode(status)))
             }
         } catch {
+            stopRsyncTimingHeartbeat()
             if isCancelled {
                 emitCopyRuntimeMetricsCleared(onEvent: onEvent)
                 onEvent(.cancelled)
@@ -114,69 +129,35 @@ public actor RsyncEngine {
         process?.terminate()
     }
     
-    private func processOutputLine(_ line: String, onEvent: @Sendable (TransferEvent) -> Void) {
-        let trimmed = line.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else { return }
-        onEvent(.log("[STDOUT] \(trimmed)"))
-        
-        if let data = parser.parse(line: line) {
-            onEvent(.progress(ProgressParser.activeCopyProgress(data.progress)))
-            onEvent(.speed(data.speedMBps))
-            onEvent(.eta(data.eta))
-            onEvent(.log(String(format: "Actual Runtime Speed: %.2f MB/s", data.speedMBps)))
-        }
+    private func markRsyncProcessStarted(onEvent: @escaping @Sendable (TransferEvent) -> Void) {
+        copyTimingDiagnostics.reset(startedAt: Date())
+        onEvent(.log("DIAG [RSYNC TIMING] Process started at +0s"))
+        startRsyncTimingHeartbeat(onEvent: onEvent)
     }
 
-    private func streamStdoutRecords(
-        from fileHandle: FileHandle,
-        onEvent: @Sendable (TransferEvent) -> Void
-    ) async {
-        var framer = RsyncOutputFramer()
-
-        do {
-            for try await byte in fileHandle.bytes {
-                if isCancelled { break }
-                for record in framer.append(Data([byte])) {
-                    if isCancelled { break }
-                    processOutputLine(record, onEvent: onEvent)
-                }
+    private func startRsyncTimingHeartbeat(onEvent: @escaping @Sendable (TransferEvent) -> Void) {
+        stopRsyncTimingHeartbeat()
+        copyTimingHeartbeatTask = Task { [weak self] in
+            while !Task.isCancelled {
+                try? await Task.sleep(nanoseconds: 15_000_000_000)
+                guard !Task.isCancelled else { return }
+                await self?.emitRsyncTimingHeartbeat(onEvent: onEvent)
             }
-        } catch {
-            // Pipe closure during process termination is expected; rsync exit status remains authoritative.
-        }
-
-        if !isCancelled, let record = framer.flush() {
-            processOutputLine(record, onEvent: onEvent)
         }
     }
 
-    private func streamStderrRecords(
-        from fileHandle: FileHandle,
-        onEvent: @Sendable (TransferEvent) -> Void
-    ) async {
-        var framer = RsyncOutputFramer()
-
-        do {
-            for try await byte in fileHandle.bytes {
-                if isCancelled { break }
-                for record in framer.append(Data([byte])) {
-                    if isCancelled { break }
-                    processErrorLine(record, onEvent: onEvent)
-                }
-            }
-        } catch {
-            // Pipe closure during process termination is expected; rsync exit status remains authoritative.
+    private func emitRsyncTimingHeartbeat(onEvent: @Sendable (TransferEvent) -> Void) {
+        guard !copyTimingDiagnostics.hasProgressOutput else {
+            stopRsyncTimingHeartbeat()
+            return
         }
 
-        if !isCancelled, let record = framer.flush() {
-            processErrorLine(record, onEvent: onEvent)
-        }
+        onEvent(.log("DIAG [RSYNC TIMING] Copy active; waiting for rsync progress output... elapsed \(copyTimingDiagnostics.elapsedSeconds())s"))
     }
 
-    private func processErrorLine(_ line: String, onEvent: @Sendable (TransferEvent) -> Void) {
-        let trimmed = line.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else { return }
-        onEvent(.log("[STDERR] \(trimmed)"))
+    private func stopRsyncTimingHeartbeat() {
+        copyTimingHeartbeatTask?.cancel()
+        copyTimingHeartbeatTask = nil
     }
 
     private func emitCopyRuntimeMetricsCleared(onEvent: @Sendable (TransferEvent) -> Void) {
@@ -200,6 +181,243 @@ public actor RsyncEngine {
         stdoutPipe = nil
         stderrPipe = nil
         process = nil
+    }
+}
+
+nonisolated enum RsyncPipeDrainer {
+    private static let chunkSize = 32 * 1024
+
+    static func streamStdout(
+        from fileHandle: FileHandle,
+        diagnostics: RsyncCopyTimingDiagnostics,
+        onEvent: @escaping @Sendable (TransferEvent) -> Void
+    ) {
+        var framer = RsyncOutputFramer()
+        var processor = RsyncStdoutRecordProcessor(diagnostics: diagnostics, onEvent: onEvent)
+
+        while !Task.isCancelled {
+            let data = fileHandle.readData(ofLength: chunkSize)
+            if data.isEmpty { break }
+
+            if let diagnostic = diagnostics.markFirstRawStdoutChunk(byteCount: data.count) {
+                onEvent(.log(diagnostic))
+            }
+
+            for record in framer.append(data) {
+                if Task.isCancelled { break }
+                processor.process(record)
+            }
+        }
+
+        if !Task.isCancelled, let record = framer.flush() {
+            processor.process(record)
+        }
+    }
+
+    static func streamStderr(
+        from fileHandle: FileHandle,
+        diagnostics: RsyncCopyTimingDiagnostics,
+        onEvent: @escaping @Sendable (TransferEvent) -> Void
+    ) {
+        var framer = RsyncOutputFramer()
+
+        while !Task.isCancelled {
+            let data = fileHandle.readData(ofLength: chunkSize)
+            if data.isEmpty { break }
+
+            if let diagnostic = diagnostics.markFirstRawStderrChunk(byteCount: data.count) {
+                onEvent(.log(diagnostic))
+            }
+
+            for record in framer.append(data) {
+                if Task.isCancelled { break }
+                processStderrRecord(record, diagnostics: diagnostics, onEvent: onEvent)
+            }
+        }
+
+        if !Task.isCancelled, let record = framer.flush() {
+            processStderrRecord(record, diagnostics: diagnostics, onEvent: onEvent)
+        }
+    }
+
+    private static func processStderrRecord(
+        _ record: String,
+        diagnostics: RsyncCopyTimingDiagnostics,
+        onEvent: @Sendable (TransferEvent) -> Void
+    ) {
+        let trimmed = record.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+
+        if let diagnostic = diagnostics.markFirstFramedStderrRecord() {
+            onEvent(.log(diagnostic))
+        }
+
+        onEvent(.log("[STDERR] \(trimmed)"))
+    }
+}
+
+nonisolated struct RsyncStdoutRecordProcessor: Sendable {
+    private let parser = ProgressParser()
+    private let diagnostics: RsyncCopyTimingDiagnostics
+    private var deliveryGate: RsyncProgressDeliveryGate
+    private let onEvent: @Sendable (TransferEvent) -> Void
+
+    init(
+        diagnostics: RsyncCopyTimingDiagnostics,
+        minimumProgressDeliveryInterval: TimeInterval = 0.12,
+        onEvent: @escaping @Sendable (TransferEvent) -> Void
+    ) {
+        self.diagnostics = diagnostics
+        self.deliveryGate = RsyncProgressDeliveryGate(minimumInterval: minimumProgressDeliveryInterval)
+        self.onEvent = onEvent
+    }
+
+    mutating func process(_ record: String, now: Date = Date()) {
+        let trimmed = record.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+
+        if let diagnostic = diagnostics.markFirstFramedStdoutRecord() {
+            onEvent(.log(diagnostic))
+        }
+
+        guard let data = parser.parse(line: record) else {
+            onEvent(.log("[STDOUT] \(trimmed)"))
+            return
+        }
+
+        if let diagnostic = diagnostics.markFirstParsedProgress2() {
+            onEvent(.log(diagnostic))
+        }
+
+        let activeProgress = ProgressParser.activeCopyProgress(data.progress)
+        let firstProgressDiagnostic = activeProgress > 0 ? diagnostics.markFirstStructuredProgressOverZero(activeProgress) : nil
+        if let firstProgressDiagnostic {
+            onEvent(.log(firstProgressDiagnostic))
+        }
+
+        guard deliveryGate.shouldDeliver(now: now, force: firstProgressDiagnostic != nil) else {
+            return
+        }
+
+        onEvent(.log("[STDOUT] \(trimmed)"))
+        onEvent(.progress(activeProgress))
+        onEvent(.speed(data.speedMBps))
+        onEvent(.eta(data.eta))
+        onEvent(.log(String(format: "Actual Runtime Speed: %.2f MB/s", data.speedMBps)))
+    }
+}
+
+nonisolated struct RsyncProgressDeliveryGate: Sendable {
+    private let minimumInterval: TimeInterval
+    private var lastDelivery: Date?
+
+    init(minimumInterval: TimeInterval = 0.12) {
+        self.minimumInterval = minimumInterval
+    }
+
+    mutating func shouldDeliver(now: Date = Date(), force: Bool = false) -> Bool {
+        if force || lastDelivery == nil {
+            lastDelivery = now
+            return true
+        }
+
+        guard let lastDelivery else {
+            self.lastDelivery = now
+            return true
+        }
+
+        guard now.timeIntervalSince(lastDelivery) >= minimumInterval else {
+            return false
+        }
+
+        self.lastDelivery = now
+        return true
+    }
+}
+
+nonisolated private struct RsyncCopyTimingState {
+    var startedAt: Date?
+    var didLogFirstRawStdout = false
+    var didLogFirstRawStderr = false
+    var didLogFirstFramedStdout = false
+    var didLogFirstFramedStderr = false
+    var didLogFirstProgress2 = false
+    var didLogFirstProgressOverZero = false
+}
+
+nonisolated final class RsyncCopyTimingDiagnostics: @unchecked Sendable {
+    private let lock = NSLock()
+    private var state = RsyncCopyTimingState()
+
+    var hasProgressOutput: Bool {
+        lock.withLock {
+            state.didLogFirstProgress2 || state.didLogFirstProgressOverZero
+        }
+    }
+
+    func reset(startedAt: Date) {
+        lock.withLock {
+            state = RsyncCopyTimingState(startedAt: startedAt)
+        }
+    }
+
+    func markFirstRawStdoutChunk(byteCount: Int) -> String? {
+        lock.withLock {
+            guard !state.didLogFirstRawStdout else { return nil }
+            state.didLogFirstRawStdout = true
+            return "DIAG [RSYNC RAW] First stdout chunk: \(byteCount) bytes at +\(elapsedSecondsLocked())s"
+        }
+    }
+
+    func markFirstRawStderrChunk(byteCount: Int) -> String? {
+        lock.withLock {
+            guard !state.didLogFirstRawStderr else { return nil }
+            state.didLogFirstRawStderr = true
+            return "DIAG [RSYNC RAW] First stderr chunk: \(byteCount) bytes at +\(elapsedSecondsLocked())s"
+        }
+    }
+
+    func markFirstFramedStdoutRecord() -> String? {
+        lock.withLock {
+            guard !state.didLogFirstFramedStdout else { return nil }
+            state.didLogFirstFramedStdout = true
+            return "DIAG [RSYNC TIMING] First framed stdout record at +\(elapsedSecondsLocked())s"
+        }
+    }
+
+    func markFirstFramedStderrRecord() -> String? {
+        lock.withLock {
+            guard !state.didLogFirstFramedStderr else { return nil }
+            state.didLogFirstFramedStderr = true
+            return "DIAG [RSYNC TIMING] First framed stderr record at +\(elapsedSecondsLocked())s"
+        }
+    }
+
+    func markFirstParsedProgress2() -> String? {
+        lock.withLock {
+            guard !state.didLogFirstProgress2 else { return nil }
+            state.didLogFirstProgress2 = true
+            return "DIAG [RSYNC TIMING] First parsed progress2 record at +\(elapsedSecondsLocked())s"
+        }
+    }
+
+    func markFirstStructuredProgressOverZero(_ progress: Double) -> String? {
+        lock.withLock {
+            guard !state.didLogFirstProgressOverZero else { return nil }
+            state.didLogFirstProgressOverZero = true
+            return String(format: "DIAG [RSYNC TIMING] First structured progress >0: %.1f%% at +%ds", progress, elapsedSecondsLocked())
+        }
+    }
+
+    func elapsedSeconds(now: Date = Date()) -> Int {
+        lock.withLock {
+            elapsedSecondsLocked(now: now)
+        }
+    }
+
+    private func elapsedSecondsLocked(now: Date = Date()) -> Int {
+        guard let startedAt = state.startedAt else { return 0 }
+        return max(0, Int(now.timeIntervalSince(startedAt).rounded(.down)))
     }
 }
 

@@ -132,4 +132,64 @@ final class ProgressParserXCTests: XCTestCase {
         XCTAssertEqual(ProgressParser.completedCopyProgress, 100.0)
         XCTAssertNotEqual(ProgressParser.activeCopyProgress(100.0), ProgressParser.completedCopyProgress)
     }
+
+    func testProgressDeliveryGateThrottlesDuplicateProgressButAllowsForcedFirstProgress() {
+        let start = Date()
+        var gate = RsyncProgressDeliveryGate(minimumInterval: 60)
+
+        XCTAssertTrue(gate.shouldDeliver(now: start))
+        XCTAssertFalse(gate.shouldDeliver(now: start.addingTimeInterval(1)))
+        XCTAssertTrue(gate.shouldDeliver(now: start.addingTimeInterval(2), force: true))
+        XCTAssertFalse(gate.shouldDeliver(now: start.addingTimeInterval(3)))
+        XCTAssertTrue(gate.shouldDeliver(now: start.addingTimeInterval(63)))
+    }
+
+    func testStdoutRecordProcessorThrottlesManyProgressRecordsWithoutSuppressingFirstProgress() {
+        let diagnostics = RsyncCopyTimingDiagnostics()
+        diagnostics.reset(startedAt: Date())
+        let recorder = TransferEventRecorder()
+        var processor = RsyncStdoutRecordProcessor(
+            diagnostics: diagnostics,
+            minimumProgressDeliveryInterval: 60
+        ) { event in
+            recorder.append(event)
+        }
+        let start = Date()
+
+        processor.process("32.77K  0%  512.00kB/s    0:00:10", now: start)
+        for index in 1...100 {
+            processor.process("\(index).00M  \(min(index, 99))%  1.00MB/s    0:00:09", now: start.addingTimeInterval(Double(index) / 100.0))
+        }
+
+        let events = recorder.snapshot()
+        let progressEvents = events.compactMap { event -> Double? in
+            guard case .progress(let progress) = event else { return nil }
+            return progress
+        }
+        let diagnosticMessages = events.compactMap { event -> String? in
+            guard case .log(let message) = event, message.hasPrefix("DIAG [RSYNC TIMING]") else { return nil }
+            return message
+        }
+
+        XCTAssertEqual(progressEvents, [0.0, 1.0])
+        XCTAssertTrue(diagnosticMessages.contains { $0.contains("First parsed progress2 record") })
+        XCTAssertTrue(diagnosticMessages.contains { $0.contains("First structured progress >0") })
+    }
+}
+
+private final class TransferEventRecorder: @unchecked Sendable {
+    private let lock = NSLock()
+    private var events: [TransferEvent] = []
+
+    func append(_ event: TransferEvent) {
+        lock.withLock {
+            events.append(event)
+        }
+    }
+
+    func snapshot() -> [TransferEvent] {
+        lock.withLock {
+            events
+        }
+    }
 }

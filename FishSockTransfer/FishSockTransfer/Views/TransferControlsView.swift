@@ -99,10 +99,10 @@ public struct TransferControlsView: View {
                 }
 
                 VStack(spacing: 12) {
-                    runtimeMetric(title: "CURRENT FILE", value: displayCurrentFile)
+                    runtimeMetric(title: runtimeFileMetricTitle, value: displayCurrentFile)
                     HStack(spacing: 12) {
                         runtimeMetric(title: "SPEED", value: formatSpeed(viewModel.speed))
-                        runtimeMetric(title: "ETA", value: formatETA(viewModel.eta))
+                        runtimeMetric(title: "RSYNC TIME", value: formatTransferTime(viewModel.eta))
                     }
                 }
             }
@@ -263,13 +263,17 @@ public struct TransferControlsView: View {
     }
 
     private var displayCurrentFile: String {
-        if viewModel.currentFile.isEmpty {
-            if viewModel.transferState == .copying || viewModel.transferState == .verifying {
-                return "Initializing..."
-            }
-            return "-"
-        }
-        return viewModel.currentFile
+        TransferRuntimeMetricPresentation.currentFileValue(
+            currentFile: viewModel.currentFile,
+            state: viewModel.transferState
+        )
+    }
+
+    private var runtimeFileMetricTitle: String {
+        TransferRuntimeMetricPresentation.currentFileTitle(
+            currentFile: viewModel.currentFile,
+            state: viewModel.transferState
+        )
     }
 
     private func runtimeMetric(title: String, value: String) -> some View {
@@ -296,10 +300,8 @@ public struct TransferControlsView: View {
         return String(format: "%.2f MB/s", speed)
     }
 
-    private func formatETA(_ eta: TimeInterval) -> String {
-        guard eta > 0 else { return "-" }
-        let totalSeconds = Int(eta.rounded())
-        return formatDuration(totalSeconds)
+    private func formatTransferTime(_ time: TimeInterval) -> String {
+        TransferRuntimeMetricPresentation.timeValue(seconds: time)
     }
 
     private func formatElapsed(_ elapsedSeconds: Int) -> String {

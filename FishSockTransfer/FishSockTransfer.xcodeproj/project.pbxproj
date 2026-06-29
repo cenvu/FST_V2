@@ -13,6 +13,7 @@
 		8A0001042FE1000000000001 /* BundledRsyncServiceXCTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A0000242FE1000000000001 /* BundledRsyncServiceXCTests.swift */; };
 		8A0001052FE1000000000001 /* MetadataOnlySourceSafetyXCTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A0000252FE1000000000001 /* MetadataOnlySourceSafetyXCTests.swift */; };
 		8A0001062FE1000000000001 /* VerificationHashStrategyXCTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A0000262FE1000000000001 /* VerificationHashStrategyXCTests.swift */; };
+		8A0001072FE1000000000001 /* TransferViewModelRuntimeXCTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A0000272FE1000000000001 /* TransferViewModelRuntimeXCTests.swift */; };
 		8A0001212FE1000000000001 /* RsyncBandwidthLimit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A0000412FE1000000000001 /* RsyncBandwidthLimit.swift */; };
 		8A0001222FE1000000000001 /* ProgressParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A0000422FE1000000000001 /* ProgressParser.swift */; };
 		8A0001232FE1000000000001 /* ReportEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A0000432FE1000000000001 /* ReportEngine.swift */; };
@@ -33,6 +34,7 @@
 		8A0001322FE1000000000001 /* LoggerService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A0000522FE1000000000001 /* LoggerService.swift */; };
 		8A0001332FE1000000000001 /* RsyncEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A0000532FE1000000000001 /* RsyncEngine.swift */; };
 		8A0001342FE1000000000001 /* TransferCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A0000542FE1000000000001 /* TransferCoordinator.swift */; };
+		8A0001352FE1000000000001 /* TransferViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A0000552FE1000000000001 /* TransferViewModel.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -44,6 +46,7 @@
 		8A0000242FE1000000000001 /* BundledRsyncServiceXCTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BundledRsyncServiceXCTests.swift; sourceTree = "<group>"; };
 		8A0000252FE1000000000001 /* MetadataOnlySourceSafetyXCTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetadataOnlySourceSafetyXCTests.swift; sourceTree = "<group>"; };
 		8A0000262FE1000000000001 /* VerificationHashStrategyXCTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerificationHashStrategyXCTests.swift; sourceTree = "<group>"; };
+		8A0000272FE1000000000001 /* TransferViewModelRuntimeXCTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransferViewModelRuntimeXCTests.swift; sourceTree = "<group>"; };
 		8A0000412FE1000000000001 /* RsyncBandwidthLimit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FishSockTransfer/Models/RsyncBandwidthLimit.swift; sourceTree = SOURCE_ROOT; };
 		8A0000422FE1000000000001 /* ProgressParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FishSockTransfer/Engines/ProgressParser.swift; sourceTree = SOURCE_ROOT; };
 		8A0000432FE1000000000001 /* ReportEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FishSockTransfer/Engines/ReportEngine.swift; sourceTree = SOURCE_ROOT; };
@@ -64,6 +67,7 @@
 		8A0000522FE1000000000001 /* LoggerService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FishSockTransfer/Services/LoggerService.swift; sourceTree = SOURCE_ROOT; };
 		8A0000532FE1000000000001 /* RsyncEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FishSockTransfer/Engines/RsyncEngine.swift; sourceTree = SOURCE_ROOT; };
 		8A0000542FE1000000000001 /* TransferCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FishSockTransfer/Coordinators/TransferCoordinator.swift; sourceTree = SOURCE_ROOT; };
+		8A0000552FE1000000000001 /* TransferViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FishSockTransfer/ViewModels/TransferViewModel.swift; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -128,6 +132,7 @@
 				8A0000242FE1000000000001 /* BundledRsyncServiceXCTests.swift */,
 				8A0000252FE1000000000001 /* MetadataOnlySourceSafetyXCTests.swift */,
 				8A0000262FE1000000000001 /* VerificationHashStrategyXCTests.swift */,
+				8A0000272FE1000000000001 /* TransferViewModelRuntimeXCTests.swift */,
 			);
 			path = XCTest;
 			sourceTree = "<group>";
@@ -155,6 +160,7 @@
 				8A0000522FE1000000000001 /* LoggerService.swift */,
 				8A0000532FE1000000000001 /* RsyncEngine.swift */,
 				8A0000542FE1000000000001 /* TransferCoordinator.swift */,
+				8A0000552FE1000000000001 /* TransferViewModel.swift */,
 			);
 			name = "Test Support Sources";
 			sourceTree = "<group>";
@@ -308,6 +314,7 @@
 				8A0001042FE1000000000001 /* BundledRsyncServiceXCTests.swift in Sources */,
 				8A0001052FE1000000000001 /* MetadataOnlySourceSafetyXCTests.swift in Sources */,
 				8A0001062FE1000000000001 /* VerificationHashStrategyXCTests.swift in Sources */,
+				8A0001072FE1000000000001 /* TransferViewModelRuntimeXCTests.swift in Sources */,
 				8A0001212FE1000000000001 /* RsyncBandwidthLimit.swift in Sources */,
 				8A0001222FE1000000000001 /* ProgressParser.swift in Sources */,
 				8A0001232FE1000000000001 /* ReportEngine.swift in Sources */,
@@ -328,6 +335,7 @@
 				8A0001322FE1000000000001 /* LoggerService.swift in Sources */,
 				8A0001332FE1000000000001 /* RsyncEngine.swift in Sources */,
 				8A0001342FE1000000000001 /* TransferCoordinator.swift in Sources */,
+				8A0001352FE1000000000001 /* TransferViewModel.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
