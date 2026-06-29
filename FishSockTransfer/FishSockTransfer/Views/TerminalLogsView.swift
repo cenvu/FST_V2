@@ -20,7 +20,7 @@ public struct TerminalLogsView: View {
                     .frame(height: 48)
             } else {
                     TerminalLogTextView(logs: logs, autoScroll: autoScroll)
-                        .frame(minHeight: 96, idealHeight: 120, maxHeight: 140, alignment: .leading)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
                     .background(Color.black.opacity(0.3))
                     .cornerRadius(8)
                     .padding(.bottom)

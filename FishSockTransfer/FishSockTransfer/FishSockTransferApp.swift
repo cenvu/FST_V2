@@ -13,6 +13,5 @@ struct FishSockTransferApp: App {
         WindowGroup {
             ContentView()
         }
-        .defaultSize(width: 1120, height: 920)
     }
 }
