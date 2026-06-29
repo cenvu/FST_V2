@@ -2,6 +2,7 @@ import SwiftUI
 
 public struct TransferControlsView: View {
     @ObservedObject var viewModel: TransferViewModel
+    @State private var isActionHovered = false
     
     // Limits represented in KiB/s for rsync 3.x --bwlimit semantics.
     private let bandwidthOptions: [(label: String, value: Int?)] = [
@@ -16,15 +17,10 @@ public struct TransferControlsView: View {
     }
     
     public var body: some View {
-        VStack(spacing: 16) {
-            HStack(alignment: .top, spacing: 16) {
-                settingsPanel
-                    .frame(maxWidth: .infinity, alignment: .leading)
+        VStack(spacing: 12) {
+            settingsPanel
 
-                actionStatusButton
-                    .frame(minWidth: 350, idealWidth: 420, maxWidth: 500)
-            }
-            .frame(maxWidth: .infinity)
+            actionStatusButton
 
             if let storageWarningMessage = viewModel.storageWarningMessage {
                 HStack(spacing: 8) {
@@ -68,20 +64,26 @@ public struct TransferControlsView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
 
-            VStack(alignment: .leading, spacing: 12) {
-                HStack {
-                    Text("Transfer Progress")
-                        .font(.headline)
-                        .foregroundColor(.primary)
-                    Spacer()
-                    Text("\(Int(displayProgress.rounded()))%")
-                        .font(.system(.title3, design: .monospaced, weight: .semibold))
-                        .foregroundColor(viewModel.transferState.statusColor)
-                }
+            progressPanel
+        }
+    }
 
-                ProgressView(value: displayProgress, total: 100)
-                    .progressViewStyle(.linear)
+    private var progressPanel: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Text("Transfer Progress")
+                    .font(.headline)
+                    .foregroundColor(.primary)
+                Spacer()
+                Text("\(Int(displayProgress.rounded()))%")
+                    .font(.system(.title3, design: .monospaced, weight: .semibold))
+                    .foregroundColor(viewModel.transferState.statusColor)
+            }
 
+            ProgressView(value: displayProgress, total: 100)
+                .progressViewStyle(.linear)
+
+            if shouldShowProgressDetails {
                 if !viewModel.workflowPhaseTitle.isEmpty {
                     HStack(spacing: 8) {
                         Image(systemName: "magnifyingglass")
@@ -104,13 +106,8 @@ public struct TransferControlsView: View {
                     }
                 }
             }
-            .padding(16)
-            .frame(maxWidth: .infinity)
-            .background(Color(NSColor.textBackgroundColor).opacity(0.30))
-            .cornerRadius(8)
-            
         }
-        .padding(16)
+        .padding(12)
         .frame(maxWidth: .infinity)
         .background(Color(NSColor.controlBackgroundColor).opacity(0.55))
         .cornerRadius(10)
@@ -142,9 +139,12 @@ public struct TransferControlsView: View {
                     .labelsHidden()
                     .frame(maxWidth: .infinity, alignment: .leading)
 
-                    Text("Copy speed cap")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                    if !viewModel.isTransferConfigurationLocked {
+                        Text("Copy speed cap")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                            .opacity(0.6)
+                    }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
 
@@ -163,19 +163,27 @@ public struct TransferControlsView: View {
                     .labelsHidden()
                     .frame(maxWidth: .infinity, alignment: .leading)
 
-                    Text(viewModel.verificationMode.operatorDescription)
-                        .font(.system(.footnote, design: .rounded))
-                        .foregroundColor(.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
+                    if !viewModel.isTransferConfigurationLocked {
+                        Text(viewModel.verificationMode.operatorDescription)
+                            .font(.system(.footnote, design: .rounded))
+                            .foregroundColor(.secondary)
+                            .opacity(0.6)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
         }
         .disabled(viewModel.isTransferConfigurationLocked)
         .opacity(viewModel.isTransferConfigurationLocked ? 0.70 : 1)
-        .padding(16)
-        .background(Color(NSColor.textBackgroundColor).opacity(0.30))
-        .cornerRadius(8)
+        .padding(12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color(NSColor.controlBackgroundColor).opacity(0.55))
+        .cornerRadius(10)
+        .overlay(
+            RoundedRectangle(cornerRadius: 10)
+                .stroke(Color.secondary.opacity(0.16), lineWidth: 1)
+        )
     }
 
     private var actionStatusButton: some View {
@@ -184,29 +192,32 @@ public struct TransferControlsView: View {
             errorMessage: viewModel.errorMessage
         )
 
+        let isStart = isStartAction
+        let iconSize: CGFloat = isStart ? 28 : 22
+        let iconFrame: CGFloat = isStart ? 42 : 34
+        
+        let strokeOpacity = isStart ? (isActionHovered ? 0.8 : 0.45) : (isActionButtonEnabled ? 0.20 : 0.10)
+        let bgOpacity = isStart ? (isActionHovered ? 0.20 : 0.14) : (isActionButtonEnabled ? 0.07 : 0.04)
+
         return Button(action: handleActionButton) {
             HStack(spacing: 12) {
                 Image(systemName: TransferControlsActionPresentation.icon(
                     for: viewModel.transferState,
                     errorMessage: viewModel.errorMessage
                 ))
-                .font(.system(size: 22, weight: .semibold))
+                .font(.system(size: iconSize, weight: .semibold))
                 .foregroundColor(statusColor)
-                .frame(width: 34, height: 34)
+                .frame(width: iconFrame, height: iconFrame)
                 .background(statusColor.opacity(0.13))
                 .clipShape(RoundedRectangle(cornerRadius: 8))
 
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Status")
-                        .font(.caption)
-                        .fontWeight(.semibold)
-                        .foregroundColor(.secondary)
                     Text(TransferControlsActionPresentation.title(
                         for: viewModel.transferState,
                         errorMessage: viewModel.errorMessage,
                         canStartTransfer: viewModel.canStartTransfer
                     ))
-                        .font(.system(size: 17, weight: .bold, design: .rounded))
+                        .font(.system(size: isStart ? 19 : 17, weight: isStart ? .heavy : .bold, design: .rounded))
                         .foregroundColor(.primary)
                         .lineLimit(1)
                         .minimumScaleFactor(0.86)
@@ -217,23 +228,27 @@ public struct TransferControlsView: View {
                     ))
                         .font(.system(.footnote, design: .rounded))
                         .foregroundColor(.secondary)
-                        .lineLimit(2)
+                        .lineLimit(3)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
 
                 Spacer(minLength: 0)
             }
-            .padding(16)
-            .frame(maxWidth: .infinity, minHeight: 112, alignment: .leading)
-            .background(statusColor.opacity(isActionButtonEnabled ? 0.14 : 0.07))
+            .padding(12)
+            .frame(maxWidth: .infinity, minHeight: 72, alignment: .leading)
+            .background(statusColor.opacity(bgOpacity))
             .cornerRadius(8)
             .overlay(
                 RoundedRectangle(cornerRadius: 8)
-                    .stroke(statusColor.opacity(isActionButtonEnabled ? 0.45 : 0.20), lineWidth: 1)
+                    .stroke(statusColor.opacity(strokeOpacity), lineWidth: 1)
             )
         }
         .buttonStyle(PlainButtonStyle())
         .disabled(!isActionButtonEnabled)
         .opacity(isActionButtonEnabled ? 1 : 0.68)
+        .onHover { hovering in
+            isActionHovered = hovering
+        }
     }
 
     private var displayProgress: Double {
@@ -248,7 +263,13 @@ public struct TransferControlsView: View {
     }
 
     private var displayCurrentFile: String {
-        viewModel.currentFile.isEmpty ? "-" : viewModel.currentFile
+        if viewModel.currentFile.isEmpty {
+            if viewModel.transferState == .copying || viewModel.transferState == .verifying {
+                return "Initializing..."
+            }
+            return "-"
+        }
+        return viewModel.currentFile
     }
 
     private func runtimeMetric(title: String, value: String) -> some View {
@@ -306,6 +327,16 @@ public struct TransferControlsView: View {
         case .ready, .error, .cancelled, .copyComplete, .safeToFormat:
             return viewModel.canStartTransfer
         }
+    }
+
+    private var isStartAction: Bool {
+        isActionButtonEnabled && viewModel.transferState != .copying && viewModel.transferState != .verifying && viewModel.transferState != .validating
+    }
+
+    private var shouldShowProgressDetails: Bool {
+        return viewModel.transferState == .validating ||
+               viewModel.transferState == .copying ||
+               viewModel.transferState == .verifying
     }
 
     private func handleActionButton() {
@@ -432,7 +463,7 @@ nonisolated public enum TransferControlsActionPresentation {
         canStartTransfer: Bool = false
     ) -> String {
         if state == .cancelled, canStartTransfer {
-            return "Ready to start another transfer."
+            return "Click to begin copy."
         }
 
         switch visualRole(for: state, errorMessage: errorMessage) {
@@ -447,13 +478,13 @@ nonisolated public enum TransferControlsActionPresentation {
         case .safeToFormat:
             return "Verification completed successfully."
         case .manualCheckRequired:
-            return "Verification did not pass. Review before using media."
+            return errorMessage ?? "Verification did not pass. Review before using media."
         case .error:
-            return "Review the error before retrying."
+            return errorMessage ?? "Review the error before retrying."
         case .cancelled:
             return "Transfer was cancelled."
         case .idle:
-            return "Ready to start transfer."
+            return "Click to begin copy."
         }
     }
 

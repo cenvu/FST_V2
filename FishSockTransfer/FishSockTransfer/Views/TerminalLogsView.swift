@@ -12,24 +12,21 @@ public struct TerminalLogsView: View {
     
     public var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Image(systemName: "greaterthan.square")
-                Text("REAL-TIME RSYNC TERMINAL LOGS")
-                    .font(.caption)
-                    .bold()
+            if logs.isEmpty {
+                Text("No log entries yet.")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .frame(height: 48)
+            } else {
+                    TerminalLogTextView(logs: logs, autoScroll: autoScroll)
+                        .frame(minHeight: 96, idealHeight: 120, maxHeight: 140, alignment: .leading)
+                    .background(Color.black.opacity(0.3))
+                    .cornerRadius(8)
+                    .padding(.bottom)
             }
-            .foregroundColor(.gray)
-            .padding(.horizontal)
-            .padding(.top)
-            
-            TerminalLogTextView(logs: logs, autoScroll: autoScroll)
-                .frame(minHeight: terminalHeight, idealHeight: terminalHeight, maxHeight: terminalHeight, alignment: .leading)
-            .background(Color.black.opacity(0.3))
-            .cornerRadius(8)
-            .padding(.bottom)
         }
         .frame(maxWidth: .infinity)
-        .layoutPriority(1)
         .background(Color(NSColor.controlBackgroundColor).opacity(0.5))
         .cornerRadius(12)
         .overlay(
@@ -140,21 +137,21 @@ private struct TerminalLogTextView: NSViewRepresentable {
         private func color(for log: LogEntry) -> NSColor {
             switch log.category {
             case .error, .stderr:
-                return .systemRed
+                return .systemRed.withSystemEffect(.disabled)
             case .warning:
-                return .systemYellow
+                return .systemYellow.withSystemEffect(.disabled)
             case .success:
-                return .systemGreen
+                return .systemGreen.withSystemEffect(.disabled)
             case .stdout, .file:
-                return .white
+                return NSColor.white.withAlphaComponent(0.7)
             case .progress:
-                return .systemCyan
+                return .systemCyan.withSystemEffect(.disabled)
             case .verify:
-                return .systemOrange
+                return .systemOrange.withSystemEffect(.disabled)
             case .system:
-                return .systemBlue
+                return .systemBlue.withSystemEffect(.disabled)
             case .info, .transfer:
-                return .systemGray
+                return .systemGray.withSystemEffect(.disabled)
             }
         }
     }

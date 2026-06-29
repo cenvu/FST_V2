@@ -11,62 +11,54 @@ public struct ContentView: View {
     }
     
     public var body: some View {
-        VStack(spacing: 18) {
-            HStack(alignment: .center, spacing: 16) {
-                VStack(alignment: .leading, spacing: 4) {
+        VStack(spacing: 12) {
+            ZStack {
+                let headerFont = Font.system(.caption, weight: .semibold)
+                
+                HStack {
                     Text("FishSock Transfer")
-                        .font(.system(.title2, design: .rounded, weight: .semibold))
+                        .font(headerFont)
                         .foregroundColor(.primary)
-                    
-                    Text("Beta DIT workflow tool")
-                        .font(.subheadline)
+
+                    Spacer()
+
+                    Text("CenVu | hungvh.hfs@gmail.com")
+                        .font(headerFont)
                         .foregroundColor(.secondary)
                 }
 
-                Spacer()
-
                 Text(rsyncHeaderBadgeText)
-                    .font(.system(.caption, design: .monospaced))
+                    .font(headerFont)
+                    .foregroundColor(rsyncBadgeForegroundColor)
                     .padding(.horizontal, 10)
-                    .padding(.vertical, 5)
+                    .padding(.vertical, 4)
                     .background(rsyncBadgeBackgroundColor)
                     .clipShape(Capsule())
-                    .foregroundColor(rsyncBadgeForegroundColor)
             }
+            .frame(height: 32)
+            .layoutPriority(1)
             
-            HStack(spacing: 20) {
+            HStack(alignment: .top, spacing: 16) {
                 SourceCardView(viewModel: viewModel)
                     .frame(maxWidth: .infinity)
                 DestinationCardView(viewModel: viewModel)
                     .frame(maxWidth: .infinity)
             }
-            .frame(maxWidth: .infinity)
+            .layoutPriority(1)
             
             TransferControlsView(viewModel: viewModel)
                 .frame(maxWidth: .infinity)
+                .layoutPriority(1)
             
             technicalLogsDisclosure
-
-            Spacer(minLength: 0)
-
-            VStack(spacing: 2) {
-                Text("FishSock Transfer by CenVu")
-                Text("DIT Workflow Tool • hungvh.hfs@gmail.com")
-            }
-            .font(.caption2)
-            .foregroundColor(.secondary)
-            .multilineTextAlignment(.center)
-            .opacity(0.74)
-            .padding(.top, 2)
         }
-        .padding(24)
+        .padding(16)
         .frame(
-            minWidth: 1000,
+            minWidth: 900,
             idealWidth: 1120,
             maxWidth: .infinity,
-            minHeight: 900,
-            idealHeight: 940,
-            maxHeight: .infinity
+            minHeight: 600,
+            alignment: .top
         )
         .background(Color(NSColor.windowBackgroundColor))
     }

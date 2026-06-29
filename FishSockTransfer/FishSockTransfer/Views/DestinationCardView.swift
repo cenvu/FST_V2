@@ -9,7 +9,11 @@ public struct DestinationCardView: View {
     }
     
     public var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        let hasAnyFolder = viewModel.sourceURL != nil || viewModel.destinationURL != nil
+        let innerPanelHeight: CGFloat = hasAnyFolder ? 148 : 100
+        let outerCardHeight: CGFloat = hasAnyFolder ? 236 : 188
+
+        return VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: 8) {
                 Image(systemName: "tray.and.arrow.down")
                 Text("Destination")
@@ -23,27 +27,30 @@ public struct DestinationCardView: View {
             }
             .font(.headline)
             .foregroundColor(.primary)
+            .frame(height: 24)
             
-            VStack(alignment: .leading, spacing: 10) {
+            Color.clear.frame(height: 8)
+            
+            VStack(alignment: .leading, spacing: 4) {
                 if let url = viewModel.destinationURL {
                     Text(url.lastPathComponent)
-                        .font(.system(size: 19, weight: .semibold, design: .rounded))
+                        .font(.system(size: 16, weight: .bold, design: .rounded))
                         .foregroundColor(.primary)
                         .lineLimit(1)
                     Text(url.path)
                         .font(.system(.footnote, design: .monospaced))
                         .foregroundColor(.secondary)
                         .lineLimit(1)
-                        .truncationMode(.middle)
+                        .truncationMode(.head)
                         .help(url.path)
 
                     if let destinationMetadata = viewModel.destinationMetadata {
-                        VStack(spacing: 4) {
+                        VStack(spacing: 2) {
                             metadataRow(title: "Filesystem", value: destinationMetadata.filesystem)
                             metadataRow(title: "Free Space", value: formatBytes(destinationMetadata.freeSpaceBytes))
                             metadataRow(title: "Writable Status", value: destinationMetadata.isWritable ? "YES" : "NO")
                         }
-                        .padding(.top, 8)
+                        .padding(.top, 4)
                     } else {
                         Text("Analyzing destination metadata...")
                             .font(.footnote)
@@ -60,12 +67,14 @@ public struct DestinationCardView: View {
                             .padding(.top, 4)
                     }
                 } else {
-                    Text("Select Destination")
-                        .font(.system(size: 19, weight: .semibold, design: .rounded))
-                        .foregroundColor(.primary)
-                    Text("Drop folder here")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Select Destination")
+                            .font(.system(size: 16, weight: .bold, design: .rounded))
+                            .foregroundColor(.primary)
+                        Text("Drop folder here")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                    }
                 }
 
                 if viewModel.isTransferConfigurationLocked {
@@ -75,30 +84,33 @@ public struct DestinationCardView: View {
                         .padding(.top, 4)
                 }
             }
-            .frame(maxWidth: .infinity, minHeight: 150, alignment: .topLeading)
-            .padding(14)
+            .frame(maxWidth: .infinity, alignment: .topLeading)
+            .frame(height: innerPanelHeight, alignment: .topLeading)
+            .padding(10)
             .background(Color.black.opacity(0.16))
             .cornerRadius(8)
 
-            Divider()
-                .opacity(0.45)
+            Color.clear.frame(height: 8)
 
-            Button {
-                guard !viewModel.isTransferConfigurationLocked else { return }
-                guard let url = FolderPicker.chooseFolder() else { return }
-                viewModel.selectDestinationFolder(url)
-            } label: {
-                Label("Choose Folder", systemImage: "folder")
+            HStack {
+                Button {
+                    guard !viewModel.isTransferConfigurationLocked else { return }
+                    guard let url = FolderPicker.chooseFolder() else { return }
+                    viewModel.selectDestinationFolder(url)
+                } label: {
+                    Label("Choose Folder", systemImage: "folder")
+                }
+                .buttonStyle(.bordered)
+                .disabled(viewModel.isTransferConfigurationLocked)
+                .opacity(viewModel.isTransferConfigurationLocked ? 0.25 : 1.0)
+                .controlSize(.regular)
+                .fixedSize()
+                Spacer(minLength: 0).frame(width: 0)
             }
-            .buttonStyle(.bordered)
-            .disabled(viewModel.isTransferConfigurationLocked)
-            .opacity(viewModel.isTransferConfigurationLocked ? 0.55 : 1.0)
-            .controlSize(.regular)
-            
-            Spacer()
         }
-        .padding(18)
-        .frame(maxWidth: .infinity, minHeight: 280, alignment: .top)
+        .padding(12)
+        .frame(maxWidth: .infinity, alignment: .top)
+        .frame(height: outerCardHeight)
         .background(Color(NSColor.controlBackgroundColor).opacity(0.58))
         .cornerRadius(10)
         .overlay(
@@ -125,7 +137,7 @@ public struct DestinationCardView: View {
         HStack {
             Text(title)
                 .foregroundColor(.secondary)
-            Spacer()
+            Spacer(minLength: 8)
             Text(value)
                 .font(.system(.footnote, design: .monospaced))
                 .fontWeight(.semibold)
