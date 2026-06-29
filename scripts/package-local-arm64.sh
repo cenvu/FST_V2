@@ -8,7 +8,12 @@ PROJECT="$REPO_ROOT/FishSockTransfer/FishSockTransfer.xcodeproj"
 SCHEME="FishSockTransfer"
 APP_NAME="FishSockTransfer.app"
 PACKAGE_LABEL="macOS13_5plus-arm64"
-ZIP_NAME="FishSockTransfer-local-${PACKAGE_LABEL}.zip"
+
+# Version — override from environment if needed:
+# APP_VERSION=1.1 BUILD_NUMBER=20260630 ./scripts/package-local-arm64.sh
+APP_VERSION="${APP_VERSION:-1.1}"
+BUILD_NUMBER="${BUILD_NUMBER:-20260630}"
+ZIP_NAME="FishSockTransfer-v${APP_VERSION}-b${BUILD_NUMBER}-local-${PACKAGE_LABEL}.zip"
 
 DIST_DIR="$REPO_ROOT/dist"
 ZIP_PATH="$DIST_DIR/$ZIP_NAME"
@@ -131,7 +136,7 @@ mkdir -p "$DIST_DIR"
 # Remove only generated outputs owned by this packaging script.
 rm -rf "$ZIP_PATH" "$LEGACY_DIST_APP" "$DIST_DIR/DerivedData-local-arm64" "$DIST_DIR/FishSockTransfer-local.entitlements"
 
-echo "Building Release app for macOS arm64..."
+echo "Building Release app for macOS arm64 (v${APP_VERSION} build ${BUILD_NUMBER})..."
 COPYFILE_DISABLE=1 /usr/bin/xcodebuild \
   -project "$PROJECT" \
   -scheme "$SCHEME" \
@@ -139,6 +144,8 @@ COPYFILE_DISABLE=1 /usr/bin/xcodebuild \
   -destination 'platform=macOS,arch=arm64' \
   -derivedDataPath "$DERIVED_DATA" \
   CODE_SIGNING_ALLOWED=NO \
+  MARKETING_VERSION="$APP_VERSION" \
+  CURRENT_PROJECT_VERSION="$BUILD_NUMBER" \
   build
 
 BUILT_APP="$DERIVED_DATA/Build/Products/Release/$APP_NAME"
@@ -153,16 +160,28 @@ COPYFILE_DISABLE=1 /usr/bin/ditto --norsrc "$BUILT_APP" "$STAGED_APP"
 [[ -d "$STAGED_APP" ]] || fail "Staged app missing: $STAGED_APP"
 [[ -f "$INFO_PLIST" ]] || fail "Info.plist missing: $INFO_PLIST"
 
-ensure_executable "$APP_BINARY" "Main app executable"
-ensure_executable "$RSYNC_BINARY" "Bundled rsync"
-scrub_blocking_xattrs "$STAGED_APP"
-
+# --- Info.plist version validation ---
+BUNDLE_SHORT_VERSION="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$INFO_PLIST" 2>/dev/null || true)"
+BUNDLE_VERSION="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$INFO_PLIST" 2>/dev/null || true)"
 MINIMUM_SYSTEM_VERSION="$(/usr/libexec/PlistBuddy -c 'Print :LSMinimumSystemVersion' "$INFO_PLIST" 2>/dev/null || true)"
+
+echo "--- Info.plist version check ---"
+echo "App Version (CFBundleShortVersionString): ${BUNDLE_SHORT_VERSION:-<missing>}"
+echo "Build Number (CFBundleVersion):           ${BUNDLE_VERSION:-<missing>}"
+echo "LSMinimumSystemVersion:                   ${MINIMUM_SYSTEM_VERSION:-<missing>}"
+
+[[ "$BUNDLE_SHORT_VERSION" == "$APP_VERSION" ]] || \
+  fail "CFBundleShortVersionString mismatch: expected ${APP_VERSION}, got '${BUNDLE_SHORT_VERSION}'"
+[[ -n "$BUNDLE_VERSION" ]] || fail "CFBundleVersion is missing from $INFO_PLIST"
 [[ -n "$MINIMUM_SYSTEM_VERSION" ]] || fail "LSMinimumSystemVersion missing from $INFO_PLIST"
 if [[ "$MINIMUM_SYSTEM_VERSION" != 13.5* ]]; then
   fail "LSMinimumSystemVersion is not 13.5-compatible: $MINIMUM_SYSTEM_VERSION"
 fi
-echo "LSMinimumSystemVersion: $MINIMUM_SYSTEM_VERSION"
+echo "--- Info.plist version check: PASSED ---"
+
+ensure_executable "$APP_BINARY" "Main app executable"
+ensure_executable "$RSYNC_BINARY" "Bundled rsync"
+scrub_blocking_xattrs "$STAGED_APP"
 
 RSYNC_VERSION_OUTPUT="$("$RSYNC_BINARY" --version 2>&1)" || fail "Bundled rsync --version failed"
 if [[ "$RSYNC_VERSION_OUTPUT" != *"rsync  version 3.4.4"* && "$RSYNC_VERSION_OUTPUT" != *"rsync version 3.4.4"* ]]; then
