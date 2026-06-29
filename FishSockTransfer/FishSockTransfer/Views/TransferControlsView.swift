@@ -22,7 +22,7 @@ public struct TransferControlsView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
 
                 actionStatusButton
-                    .frame(minWidth: 390, idealWidth: 420, maxWidth: 440)
+                    .frame(minWidth: 350, idealWidth: 420, maxWidth: 500)
             }
             .frame(maxWidth: .infinity)
 
@@ -96,10 +96,12 @@ public struct TransferControlsView: View {
                     .foregroundColor(.secondary)
                 }
 
-                HStack(spacing: 12) {
+                VStack(spacing: 12) {
                     runtimeMetric(title: "CURRENT FILE", value: displayCurrentFile)
-                    runtimeMetric(title: "SPEED", value: formatSpeed(viewModel.speed))
-                    runtimeMetric(title: "ETA", value: formatETA(viewModel.eta))
+                    HStack(spacing: 12) {
+                        runtimeMetric(title: "SPEED", value: formatSpeed(viewModel.speed))
+                        runtimeMetric(title: "ETA", value: formatETA(viewModel.eta))
+                    }
                 }
             }
             .padding(16)
@@ -138,7 +140,7 @@ public struct TransferControlsView: View {
                     }
                     .pickerStyle(.menu)
                     .labelsHidden()
-                    .frame(width: 170, alignment: .leading)
+                    .frame(maxWidth: .infinity, alignment: .leading)
 
                     Text("Copy speed cap")
                         .font(.caption)
@@ -159,7 +161,7 @@ public struct TransferControlsView: View {
                     }
                     .pickerStyle(.menu)
                     .labelsHidden()
-                    .frame(width: 170, alignment: .leading)
+                    .frame(maxWidth: .infinity, alignment: .leading)
 
                     Text(viewModel.verificationMode.operatorDescription)
                         .font(.system(.footnote, design: .rounded))

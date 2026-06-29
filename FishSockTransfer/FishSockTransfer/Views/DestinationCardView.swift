@@ -35,6 +35,7 @@ public struct DestinationCardView: View {
                         .foregroundColor(.secondary)
                         .lineLimit(1)
                         .truncationMode(.middle)
+                        .help(url.path)
 
                     if let destinationMetadata = viewModel.destinationMetadata {
                         VStack(spacing: 4) {
@@ -97,7 +98,7 @@ public struct DestinationCardView: View {
             Spacer()
         }
         .padding(18)
-        .frame(maxWidth: .infinity, minHeight: 330, maxHeight: 330, alignment: .top)
+        .frame(maxWidth: .infinity, minHeight: 280, alignment: .top)
         .background(Color(NSColor.controlBackgroundColor).opacity(0.58))
         .cornerRadius(10)
         .overlay(

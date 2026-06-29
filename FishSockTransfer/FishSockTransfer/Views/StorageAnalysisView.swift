@@ -19,7 +19,7 @@ public struct StorageAnalysisView: View {
                     .foregroundColor(.gray)
                 
                 if viewModel.sourceURL != nil && viewModel.destinationURL != nil {
-                     Text("Copy safely matching: Source fits inside destination free space.")
+                     Text("Storage availability will be checked during preflight.")
                         .font(.subheadline)
                         .foregroundColor(.white)
                 } else {
