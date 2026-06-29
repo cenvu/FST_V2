@@ -10,6 +10,7 @@ public struct ContentView: View {
 
     @StateObject private var viewModel = TransferViewModel()
     @State private var selectedTab: MainTab = .transfer
+    @State private var showDiagnostics: Bool = false
     
     public init() {}
     
@@ -132,10 +133,23 @@ public struct ContentView: View {
     }
 
     private var technicalLogsTabContent: some View {
-        TerminalLogsView(
-            logs: viewModel.logs,
-            autoScroll: viewModel.transferState == .copying || viewModel.transferState == .verifying
-        )
+        VStack(alignment: .leading, spacing: 0) {
+            HStack {
+                Spacer()
+                Toggle(isOn: $showDiagnostics) {
+                    Text("Show Diagnostics")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+                .toggleStyle(.checkbox)
+                .padding(.bottom, 6)
+                .padding(.trailing, 2)
+            }
+            TerminalLogsView(
+                logs: showDiagnostics ? viewModel.logs : LogVisibilityFilter.operatorVisible(from: viewModel.logs),
+                autoScroll: viewModel.transferState == .copying || viewModel.transferState == .verifying
+            )
+        }
         .padding(.horizontal, 16)
         .padding(.bottom, 16)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)

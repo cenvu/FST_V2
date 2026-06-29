@@ -1,17 +1,28 @@
 import Foundation
 
 public actor ReportEngine {
-    
+
     public init() {}
-    
+
+    /// Generates the TXT report summary only (no log section).
+    /// Used by tests that do not exercise log appending.
     public func generateReportText(report: TransferReport, bandwidthLimit: Int?) -> String {
+        generateReportText(report: report, bandwidthLimit: bandwidthLimit, logs: [])
+    }
+
+    /// Generates the TXT report summary followed by a full technical log section.
+    ///
+    /// - Parameters:
+    ///   - logs: The full unfiltered log array. Must include DIAG entries for evidence.
+    ///           Passing an empty array omits the log section (summary only).
+    public func generateReportText(report: TransferReport, bandwidthLimit: Int?, logs: [LogEntry]) -> String {
         let limitString = RsyncBandwidthLimit.displayDescription(kibPerSecond: bandwidthLimit)
         let verifyResultStr = verificationResultDescription(for: report)
         let sizeMB = Double(report.totalSize) / 1_048_576.0
         let finalStatusText = finalStatusDescription(for: report)
         let notes = notesDescription(for: report, finalStatusText: finalStatusText)
         let copyAverageSpeedLabel = "Copy " + "Average " + "Speed:"
-        
+
         var text = "====================================================\n"
         text += "             FST TRANSFER REPORT\n"
         text += "====================================================\n"
@@ -36,8 +47,8 @@ public actor ReportEngine {
         text += "Verification Mode:   \(report.verificationMode.reportLabel)\n"
         text += "Verification Coverage: \(report.verificationMode.coverageDescription)\n"
         text += "Hash Algorithm:      \(report.verificationMode.hashAlgorithm?.displayName ?? "None")\n"
-        if let hashNote = report.verificationMode.hashAlgorithm?.verificationNote {
-            text += "Verification Note:   \(hashNote)\n"
+        if let hashNote = report.verificationMode.hashAlgorithm {
+            text += "Verification Note:   \(hashNote.verificationNote)\n"
         }
         text += "Verification Result: \(verifyResultStr)\n"
         text += "Verified Files:      \(report.verifiedFiles)\n"
@@ -56,18 +67,30 @@ public actor ReportEngine {
         text += "Notes:\n"
         text += notes
         text += "====================================================\n"
-        
+
+        if !logs.isEmpty {
+            text += appendFullTechnicalLog(logs)
+        }
+
         return text
     }
-    
+
+    /// Saves the report summary only (no logs). Used by tests.
     public func saveReport(report: TransferReport, bandwidthLimit: Int?, to destinationFolder: URL) async throws -> URL {
-        let text = generateReportText(report: report, bandwidthLimit: bandwidthLimit)
+        try await saveReport(report: report, bandwidthLimit: bandwidthLimit, logs: [], to: destinationFolder)
+    }
+
+    /// Saves the report with the full technical log appended.
+    ///
+    /// - Parameter logs: Full unfiltered log array. DIAG entries are included for evidence.
+    public func saveReport(report: TransferReport, bandwidthLimit: Int?, logs: [LogEntry], to destinationFolder: URL) async throws -> URL {
+        let text = generateReportText(report: report, bandwidthLimit: bandwidthLimit, logs: logs)
         let fileURL = uniqueReportURL(sourceName: report.sourceName, createdAt: report.createdAt, in: destinationFolder)
-        
+
         // Writing synchronously falls under the actor's execution context,
         // which moves it off the MainActor natively. Data safety is maintained.
         try text.write(to: fileURL, atomically: true, encoding: .utf8)
-        
+
         return fileURL
     }
 
@@ -201,6 +224,26 @@ public actor ReportEngine {
         }
         let sanitized = String(scalars).trimmingCharacters(in: CharacterSet(charactersIn: "_"))
         return sanitized.isEmpty ? "Source" : sanitized
+    }
+
+    // MARK: - Full Technical Log section
+
+    private func appendFullTechnicalLog(_ logs: [LogEntry]) -> String {
+        let timeFormatter = DateFormatter()
+        timeFormatter.dateFormat = "HH:mm:ss"
+        timeFormatter.locale = Locale(identifier: "en_US_POSIX")
+
+        var section = "\n====================================================\n"
+        section += "             FULL TECHNICAL LOG\n"
+        section += "====================================================\n"
+
+        for entry in logs {
+            let time = timeFormatter.string(from: entry.timestamp)
+            section += "[\(time)] \(entry.level) \(entry.message)\n"
+        }
+
+        section += "====================================================\n"
+        return section
     }
 
 }

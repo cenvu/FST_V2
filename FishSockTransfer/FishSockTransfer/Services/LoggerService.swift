@@ -11,6 +11,12 @@ public actor LoggerService {
         print("[\(category.rawValue.uppercased())] \(message)")
     }
     
+    /// Returns all log entries in chronological order.
+    /// Used by TransferCoordinator to pass the full log to ReportEngine.
+    public func allLogs() -> [LogEntry] {
+        logs
+    }
+
     public func exportLogs() -> String {
         return logs.map { "[\($0.timestamp.description)] [\($0.category.rawValue.uppercased())] \($0.message)" }
             .joined(separator: "\n")

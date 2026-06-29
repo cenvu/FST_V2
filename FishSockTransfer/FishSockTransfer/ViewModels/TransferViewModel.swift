@@ -124,6 +124,12 @@ public final class TransferViewModel: ObservableObject {
                 },
                 onLog: { [weak self] entry in
                     self?.appendLog(entry)
+                },
+                // Full unfiltered snapshot for TXT report.
+                // viewModel.logs is the source of truth — it includes DIAG [VIEWMODEL]
+                // entries that TransferCoordinator's LoggerService does not hold.
+                onLogsSnapshot: { [weak self] in
+                    self?.logs ?? []
                 }
             )
         }

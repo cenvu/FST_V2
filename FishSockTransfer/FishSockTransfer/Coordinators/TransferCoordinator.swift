@@ -19,6 +19,9 @@ public actor TransferCoordinator {
     private var onCurrentFile: (@MainActor @Sendable (String) -> Void)?
     private var onError: (@MainActor @Sendable (String) -> Void)?
     private var onLog: (@MainActor @Sendable (LogEntry) -> Void)?
+    /// Returns the full unfiltered log array from the ViewModel (including DIAG [VIEWMODEL] entries).
+    /// Used exclusively by saveTerminalReport to build the report's FULL TECHNICAL LOG section.
+    private var onLogsSnapshot: (@MainActor @Sendable () -> [LogEntry])?
     
     private var isCancelled = false
     private var workflowTask: Task<Void, Never>?
@@ -46,7 +49,8 @@ public actor TransferCoordinator {
         onTransferTime: (@MainActor @Sendable @escaping (TimeInterval) -> Void),
         onCurrentFile: (@MainActor @Sendable @escaping (String) -> Void),
         onError: (@MainActor @Sendable @escaping (String) -> Void),
-        onLog: (@MainActor @Sendable @escaping (LogEntry) -> Void)
+        onLog: (@MainActor @Sendable @escaping (LogEntry) -> Void),
+        onLogsSnapshot: (@MainActor @Sendable () -> [LogEntry])? = nil
     ) {
         self.onStateChanged = onStateChanged
         self.onProgress = onProgress
@@ -55,6 +59,7 @@ public actor TransferCoordinator {
         self.onCurrentFile = onCurrentFile
         self.onError = onError
         self.onLog = onLog
+        self.onLogsSnapshot = onLogsSnapshot
     }
     
     private func updateState(_ newState: TransferState) async {
@@ -481,10 +486,20 @@ public actor TransferCoordinator {
             return
         }
 
+        // Prefer the ViewModel's full log snapshot (includes DIAG [VIEWMODEL] entries not in LoggerService).
+        // Fall back to LoggerService when no ViewModel is connected (e.g. unit test scenarios).
+        let fullLogs: [LogEntry]
+        if let snapshotCallback = onLogsSnapshot {
+            fullLogs = await snapshotCallback()
+        } else {
+            fullLogs = await loggerService.allLogs()
+        }
+
         do {
             let reportURL = try await reportEngine.saveReport(
                 report: report,
                 bandwidthLimit: bandwidthLimit,
+                logs: fullLogs,
                 to: reportFolder
             )
             await log(category: .system, message: "Report saved: \(reportURL.path)")
