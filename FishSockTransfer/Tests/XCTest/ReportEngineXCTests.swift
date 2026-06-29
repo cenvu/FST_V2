@@ -10,6 +10,12 @@ final class ReportEngineXCTests: XCTestCase {
         XCTAssertTrue(text.contains("App Name:            FishSockTransfer"))
         XCTAssertTrue(text.contains("Final Status:        TRANSFER COMPLETE"))
         XCTAssertTrue(text.contains("Verification Result: OFF - NOT VERIFIED BY FST"))
+        XCTAssertTrue(text.contains("Copy Duration:       00:00:20"))
+        XCTAssertTrue(text.contains("Verify Duration:     N/A"))
+        XCTAssertTrue(text.contains("Total Duration:      00:01:40"))
+        XCTAssertTrue(text.contains(copyAverageSpeedLine("50.00 MB/s")))
+        XCTAssertFalse(text.contains(oldTransferDurationLabel))
+        XCTAssertFalse(text.contains(oldAverageSpeedLabel))
         XCTAssertTrue(text.contains("Copy completed, but this transfer was not verified by FST."))
         XCTAssertFalse(text.contains("Final Status:        SAFE TO EJECT"))
         XCTAssertFalse(text.contains(formerFormatLabel))
@@ -29,6 +35,10 @@ final class ReportEngineXCTests: XCTestCase {
         )
 
         XCTAssertTrue(text.contains("Final Status:        SAFE TO EJECT"))
+        XCTAssertTrue(text.contains("Copy Duration:       00:00:20"))
+        XCTAssertTrue(text.contains("Verify Duration:     00:01:20"))
+        XCTAssertTrue(text.contains("Total Duration:      00:01:40"))
+        XCTAssertTrue(text.contains(copyAverageSpeedLine("50.00 MB/s")))
         XCTAssertTrue(text.contains("Verification Mode:   xxHash64 Full 100%"))
         XCTAssertTrue(text.contains("Hash Algorithm:      xxHash64"))
         XCTAssertTrue(text.contains("Fast non-cryptographic hash verification"))
@@ -39,6 +49,48 @@ final class ReportEngineXCTests: XCTestCase {
         XCTAssertTrue(text.contains("Rsync Binary Path:   /App/Contents/Resources/rsync"))
         XCTAssertTrue(text.contains("Rsync Version:       3.4.4"))
         XCTAssertFalse(text.contains(formerFormatLabel))
+    }
+
+    func testReportTimingUsesCopyDurationForCopyAverageSpeed() async {
+        let text = await ReportEngine().generateReportText(
+            report: report(
+                finalStatus: .safeToFormat,
+                mode: .full,
+                verificationStatus: .passed,
+                copyDuration: 10,
+                verificationDuration: 90,
+                totalDuration: 100,
+                copyAverageSpeed: 100
+            ),
+            bandwidthLimit: nil
+        )
+
+        XCTAssertTrue(text.contains("Copy Duration:       00:00:10"))
+        XCTAssertTrue(text.contains("Verify Duration:     00:01:30"))
+        XCTAssertTrue(text.contains("Total Duration:      00:01:40"))
+        XCTAssertTrue(text.contains(copyAverageSpeedLine("100.00 MB/s")))
+        XCTAssertFalse(text.contains(copyAverageSpeedLine("10.00 MB/s")))
+        XCTAssertFalse(text.contains(oldTransferDurationLabel))
+        XCTAssertFalse(text.contains(oldAverageSpeedLabel))
+    }
+
+    func testInvalidCopyDurationShowsCopyAverageSpeedNA() async {
+        let text = await ReportEngine().generateReportText(
+            report: report(
+                finalStatus: .copyComplete,
+                mode: .none,
+                verificationStatus: nil,
+                copyDuration: 0,
+                verificationDuration: nil,
+                totalDuration: 100,
+                copyAverageSpeed: nil
+            ),
+            bandwidthLimit: nil
+        )
+
+        XCTAssertTrue(text.contains("Copy Duration:       00:00:00"))
+        XCTAssertTrue(text.contains("Verify Duration:     N/A"))
+        XCTAssertTrue(text.contains(copyAverageSpeedLine("N/A")))
     }
 
     func testVerificationFailureReportRequiresManualCheck() async {
@@ -132,6 +184,18 @@ final class ReportEngineXCTests: XCTestCase {
         ["SAFE", "TO", "FORMAT"].joined(separator: " ")
     }
 
+    private var oldTransferDurationLabel: String {
+        "\n" + ["Transfer", "Duration:"].joined(separator: " ")
+    }
+
+    private var oldAverageSpeedLabel: String {
+        "\n" + ["Average", "Speed:"].joined(separator: " ")
+    }
+
+    private func copyAverageSpeedLine(_ value: String) -> String {
+        ["Copy", "Average", "Speed:"].joined(separator: " ") + "  \(value)"
+    }
+
     private func report(
         finalStatus: TransferState,
         mode: VerificationMode,
@@ -143,9 +207,15 @@ final class ReportEngineXCTests: XCTestCase {
         createdAt: Date = Date(timeIntervalSince1970: 1_782_604_800),
         sourcePath: String = "/Volumes/CARD_A",
         destinationPath: String = "/Volumes/RAID/CARD_A",
-        sourceName: String = "CARD_A"
+        sourceName: String = "CARD_A",
+        copyDuration: TimeInterval? = 20,
+        verificationDuration: TimeInterval? = nil,
+        totalDuration: TimeInterval = 100,
+        copyAverageSpeed: Double? = 50
     ) -> TransferReport {
-        TransferReport(
+        let effectiveVerificationDuration = mode == .none ? verificationDuration : (verificationDuration ?? 80)
+
+        return TransferReport(
             date: "2026-06-22",
             time: "05:30:00",
             createdAt: createdAt,
@@ -157,8 +227,10 @@ final class ReportEngineXCTests: XCTestCase {
             destinationName: URL(fileURLWithPath: destinationPath).lastPathComponent,
             totalSize: 1_048_576_000,
             fileCount: 10,
-            transferDuration: 100,
-            averageSpeed: 10,
+            copyDuration: copyDuration,
+            verificationDuration: effectiveVerificationDuration,
+            totalDuration: totalDuration,
+            copyAverageSpeed: copyAverageSpeed,
             verificationMode: mode,
             verificationResult: verificationStatus,
             verifiedFiles: verifiedFiles,

@@ -13,8 +13,10 @@ nonisolated public struct TransferReport: Equatable, Sendable {
     public let destinationName: String?
     public let totalSize: Int64
     public let fileCount: Int
-    public let transferDuration: TimeInterval
-    public let averageSpeed: Double
+    public let copyDuration: TimeInterval?
+    public let verificationDuration: TimeInterval?
+    public let totalDuration: TimeInterval
+    public let copyAverageSpeed: Double?
     public let verificationMode: VerificationMode
     public let verificationResult: VerificationStatus?
     public let verifiedFiles: Int
@@ -40,8 +42,10 @@ nonisolated public struct TransferReport: Equatable, Sendable {
         destinationName: String? = nil,
         totalSize: Int64,
         fileCount: Int,
-        transferDuration: TimeInterval,
-        averageSpeed: Double,
+        copyDuration: TimeInterval? = nil,
+        verificationDuration: TimeInterval? = nil,
+        totalDuration: TimeInterval,
+        copyAverageSpeed: Double? = nil,
         verificationMode: VerificationMode,
         verificationResult: VerificationStatus?,
         verifiedFiles: Int = 0,
@@ -66,8 +70,10 @@ nonisolated public struct TransferReport: Equatable, Sendable {
         self.destinationName = destinationName ?? URL(fileURLWithPath: destinationPath).lastPathComponent
         self.totalSize = totalSize
         self.fileCount = fileCount
-        self.transferDuration = transferDuration
-        self.averageSpeed = averageSpeed
+        self.copyDuration = copyDuration
+        self.verificationDuration = verificationDuration
+        self.totalDuration = totalDuration
+        self.copyAverageSpeed = copyAverageSpeed
         self.verificationMode = verificationMode
         self.verificationResult = verificationResult
         self.verifiedFiles = verifiedFiles

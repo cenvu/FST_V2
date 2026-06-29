@@ -31,6 +31,12 @@ struct ReportEngineMVPReportTests {
         assertContains(copyOnly, "App Name:            FishSockTransfer", "copy-only app name")
         assertContains(copyOnly, "Final Status:        TRANSFER COMPLETE", "copy-only final status")
         assertContains(copyOnly, "Verification Result: OFF - NOT VERIFIED BY FST", "copy-only verification off")
+        assertContains(copyOnly, "Copy Duration:       00:00:20", "copy-only copy duration")
+        assertContains(copyOnly, "Verify Duration:     N/A", "copy-only verify duration")
+        assertContains(copyOnly, "Total Duration:      00:01:40", "copy-only total duration")
+        assertContains(copyOnly, copyAverageSpeedLine("50.00 MB/s"), "copy-only copy average speed")
+        assertNotContains(copyOnly, oldTransferDurationLabel(), "copy-only old duration label")
+        assertNotContains(copyOnly, oldAverageSpeedLabel(), "copy-only old speed label")
         assertContains(copyOnly, "Copy completed, but this transfer was not verified by FST.", "copy-only warning")
         assertNotContains(copyOnly, "Final Status:        SAFE TO EJECT", "copy-only must not be safe eject")
         assertNotContains(copyOnly, formerFormatLabel, "copy-only must not use old format wording")
@@ -47,6 +53,10 @@ struct ReportEngineMVPReportTests {
             bandwidthLimit: RsyncBandwidthLimit.kibPerSecond(for: 120)
         )
         assertContains(verified, "Final Status:        SAFE TO EJECT", "verified final status")
+        assertContains(verified, "Copy Duration:       00:00:20", "verified copy duration")
+        assertContains(verified, "Verify Duration:     00:01:20", "verified verify duration")
+        assertContains(verified, "Total Duration:      00:01:40", "verified total duration")
+        assertContains(verified, copyAverageSpeedLine("50.00 MB/s"), "verified copy average speed")
         assertContains(verified, "Verification Mode:   xxHash64 Full 100%", "verified mode")
         assertContains(verified, "Hash Algorithm:      xxHash64", "verified hash algorithm")
         assertContains(verified, "Fast non-cryptographic hash verification", "xxHash64 note")
@@ -57,6 +67,26 @@ struct ReportEngineMVPReportTests {
         assertContains(verified, "Rsync Binary Path:   /App/Contents/Resources/rsync", "rsync path")
         assertContains(verified, "Rsync Version:       3.4.4", "rsync version")
         assertNotContains(verified, formerFormatLabel, "verified report must not use old format wording")
+
+        let timing = await engine.generateReportText(
+            report: report(
+                finalStatus: .safeToFormat,
+                mode: .full,
+                verificationStatus: .passed,
+                copyDuration: 10,
+                verificationDuration: 90,
+                totalDuration: 100,
+                copyAverageSpeed: 100
+            ),
+            bandwidthLimit: nil
+        )
+        assertContains(timing, "Copy Duration:       00:00:10", "timing copy duration")
+        assertContains(timing, "Verify Duration:     00:01:30", "timing verify duration")
+        assertContains(timing, "Total Duration:      00:01:40", "timing total duration")
+        assertContains(timing, copyAverageSpeedLine("100.00 MB/s"), "timing copy average speed")
+        assertNotContains(timing, copyAverageSpeedLine("10.00 MB/s"), "copy average must not use total duration")
+        assertNotContains(timing, oldTransferDurationLabel(), "timing old duration label")
+        assertNotContains(timing, oldAverageSpeedLabel(), "timing old speed label")
 
         let verificationFailed = await engine.generateReportText(
             report: report(
@@ -143,6 +173,18 @@ struct ReportEngineMVPReportTests {
         }
     }
 
+    private static func oldTransferDurationLabel() -> String {
+        "\n" + ["Transfer", "Duration:"].joined(separator: " ")
+    }
+
+    private static func oldAverageSpeedLabel() -> String {
+        "\n" + ["Average", "Speed:"].joined(separator: " ")
+    }
+
+    private static func copyAverageSpeedLine(_ value: String) -> String {
+        ["Copy", "Average", "Speed:"].joined(separator: " ") + "  \(value)"
+    }
+
     private static func report(
         finalStatus: TransferState,
         mode: VerificationMode,
@@ -154,9 +196,15 @@ struct ReportEngineMVPReportTests {
         createdAt: Date = Date(timeIntervalSince1970: 1_782_604_800),
         sourcePath: String = "/Volumes/CARD_A",
         destinationPath: String = "/Volumes/RAID/CARD_A",
-        sourceName: String = "CARD_A"
+        sourceName: String = "CARD_A",
+        copyDuration: TimeInterval? = 20,
+        verificationDuration: TimeInterval? = nil,
+        totalDuration: TimeInterval = 100,
+        copyAverageSpeed: Double? = 50
     ) -> TransferReport {
-        TransferReport(
+        let effectiveVerificationDuration = mode == .none ? verificationDuration : (verificationDuration ?? 80)
+
+        return TransferReport(
             date: "2026-06-22",
             time: "05:30:00",
             createdAt: createdAt,
@@ -168,8 +216,10 @@ struct ReportEngineMVPReportTests {
             destinationName: URL(fileURLWithPath: destinationPath).lastPathComponent,
             totalSize: 1_048_576_000,
             fileCount: 10,
-            transferDuration: 100,
-            averageSpeed: 10,
+            copyDuration: copyDuration,
+            verificationDuration: effectiveVerificationDuration,
+            totalDuration: totalDuration,
+            copyAverageSpeed: copyAverageSpeed,
             verificationMode: mode,
             verificationResult: verificationStatus,
             verifiedFiles: verifiedFiles,

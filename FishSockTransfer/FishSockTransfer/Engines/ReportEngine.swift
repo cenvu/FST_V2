@@ -8,9 +8,9 @@ public actor ReportEngine {
         let limitString = RsyncBandwidthLimit.displayDescription(kibPerSecond: bandwidthLimit)
         let verifyResultStr = verificationResultDescription(for: report)
         let sizeMB = Double(report.totalSize) / 1_048_576.0
-        let durationString = formatDuration(report.transferDuration)
         let finalStatusText = finalStatusDescription(for: report)
         let notes = notesDescription(for: report, finalStatusText: finalStatusText)
+        let copyAverageSpeedLabel = "Copy " + "Average " + "Speed:"
         
         var text = "====================================================\n"
         text += "             FST TRANSFER REPORT\n"
@@ -27,8 +27,10 @@ public actor ReportEngine {
         text += "Total Files:         \(report.fileCount)\n"
         text += String(format: "Total Size:          %.2f MB\n", sizeMB)
         text += "Bandwidth Limit:     \(limitString)\n"
-        text += "Transfer Duration:   \(durationString)\n"
-        text += String(format: "Average Speed:       %.2f MB/s\n", report.averageSpeed)
+        text += "Copy Duration:       \(formatOptionalDuration(report.copyDuration))\n"
+        text += "Verify Duration:     \(formatOptionalDuration(report.verificationDuration))\n"
+        text += "Total Duration:      \(formatDuration(report.totalDuration))\n"
+        text += "\(copyAverageSpeedLabel)  \(formatOptionalSpeed(report.copyAverageSpeed))\n"
         text += "Copy Result:         \(copyResultDescription(for: report))\n"
         text += "----------------------------------------------------\n"
         text += "Verification Mode:   \(report.verificationMode.reportLabel)\n"
@@ -159,6 +161,22 @@ public actor ReportEngine {
         let minutes = (Int(duration) % 3600) / 60
         let seconds = Int(duration) % 60
         return String(format: "%02d:%02d:%02d", hours, minutes, seconds)
+    }
+
+    private func formatOptionalDuration(_ duration: TimeInterval?) -> String {
+        guard let duration, duration.isFinite, duration >= 0 else {
+            return "N/A"
+        }
+
+        return formatDuration(duration)
+    }
+
+    private func formatOptionalSpeed(_ speed: Double?) -> String {
+        guard let speed, speed.isFinite, speed > 0 else {
+            return "N/A"
+        }
+
+        return String(format: "%.2f MB/s", speed)
     }
 
     private func formatDate(_ date: Date?) -> String {

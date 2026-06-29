@@ -99,6 +99,10 @@ public actor TransferCoordinator {
     private func runWorkflow(source: URL, destination: URL, bandwidthLimit: Int?, mode: VerificationMode) async {
         let workflowStartDate = Date()
         var sourceMetadata: SourceStorageMetadata?
+        var copyStartedAt: Date?
+        var copyEndedAt: Date?
+        var verificationStartedAt: Date?
+        var verificationEndedAt: Date?
 
         // STATE: VALIDATING
         await updateState(.validating)
@@ -156,7 +160,9 @@ public actor TransferCoordinator {
         // STATE: COPYING
         await updateState(.copying)
         let request = TransferRequest(sourceURL: source, destinationURL: destination, bandwidthLimit: bandwidthLimit)
+        copyStartedAt = Date()
         let (rsyncSuccess, rsyncError) = await executeRsync(request: request)
+        copyEndedAt = Date()
         
         if isCancelled {
             await updateState(.cancelled)
@@ -170,7 +176,9 @@ public actor TransferCoordinator {
                 sourceMetadata: sourceMetadata,
                 failureReason: "Transfer was cancelled.",
                 startedAt: workflowStartDate,
-                endedAt: Date()
+                endedAt: Date(),
+                copyStartedAt: copyStartedAt,
+                copyEndedAt: copyEndedAt
             )
             return
         }
@@ -194,7 +202,9 @@ public actor TransferCoordinator {
                 sourceMetadata: sourceMetadata,
                 failureReason: failureReason,
                 startedAt: workflowStartDate,
-                endedAt: Date()
+                endedAt: Date(),
+                copyStartedAt: copyStartedAt,
+                copyEndedAt: copyEndedAt
             )
             return
         }
@@ -213,7 +223,9 @@ public actor TransferCoordinator {
                 sourceMetadata: sourceMetadata,
                 failureReason: nil,
                 startedAt: workflowStartDate,
-                endedAt: Date()
+                endedAt: Date(),
+                copyStartedAt: copyStartedAt,
+                copyEndedAt: copyEndedAt
             )
             return
         }
@@ -222,7 +234,9 @@ public actor TransferCoordinator {
         await updateState(.verifying)
         let verifiedDestination = destination.appendingPathComponent(source.lastPathComponent, isDirectory: true)
         let verifyRequest = VerificationRequest(sourceURL: source, destinationURL: verifiedDestination, mode: mode)
+        verificationStartedAt = Date()
         let (verifySuccess, verificationResult, verifyError) = await executeVerify(request: verifyRequest)
+        verificationEndedAt = Date()
         
         if isCancelled {
             await updateState(.cancelled)
@@ -236,7 +250,11 @@ public actor TransferCoordinator {
                 sourceMetadata: sourceMetadata,
                 failureReason: "Transfer was cancelled.",
                 startedAt: workflowStartDate,
-                endedAt: Date()
+                endedAt: Date(),
+                copyStartedAt: copyStartedAt,
+                copyEndedAt: copyEndedAt,
+                verificationStartedAt: verificationStartedAt,
+                verificationEndedAt: verificationEndedAt
             )
             return
         }
@@ -260,7 +278,11 @@ public actor TransferCoordinator {
                 sourceMetadata: sourceMetadata,
                 failureReason: failureReason,
                 startedAt: workflowStartDate,
-                endedAt: Date()
+                endedAt: Date(),
+                copyStartedAt: copyStartedAt,
+                copyEndedAt: copyEndedAt,
+                verificationStartedAt: verificationStartedAt,
+                verificationEndedAt: verificationEndedAt
             )
             return
         }
@@ -278,7 +300,11 @@ public actor TransferCoordinator {
             sourceMetadata: sourceMetadata,
             failureReason: nil,
             startedAt: workflowStartDate,
-            endedAt: Date()
+            endedAt: Date(),
+            copyStartedAt: copyStartedAt,
+            copyEndedAt: copyEndedAt,
+            verificationStartedAt: verificationStartedAt,
+            verificationEndedAt: verificationEndedAt
         )
     }
     
@@ -425,7 +451,11 @@ public actor TransferCoordinator {
         sourceMetadata: SourceStorageMetadata?,
         failureReason: String?,
         startedAt: Date,
-        endedAt: Date
+        endedAt: Date,
+        copyStartedAt: Date? = nil,
+        copyEndedAt: Date? = nil,
+        verificationStartedAt: Date? = nil,
+        verificationEndedAt: Date? = nil
     ) async {
         let bundledInfo = await bundledRsyncService.bundledInfo()
         let createdAt = Date()
@@ -439,6 +469,10 @@ public actor TransferCoordinator {
             failureReason: failureReason,
             startedAt: startedAt,
             endedAt: endedAt,
+            copyStartedAt: copyStartedAt,
+            copyEndedAt: copyEndedAt,
+            verificationStartedAt: verificationStartedAt,
+            verificationEndedAt: verificationEndedAt,
             createdAt: createdAt,
             bundledInfo: bundledInfo
         )
@@ -469,6 +503,10 @@ public actor TransferCoordinator {
         failureReason: String?,
         startedAt: Date,
         endedAt: Date,
+        copyStartedAt: Date?,
+        copyEndedAt: Date?,
+        verificationStartedAt: Date?,
+        verificationEndedAt: Date?,
         createdAt: Date,
         bundledInfo: BundledRsyncInfo
     ) -> TransferReport {
@@ -485,6 +523,9 @@ public actor TransferCoordinator {
         let failedFiles = verificationResult?.failedFiles ?? 0
         let errorCount = finalStatus == .error ? max(1, failedFiles) : 0
         let rsyncPath = bundledInfo.executableURL?.path ?? "Unavailable"
+        let totalSizeBytes = sourceMetadata?.totalSizeBytes ?? 0
+        let copyDuration = duration(start: copyStartedAt, end: copyEndedAt)
+        let verificationDuration = duration(start: verificationStartedAt, end: verificationEndedAt)
 
         return TransferReport(
             date: dateFormatter.string(from: createdAt),
@@ -496,10 +537,12 @@ public actor TransferCoordinator {
             destinationPath: destination.path,
             sourceName: sourceMetadata?.folderName ?? source.lastPathComponent,
             destinationName: destination.lastPathComponent,
-            totalSize: sourceMetadata?.totalSizeBytes ?? 0,
+            totalSize: totalSizeBytes,
             fileCount: sourceMetadata?.fileCount ?? verificationResult?.totalFiles ?? 0,
-            transferDuration: endedAt.timeIntervalSince(startedAt),
-            averageSpeed: averageSpeedMBps(totalSizeBytes: sourceMetadata?.totalSizeBytes ?? 0, duration: endedAt.timeIntervalSince(startedAt)),
+            copyDuration: copyDuration,
+            verificationDuration: verificationDuration,
+            totalDuration: endedAt.timeIntervalSince(startedAt),
+            copyAverageSpeed: copyAverageSpeedMBps(totalSizeBytes: totalSizeBytes, copyDuration: copyDuration),
             verificationMode: mode,
             verificationResult: verificationResult?.status,
             verifiedFiles: verifiedFiles,
@@ -524,9 +567,16 @@ public actor TransferCoordinator {
         )
     }
 
-    private func averageSpeedMBps(totalSizeBytes: Int64, duration: TimeInterval) -> Double {
-        guard duration > 0, totalSizeBytes > 0 else { return 0 }
-        return (Double(totalSizeBytes) / 1_048_576.0) / duration
+    private func duration(start: Date?, end: Date?) -> TimeInterval? {
+        guard let start, let end else { return nil }
+        let duration = end.timeIntervalSince(start)
+        guard duration.isFinite, duration >= 0 else { return nil }
+        return duration
+    }
+
+    private func copyAverageSpeedMBps(totalSizeBytes: Int64, copyDuration: TimeInterval?) -> Double? {
+        guard let copyDuration, copyDuration > 0, totalSizeBytes > 0 else { return nil }
+        return (Double(totalSizeBytes) / 1_048_576.0) / copyDuration
     }
 
     private func logRsyncLine(_ line: String) async {
