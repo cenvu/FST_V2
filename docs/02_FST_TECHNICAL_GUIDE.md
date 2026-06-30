@@ -1,6 +1,6 @@
 # FST Technical Guide
 
-Version: 2026-06-21
+Version: 2026-06-30
 Status: Current Project Source of Truth
 Applies To: Codex, Claude, ChatGPT, human contributors
 
@@ -22,12 +22,28 @@ Priority order:
 
 1. Data Safety
 2. Reliability
-3. Repeatability
-4. Maintainability
-5. Performance
-6. Convenience
+3. Truthful Operator Feedback
+4. Repeatability
+5. Maintainability
+6. Performance
+7. Convenience
 
 Do not add features that do not reduce media-loss risk.
+
+---
+
+## Current Release Snapshot
+
+- Version: v1.1 build 20260630
+- Package: `dist/FishSockTransfer-v1.1-b20260630-local-macOS13_5plus-arm64.zip`
+- Platform: macOS 13.5+, Apple Silicon arm64 only
+- Package type: local owner-side ad-hoc build
+- Signing: ad-hoc signed, not notarized, not Developer ID signed
+- Scope: one source -> one destination -> one active job
+- Transfer engine: bundled rsync 3.4.4 only
+- Operator-facing verified success: SAFE TO EJECT
+
+FST does not format media and does not eject media.
 
 ---
 
@@ -260,7 +276,7 @@ Owns:
 Critical:
 
 - Production transfer must use bundled rsync 3.4.4.
-- Silent fallback to `/usr/bin/rsync` is forbidden.
+- Silent fallback to `/usr/bin/rsync`, Homebrew, MacPorts, or any non-bundled rsync is forbidden.
 - If bundled rsync is missing, not executable, or wrong version: fail fast with a clear error.
 
 `DriveService.swift`
@@ -387,7 +403,7 @@ Production rsync strategy:
 
 ```text
 Use bundled rsync 3.4.4 via BundledRsyncService.
-Do not silently fallback to /usr/bin/rsync.
+Do not silently fallback to /usr/bin/rsync, Homebrew, MacPorts, or any non-bundled rsync.
 ```
 
 Required flags:
@@ -417,6 +433,7 @@ Process rules:
 - one `Process` per transfer
 - no process reuse
 - stream stdout and stderr continuously
+- drain stdout and stderr while rsync is running to avoid pipe backpressure
 - never block MainActor
 - never call `waitUntilExit()` on UI thread
 - cleanup pipes and handlers after completion/cancel/failure
@@ -553,8 +570,8 @@ Mode behavior:
 | Mode | Behavior | Final Success State |
 |---|---|---|
 | none | skip hashing | copyComplete |
-| random33 | verify approx. 33% with SHA256 | internal `safeToFormat`; operator sees SAFE TO EJECT if passed |
-| full | verify all files with xxHash64 | internal `safeToFormat`; operator sees SAFE TO EJECT if passed |
+| random33 | verify approx. 33% with SHA256 strong cryptographic hash verification | internal `safeToFormat`; operator sees SAFE TO EJECT if passed |
+| full | verify all files with xxHash64 fast non-cryptographic hash verification | internal `safeToFormat`; operator sees SAFE TO EJECT if passed |
 
 Verification must:
 
@@ -601,19 +618,23 @@ Report must include:
 - destination path
 - total size
 - file count
-- transfer duration
-- average speed
+- copy duration
+- verify duration, or N/A when verification is disabled
+- total duration
+- copy average speed
 - bandwidth limit
 - verification mode
 - verification result
 - error count
 - final state
+- FULL TECHNICAL LOG section when logs are available
 
 Rules:
 
 - App version and rsync version are separate fields.
 - Do not display rsync version as app version.
 - Report must never claim SAFE TO EJECT unless state is the internal legacy `safeToFormat` state.
+- `Report saved:` may not appear inside the same report file because that log entry is written after report generation.
 
 ---
 
@@ -652,6 +673,12 @@ Must display during transfer:
 - ETA if available
 - current file if available
 - logs
+
+Technical Logs:
+
+- hide verbose DIAG entries by default
+- Show Diagnostics reveals the full runtime diagnostic stream
+- display filtering must not mutate the full log store used for reports
 
 Button rules:
 
@@ -692,7 +719,7 @@ Core rules:
 
 Swift:
 
-- macOS 13+
+- macOS 13.5+ for the v1.1 local package
 - Swift 5.9+
 - Swift 6 compatible
 - prefer `async/await`

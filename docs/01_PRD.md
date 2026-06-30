@@ -1,8 +1,8 @@
 # PRD - FST Focused Secure Transfer
 
-Version: 2026-06-21  
+Version: 2026-06-30  
 Status: MVP Scope Locked  
-Platform: macOS 13+  
+Platform: macOS 13.5+  
 Language: Swift 5.9+ / Swift 6 compatible  
 Framework: SwiftUI  
 Architecture: MVVM + Coordinator + Engine + Service
@@ -120,6 +120,16 @@ A first-time operator can launch FST, select source, select destination, choose 
 
 ## 5. Current Technical Baseline
 
+Current release:
+
+- Version: v1.1 build 20260630
+- Package: `dist/FishSockTransfer-v1.1-b20260630-local-macOS13_5plus-arm64.zip`
+- Package type: local owner-side ad-hoc build
+- Platform: macOS 13.5+, Apple Silicon arm64 only
+- Signing: ad-hoc signed, not notarized, not Developer ID signed
+- Scope: one source, one destination, one active job
+- Verified operator-facing success: SAFE TO EJECT
+
 Current repository structure expects:
 
 ```text
@@ -145,6 +155,7 @@ Production transfer uses bundled rsync 3.4.4.
 Rules:
 
 - Do not silently fallback to Apple `/usr/bin/rsync`.
+- Do not silently fallback to Homebrew, MacPorts, or any non-bundled rsync.
 - Display/log app version and rsync version separately.
 - Use dependency flow: View -> ViewModel -> Coordinator -> Engine -> Service.
 - Never mutate source media.
@@ -229,6 +240,7 @@ Must:
 - validate executable permission
 - validate rsync version
 - capture stdout and stderr
+- drain stdout and stderr continuously during copy
 - parse progress
 - support cancellation
 - log path/version
@@ -237,11 +249,11 @@ Must:
 
 Current audit:
 
-- rsync path/version detection
-- app version vs rsync version separation
-- speed limiter conversion
-- `.DS_Store` hang
-- progress accuracy
+- bundled rsync 3.4.4 path/version detection is required
+- app version and rsync version must remain separate
+- speed limiter conversion must remain tested
+- `.DS_Store` handling must not stall transfer
+- progress/log streaming must remain realtime
 
 ### FR-006 Bandwidth Control
 
@@ -347,6 +359,8 @@ Required:
 - auto-scroll
 - monospaced display
 - TXT export
+- UI Technical Logs hide DIAG entries by default
+- Show Diagnostics reveals full diagnostic logs
 
 Categories:
 
@@ -380,12 +394,15 @@ Must include:
 - total size
 - file count
 - bandwidth limit
-- transfer duration
-- average speed
+- copy duration
+- verify duration, or N/A when verification is disabled
+- total duration
+- copy average speed
 - verification mode
 - verification result
 - error count
 - final state
+- FULL TECHNICAL LOG section when logs are available
 
 Report must never claim SAFE TO EJECT unless Coordinator state is the internal legacy `safeToFormat` state.
 
@@ -441,8 +458,8 @@ Performance:
 
 Compatibility:
 
-- macOS 13 Ventura+
-- Apple Silicon first
+- v1.1 package: macOS 13.5+
+- v1.1 package: Apple Silicon arm64 only
 - Intel optional unless explicitly required
 
 Maintainability:

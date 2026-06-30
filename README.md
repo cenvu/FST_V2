@@ -28,21 +28,18 @@ If the final status is unclear, unsafe, or misleading, the product has failed.
 
 ## Current Status
 
-FST is in MVP development.
+Current release state:
 
-Current focus:
+- Version: v1.1 build 20260630
+- Package: `dist/FishSockTransfer-v1.1-b20260630-local-macOS13_5plus-arm64.zip`
+- Platform: macOS 13.5+, Apple Silicon arm64
+- Package type: local owner-side ad-hoc build
+- Signing: ad-hoc signed, not notarized, not Developer ID signed
+- Workflow: SOURCE -> COPY -> VERIFY -> SAFE TO EJECT
+- Scope: one source, one destination, one active job
+- Transfer engine: bundled rsync 3.4.4 only
 
-- bundled rsync 3.4.4 validation
-- transfer pipeline correctness
-- bandwidth limiter correctness
-- progress parser accuracy
-- `.DS_Store` hang investigation
-- cancellation safety
-- SHA256 sample verification and xxHash64 full verification
-- Safe To Eject enforcement
-- TXT report truthfulness
-
-Do not add feature expansion before these audit targets are stable.
+FST does not format media and does not eject media. It provides copy and verification evidence so the operator can decide whether the source can be safely ejected and handed off.
 
 ---
 
@@ -82,15 +79,15 @@ Out of scope:
 
 ## Technical Baseline
 
-- Platform: macOS 13+
+- Platform: macOS 13.5+
 - Language: Swift 5.9+ / Swift 6 compatible
 - Framework: SwiftUI
 - Architecture: MVVM + Coordinator + Engine + Service
 - Transfer engine: bundled rsync 3.4.4 only
 - Verification: SHA256 Sample 33% or xxHash64 Full 100%
-- Report: plain TXT
+- Report: plain TXT with summary plus FULL TECHNICAL LOG
 
-Production transfer must not silently fallback to Apple `/usr/bin/rsync`.
+Production transfer must not silently fallback to Apple `/usr/bin/rsync`, Homebrew rsync, or any system rsync.
 
 ---
 
@@ -196,13 +193,15 @@ Required behavior:
 - log rsync path
 - log rsync version separately from app version
 - capture stdout and stderr
-- parse real progress output
+- drain stdout and stderr continuously so rsync progress does not stall behind pipe backpressure
+- parse real progress output from `--info=progress2`
 - support cancellation
 - fail fast if bundled rsync is missing or invalid
 
 Forbidden:
 
 - silent fallback to `/usr/bin/rsync`
+- silent fallback to Homebrew or other non-bundled rsync
 - destructive flags
 - source mutation
 - fake success state
@@ -227,9 +226,58 @@ full -> xxHash64
 Rules:
 
 - `none` skips hashing and ends at COPY COMPLETE.
-- `random33` verifies about one third of files with SHA256.
-- `full` verifies all files with xxHash64 fast non-cryptographic verification.
+- `random33` verifies about one third of files with SHA256 strong cryptographic hash verification.
+- `full` verifies all files with xxHash64 fast non-cryptographic hash verification.
 - Any verification failure blocks SAFE TO EJECT.
+
+## Logs and Reports
+
+The in-app Technical Logs view hides verbose diagnostic entries by default. The Show Diagnostics toggle reveals the full runtime log stream for deeper debugging.
+
+Generated TXT reports include:
+
+- Summary at the top
+- Copy Duration
+- Verify Duration
+- Total Duration
+- Copy Average Speed
+- Verification mode and result
+- FULL TECHNICAL LOG at the bottom
+
+`Report saved:` may not appear inside the same report file because it is logged after the report is written.
+
+The phrase SAFE TO FORMAT is forbidden in production/operator-facing workflow wording. The legacy internal state name `safeToFormat` may still exist in code as the verified-success state, but operators must see SAFE TO EJECT.
+
+## Local Packaging
+
+Create the current local Apple Silicon package with:
+
+```bash
+bash scripts/package-local-arm64.sh
+```
+
+Expected output:
+
+```text
+dist/FishSockTransfer-v1.1-b20260630-local-macOS13_5plus-arm64.zip
+```
+
+The packaging script validates app version, build number, `LSMinimumSystemVersion`, bundled rsync 3.4.4, arm64 architecture, dylib loader paths, ad-hoc codesign structure, and absence of AppleDouble zip entries.
+
+Local package limitations:
+
+- Apple Silicon arm64 only
+- macOS 13.5+
+- Ad-hoc signed
+- Not notarized
+- Not Developer ID signed
+- Owner-controlled testing only
+
+For owner-controlled testing on another Apple Silicon Mac, unzip the package, move `FishSockTransfer.app` to Desktop or Applications, then try Right click > Open. If macOS blocks the app because it is unsigned or unnotarized, quarantine removal is acceptable only for owner-controlled testing:
+
+```bash
+xattr -dr com.apple.quarantine /path/to/FishSockTransfer.app
+```
 
 ---
 

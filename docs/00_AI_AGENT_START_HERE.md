@@ -1,6 +1,6 @@
 # FST AI Agent Start Here
 
-Version: 2026-06-21  
+Version: 2026-06-30  
 Status: First file to read  
 Applies To: Codex, Claude, ChatGPT, human contributors
 
@@ -32,7 +32,36 @@ Priority order:
 Data Safety -> Reliability -> Repeatability -> Maintainability -> Performance -> Convenience
 ```
 
+Current release safety priority:
+
+```text
+Data Safety -> Reliability -> Truthful Operator Feedback -> Speed -> Convenience
+```
+
 Do not add features that do not reduce media-loss risk.
+
+---
+
+## Current Release Snapshot
+
+- Version: v1.1 build 20260630
+- Package: `dist/FishSockTransfer-v1.1-b20260630-local-macOS13_5plus-arm64.zip`
+- Platform: macOS 13.5+, Apple Silicon arm64 only
+- Package type: local owner-side ad-hoc build
+- Signing: ad-hoc signed, not notarized, not Developer ID signed
+- Scope: one source -> one destination -> one active job
+- Workflow: SOURCE -> COPY -> VERIFY -> SAFE TO EJECT
+- Transfer engine: bundled rsync 3.4.4 only
+
+FST does not format media and does not eject media.
+
+Agent division:
+
+- Mi / Command Center: technical lead and safety gate
+- Codex: core engineer
+- Antigravity / Claude Sonnet: UI, log, and report helper where appropriate
+
+Do not include dropped or deprecated agent workflows unless the user explicitly asks.
 
 ---
 
@@ -204,6 +233,7 @@ Must:
 Forbidden:
 
 - Silent fallback to `/usr/bin/rsync`.
+- Silent fallback to Homebrew, MacPorts, or any non-bundled rsync.
 - Destructive rsync flags.
 - Source mutation.
 

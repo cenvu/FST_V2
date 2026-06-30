@@ -1,6 +1,6 @@
 # FST - Project Master Guideline
 
-Version: 2026-06-21  
+Version: 2026-06-30  
 Status: Architecture Locked  
 Codename: FishSock Transfer / Focused Secure Transfer
 
@@ -30,6 +30,12 @@ Priority order:
 
 ```text
 Data Safety -> Reliability -> Repeatability -> Maintainability -> Performance -> Convenience
+```
+
+Current release safety priority:
+
+```text
+Data Safety -> Reliability -> Truthful Operator Feedback -> Speed -> Convenience
 ```
 
 Rules:
@@ -87,13 +93,17 @@ Rules:
 
 ## 4. Technical Baseline
 
-- macOS 13+
-- Apple Silicon first
+- current version v1.1 build 20260630
+- local package `dist/FishSockTransfer-v1.1-b20260630-local-macOS13_5plus-arm64.zip`
+- macOS 13.5+
+- Apple Silicon arm64 package
+- ad-hoc signed, not notarized, not Developer ID signed
 - Swift 5.9+ / Swift 6 compatible
 - SwiftUI
 - MVVM + Coordinator + Engine + Service
 - bundled rsync 3.4.4
-- xxHash64 verification
+- SHA256 Sample 33% verification
+- xxHash64 Full 100% non-cryptographic verification
 - one source
 - one destination
 - one active job
@@ -233,6 +243,7 @@ Must:
 - validate executable
 - report rsync version separately from app version
 - capture stdout/stderr
+- drain stdout/stderr continuously during copy
 - support cancellation
 - emit progress
 - map errors for operators
@@ -241,6 +252,7 @@ Must:
 Forbidden:
 
 - silent `/usr/bin/rsync` fallback
+- silent Homebrew, MacPorts, or other non-bundled rsync fallback
 - destructive flags
 - undocumented exclusions
 - fake success state
@@ -347,13 +359,18 @@ Include:
 - file count
 - total size
 - bandwidth limit
-- duration
-- average speed
+- copy duration
+- verify duration, or N/A when verification is disabled
+- total duration
+- copy average speed
 - verification mode/result
 - error count
 - final state
+- FULL TECHNICAL LOG section when logs are available
 
 Report must never overstate safety.
+
+The in-app Technical Logs view hides verbose DIAG entries by default. Show Diagnostics reveals the full diagnostic stream. Display filtering must not mutate the full log store used for TXT reports.
 
 ---
 
