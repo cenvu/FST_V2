@@ -111,6 +111,58 @@ Recommended routing:
 3. Codex revises if Claude rejects.
 4. Mi performs final safety gate.
 
+## Batch 3 Prompt Pack and QA Templates
+
+Batch 3 adds daily-use prompt and QA templates:
+
+- Codex implementation handoff
+- Claude review report
+- Runtime QA matrix
+- Runtime test evidence
+- Mi final decision
+- Antigravity/Gemini UI handoff
+- Bug intake form
+- Change risk classification
+
+Use these templates to reduce repeated prompting and make Codex -> Claude -> Mi handoff consistent.
+
+Recommended daily loop:
+
+1. Fill bug intake or change risk classification.
+2. Route to the correct agent.
+3. Codex or Antigravity/Gemini implements.
+4. Agent completes handoff template.
+5. Claude reviews using the relevant skills.
+6. Mi decides accept/revise/reject/runtime QA.
+7. Runtime evidence is recorded before release-sensitive changes are accepted.
+
+## UI Design System Pack
+
+FST also includes a controlled UI design system layer inspired by UI/UX design-system skill patterns.
+
+This layer is documentation-only and does not install external UI skill packages.
+
+Use it for:
+
+- Antigravity/Gemini UI work
+- SwiftUI design direction
+- Progress/dashboard hierarchy
+- Accessibility review
+- Operator clarity review
+- UI anti-pattern filtering
+
+Primary files:
+
+- `FST_AI/design-system/MASTER.md`
+- `FST_AI/design-system/pages/`
+- `FST_AI/design-system/audits/`
+- `FST_AI/skills/fst-ui-design-system/`
+- `FST_AI/skills/fst-ui-visual-audit/`
+- `FST_AI/skills/fst-ui-accessibility-review/`
+- `FST_AI/skills/fst-progress-dashboard-design/`
+
+Do not install or run external UI skill CLI tools inside FST unless Mi explicitly approves it.
+
 ## What Not To Do
 
 Do not:

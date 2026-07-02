@@ -30,3 +30,13 @@ Use for:
 
 The coding agent is not the final reviewer of its own safety-critical change.
 
+## Required Templates
+
+For core bugs, use:
+
+1. `FST_AI/templates/bug-intake-form.md`
+2. `FST_AI/prompts/codex-fix-core-bug.md`
+3. `FST_AI/templates/codex-implementation-handoff.md`
+4. `FST_AI/prompts/claude-core-review.md`
+5. `FST_AI/templates/claude-review-report.md`
+6. `FST_AI/templates/mi-final-decision.md`

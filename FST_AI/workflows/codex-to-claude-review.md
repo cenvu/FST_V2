@@ -37,3 +37,17 @@ When sending Codex work to Claude, Mi should select the most specific review ski
 - General code review -> `fst-code-review`
 
 Claude may combine multiple skills for safety-critical changes.
+
+## Required Handoff Template
+
+Codex should summarize implementation using:
+
+`FST_AI/templates/codex-implementation-handoff.md`
+
+Claude should review using:
+
+`FST_AI/templates/claude-review-report.md`
+
+Mi should decide using:
+
+`FST_AI/templates/mi-final-decision.md`

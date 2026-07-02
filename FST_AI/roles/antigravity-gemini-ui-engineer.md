@@ -67,3 +67,16 @@ Every Antigravity/Gemini task must report:
 - Never fake backend state.
 - Never make unsafe state look successful.
 
+## Design System Responsibility
+
+Antigravity/Gemini should use the FST internal design system before changing UI.
+
+Read:
+
+- `FST_AI/design-system/MASTER.md`
+- Relevant page override under `FST_AI/design-system/pages/`
+- Relevant audit checklist under `FST_AI/design-system/audits/`
+
+Antigravity/Gemini may use UI/UX design-system inspiration, but must adapt it to FST's operational DIT workflow.
+
+The UI must remain calm, readable, safety-first, and macOS-appropriate.

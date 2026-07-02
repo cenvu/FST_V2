@@ -28,3 +28,12 @@ Use before release or after core engine changes.
 - Report success
 - Report failure
 
+## Required Templates
+
+Use:
+
+- `FST_AI/templates/runtime-qa-matrix.md`
+- `FST_AI/templates/runtime-test-evidence.md`
+- `FST_AI/prompts/claude-runtime-qa-review.md`
+
+For release-sensitive changes, Claude must review QA completeness before Mi accepts the change.
