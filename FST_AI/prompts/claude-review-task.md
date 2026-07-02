@@ -40,6 +40,20 @@ CHECK SPECIFICALLY:
 - Any scope creep?
 - Any unnecessary dependency/architecture?
 
+RELEVANT SKILLS:
+Mi may ask you to apply one or more of these review skills:
+
+- `fst-rsync-engine-review`
+- `fst-verify-engine-review`
+- `fst-state-machine-review`
+- `fst-detailed-txt-report`
+- `fst-error-handling-review`
+- `fst-report-correctness-review`
+- `fst-core-safety-review`
+- `fst-code-review`
+
+When a specific skill is named, follow that skill's review priority, hard blocks, and output requirements.
+
 OUTPUT FORMAT:
 
 Verdict:
@@ -58,4 +72,3 @@ Recommended revision prompt for Codex:
 Runtime QA required:
 
 Notes for Mi:
-

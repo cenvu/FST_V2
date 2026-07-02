@@ -91,6 +91,26 @@ For safety-critical tasks:
 5. Claude rechecks.
 6. Mi decides merge/no-merge.
 
+## Batch 2 Core Review Skills
+
+Batch 2 adds deeper core-engine review playbooks for Claude and Codex:
+
+- `fst-rsync-engine-review`
+- `fst-verify-engine-review`
+- `fst-state-machine-review`
+- `fst-detailed-txt-report`
+- `fst-error-handling-review`
+- `fst-report-correctness-review`
+
+Use these when Codex modifies rsync, verify, state machine, report, error handling, or any logic that can affect SAFE TO EJECT.
+
+Recommended routing:
+
+1. Codex implements the smallest safe change.
+2. Claude reviews with the relevant Batch 2 skill.
+3. Codex revises if Claude rejects.
+4. Mi performs final safety gate.
+
 ## What Not To Do
 
 Do not:

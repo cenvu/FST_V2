@@ -36,6 +36,20 @@ REQUIRED PROCESS:
 6. List build/test steps needed.
 7. State what Claude should review.
 
+CLAUDE REVIEW HANDOFF:
+At the end of your implementation summary, recommend which Claude review skill should be used:
+
+- `fst-rsync-engine-review`
+- `fst-verify-engine-review`
+- `fst-state-machine-review`
+- `fst-detailed-txt-report`
+- `fst-error-handling-review`
+- `fst-report-correctness-review`
+- `fst-core-safety-review`
+- `fst-code-review`
+
+Choose the most specific skill based on the files and behavior changed.
+
 OUTPUT:
 
 - Diagnosis
@@ -45,4 +59,3 @@ OUTPUT:
 - Tests needed
 - Risks remaining
 - Claude review checklist
-
