@@ -89,4 +89,4 @@ SAFE TO EJECT is shown only after copy success and verification pass.
 
 Verification disabled ends at TRANSFER COMPLETE / COPY COMPLETE, never SAFE TO EJECT.
 
-SAFE TO FORMAT is forbidden in production/operator-facing workflow wording. The app does not format media.
+Operator-facing formatting language is forbidden in production workflow wording. The app does not format media.

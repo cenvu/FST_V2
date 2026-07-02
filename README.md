@@ -246,7 +246,20 @@ Generated TXT reports include:
 
 `Report saved:` may not appear inside the same report file because it is logged after the report is written.
 
-The phrase SAFE TO FORMAT is forbidden in production/operator-facing workflow wording. The legacy internal state name `safeToFormat` may still exist in code as the verified-success state, but operators must see SAFE TO EJECT.
+Operator-facing formatting language is forbidden in production workflow wording. The legacy internal state name `safeToFormat` may still exist in code as the verified-success state, but operators must see SAFE TO EJECT.
+
+## AI Workflow
+
+FST uses `FST_AI/` as its internal AI Engineering System for agent roles, workflows, prompts, skills, QA templates, and UI design guidance.
+
+Current agent model:
+
+- Codex: core implementation
+- Claude: primary QA/code/safety review
+- Antigravity / Gemini Pro: UI implementation
+- Mi / Command Center: technical lead and safety gate
+
+See `FST_AI/README.md` for details.
 
 ## Local Packaging
 

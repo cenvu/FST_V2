@@ -42,6 +42,33 @@ Do not add features that do not reduce media-loss risk.
 
 ---
 
+## Start Here: FST_AI
+
+For current AI-assisted development workflow, use:
+
+- `FST_AI/README.md`
+- `FST_AI/memory/current-priority.md`
+- `FST_AI/memory/project-baseline.md`
+- `FST_AI/memory/agent-roles.md`
+- `FST_AI/standards/safety-first.md`
+- `FST_AI/standards/agent-boundaries.md`
+- `FST_AI/workflows/`
+- `FST_AI/prompts/`
+- `FST_AI/skills/`
+
+`FST_AI/` defines the active agent model:
+
+- Mi / Command Center: Technical Lead, Safety Gate, Prompt Architect, Workflow Router.
+- Codex: Main Core Coding Agent, Secondary Reviewer.
+- Claude: Main QA, Main Code Reviewer, Main Safety Reviewer, Secondary Coding Agent.
+- Antigravity / Gemini Pro: Main UI Coding Agent for SwiftUI/UI/UX.
+
+Use `FST_AI/` for current routing, prompt templates, skill playbooks, QA templates, and UI design guidance.
+
+Do not use older agent routing if it conflicts with `FST_AI/`.
+
+---
+
 ## Current Release Snapshot
 
 - Version: v1.1 build 20260630
@@ -59,7 +86,8 @@ Agent division:
 
 - Mi / Command Center: technical lead and safety gate
 - Codex: core engineer
-- Antigravity / Claude Sonnet: UI, log, and report helper where appropriate
+- Claude: primary QA/code/safety reviewer
+- Antigravity / Gemini Pro: UI implementation
 
 Do not include dropped or deprecated agent workflows unless the user explicitly asks.
 

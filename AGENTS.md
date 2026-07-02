@@ -40,6 +40,73 @@ Do not add features that do not reduce media-loss risk.
 
 ---
 
+## FST_AI Agent Workflow Layer
+
+`FST_AI/` is the primary internal AI Engineering System for this project.
+
+Before doing non-trivial work, agents must read the relevant files in `FST_AI/`.
+
+Minimum reading:
+
+- `FST_AI/README.md`
+- `FST_AI/memory/current-priority.md`
+- `FST_AI/memory/agent-roles.md`
+- `FST_AI/standards/safety-first.md`
+- `FST_AI/standards/agent-boundaries.md`
+- `FST_AI/standards/minimal-safe-change.md`
+
+For core logic work, also read:
+
+- `FST_AI/roles/codex-core-engineer.md`
+- `FST_AI/roles/claude-primary-reviewer.md`
+- relevant skills under `FST_AI/skills/`
+
+For UI work, also read:
+
+- `FST_AI/roles/antigravity-gemini-ui-engineer.md`
+- `FST_AI/design-system/MASTER.md`
+- relevant design-system page override under `FST_AI/design-system/pages/`
+- relevant UI skills under `FST_AI/skills/`
+
+## Current Agent Roles
+
+- Mi / Command Center: Technical Lead, Safety Gate, Prompt Architect, Workflow Router.
+- Codex: Main Core Coding Agent, Secondary Reviewer.
+- Claude: Main QA, Main Code Reviewer, Main Safety Reviewer, Secondary Coding Agent.
+- Antigravity / Gemini Pro: Main UI Coding Agent for SwiftUI/UI/UX.
+
+## Routing Rules
+
+Core logic:
+
+- Codex implements.
+- Claude reviews.
+- Mi performs final safety gate.
+
+UI:
+
+- Antigravity / Gemini Pro implements.
+- Claude or Mi reviews UI state/safety risk.
+- Mi performs final safety gate.
+
+Safety-critical changes:
+
+- Codex implements the smallest safe change.
+- Claude performs primary safety review.
+- Mi decides accept/revise/reject/runtime QA.
+
+## Non-Negotiable Safety Rules
+
+- Source media is treated as read-only.
+- FST must never mutate, delete, rename, chmod, chown, or format source media.
+- FST must use bundled rsync 3.4.4 only.
+- Apple rsync fallback is not allowed.
+- Destructive rsync behavior is not allowed.
+- Long-running copy/verify/report work must not block the UI.
+- SAFE TO EJECT must never be true after failed, cancelled, incomplete, or uncertain copy/verify state.
+
+---
+
 ## Current Release State
 
 - Current version: v1.1 build 20260630
@@ -57,7 +124,8 @@ Agent division:
 
 - Mi / Command Center: technical lead and safety gate
 - Codex: core engineer
-- Antigravity / Claude Sonnet: UI, log, and report helper where appropriate
+- Claude: primary QA/code/safety reviewer
+- Antigravity / Gemini Pro: UI implementation
 
 Do not reintroduce dropped or deprecated agent workflows unless the user explicitly asks.
 
