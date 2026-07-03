@@ -48,6 +48,14 @@ Claude UI review:
 
 Use these for UI design, visual audit, accessibility review, and progress dashboard work.
 
+## Prompt Compression
+
+When a prompt becomes too long, use:
+
+- `FST_AI/skills/fst-prompt-compression/SKILL.md`
+
+Do not compress away safety constraints, file paths, commands, or validation.
+
 ## Rule
 
 Use the most specific prompt possible.

@@ -59,3 +59,23 @@ Do not use vague terms like:
 - Should be okay
 
 Avoid operator-facing formatting language. The app does not format media.
+
+## Concise Language
+
+Agents should avoid repeated project background and filler.
+
+Use direct technical wording.
+
+Preferred:
+
+- `Verdict: Reject`
+- `Blocker: Verify failure can reach SAFE TO EJECT YES`
+- `Fix: Gate safety decision on canonical verify pass`
+- `QA: cancel during copy, cancel during verify, verify failure`
+
+Avoid:
+
+- long appreciation
+- repeated role explanations
+- broad project summaries when already known
+- vague phrases such as "looks good" or "probably fine"

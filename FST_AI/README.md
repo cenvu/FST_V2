@@ -163,6 +163,28 @@ Primary files:
 
 Do not install or run external UI skill CLI tools inside FST unless Mi explicitly approves it.
 
+## Token Economy
+
+FST uses concise agent output by default.
+
+Read:
+
+- `FST_AI/standards/token-economy.md`
+- `FST_AI/skills/fst-concise-review/SKILL.md`
+- `FST_AI/skills/fst-prompt-compression/SKILL.md`
+- `FST_AI/templates/concise-agent-output.md`
+
+Goal:
+
+- shorter reviews
+- fewer repeated context blocks
+- lower token cost
+- same safety clarity
+
+Rule:
+
+Short is good. Ambiguous is bad. Safety clarity wins.
+
 ## What Not To Do
 
 Do not:

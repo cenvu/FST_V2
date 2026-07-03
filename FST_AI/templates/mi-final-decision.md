@@ -2,6 +2,20 @@
 
 Use this template when Mi decides whether to accept, revise, reject, or require runtime QA.
 
+## Concise Mode
+
+Mi final decision should be short:
+
+```text
+Decision:
+Reason:
+Safety gate:
+Next:
+Commit:
+```
+
+Use longer explanation only if rejecting, revising, or blocking release.
+
 ## Task
 
 Task:
@@ -93,4 +107,3 @@ Prompt:
 
 Notes:
 ...
-

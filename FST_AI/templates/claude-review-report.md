@@ -2,6 +2,21 @@
 
 Use this template for Claude primary QA/code/safety reviews.
 
+## Concise Mode
+
+Default to concise output unless the review contains a safety-critical warning that requires fuller explanation.
+
+Preferred order:
+
+1. Verdict
+2. Blockers
+3. Safety impact
+4. Required fix
+5. QA required
+6. Next prompt
+
+Avoid repeating project context already present in the task.
+
 ## Review Summary
 
 Reviewer:
@@ -108,4 +123,3 @@ Merge recommendation:
 
 Safety gate notes:
 ...
-

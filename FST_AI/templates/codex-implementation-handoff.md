@@ -2,6 +2,23 @@
 
 Use this template when Codex finishes a coding task and Mi needs to send the result to Claude for primary review.
 
+## Concise Mode
+
+Keep handoff short.
+
+Include only:
+
+- task
+- files changed
+- behavior changed
+- safety impact
+- tests
+- known risks
+- recommended Claude skill
+- runtime QA needed
+
+Do not repeat project background unless the change depends on it.
+
 ## Task Summary
 
 Task:
@@ -121,4 +138,3 @@ Required scenarios:
 
 Paste diff / summary / relevant files:
 ...
-
