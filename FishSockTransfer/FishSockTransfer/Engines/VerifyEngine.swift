@@ -161,17 +161,21 @@ public actor VerifyEngine {
             )
             onEvent(.completed(result))
             
-        } catch {
-            log("Catch block reached in VerifyEngine.startVerification: \(String(describing: error))", onEvent: onEvent)
-            if isCancelled {
+        } catch let verificationError as VerificationError {
+            log("Catch block reached in VerifyEngine.startVerification: \(String(describing: verificationError))", onEvent: onEvent)
+            if isCancelled || verificationError == .cancelled {
                 log("Cancellation detected in VerifyEngine catch block", onEvent: onEvent)
                 onEvent(.cancelled)
             } else {
-                log("Thrown error caught: \(String(describing: error))", onEvent: onEvent)
-                log("VerificationError created: unknown", onEvent: onEvent)
-                log("VerificationError propagated from VerifyEngine: unknown", onEvent: onEvent)
-                onEvent(.failed(.unknown))
+                log("VerificationError propagated from VerifyEngine: \(String(describing: verificationError))", onEvent: onEvent)
+                onEvent(.failed(verificationError))
             }
+        } catch {
+            log("Catch block reached in VerifyEngine.startVerification: \(String(describing: error))", onEvent: onEvent)
+            log("Thrown error caught: \(String(describing: error))", onEvent: onEvent)
+            log("VerificationError created: unknown", onEvent: onEvent)
+            log("VerificationError propagated from VerifyEngine: unknown", onEvent: onEvent)
+            onEvent(.failed(.unknown))
         }
     }
     
@@ -210,8 +214,9 @@ public actor VerifyEngine {
         
         guard let enumerator = fm.enumerator(at: url, includingPropertiesForKeys: resourceKeys, options: []) else {
             log("Inventory Build Failed: \(label) enumerator unavailable at \(url.path)", onEvent: onEvent)
-            log("VerificationError created: sourceMissing", onEvent: onEvent)
-            throw VerificationError.sourceMissing
+            let error: VerificationError = label == "Destination" ? .destinationMissing : .sourceMissing
+            log("VerificationError created: \(String(describing: error))", onEvent: onEvent)
+            throw error
         }
         
         while let fileURL = enumerator.nextObject() as? URL {
@@ -226,7 +231,13 @@ public actor VerifyEngine {
                 resourceValues = try fileURL.resourceValues(forKeys: Set(resourceKeys))
             } catch {
                 log("Inventory resource error: \(label) \(fileURL.path) \(String(describing: error))", onEvent: onEvent)
-                throw error
+                let verificationError = VerificationError.inventoryReadFailed(
+                    label: label,
+                    path: fileURL.path,
+                    reason: error.localizedDescription
+                )
+                log("VerificationError created: \(String(describing: verificationError))", onEvent: onEvent)
+                throw verificationError
             }
             if TransferFileExclusionPolicy.shouldExclude(fileURL, rootURL: url) {
                 if resourceValues.isDirectory == true {
@@ -266,7 +277,13 @@ public actor VerifyEngine {
             handle = try FileHandle(forReadingFrom: url)
         } catch {
             log("Hash open error: \(label) \(relativePath) \(url.path) \(String(describing: error))", onEvent: onEvent)
-            throw error
+            let verificationError = VerificationError.fileReadFailed(
+                label: label,
+                relativePath: relativePath,
+                reason: error.localizedDescription
+            )
+            log("VerificationError created: \(String(describing: verificationError))", onEvent: onEvent)
+            throw verificationError
         }
         defer { try? handle.close() }
         
@@ -280,7 +297,13 @@ public actor VerifyEngine {
                 data = try handle.read(upToCount: chunkSize)
             } catch {
                 log("Hash read error: \(label) \(relativePath) \(url.path) \(String(describing: error))", onEvent: onEvent)
-                throw error
+                let verificationError = VerificationError.fileReadFailed(
+                    label: label,
+                    relativePath: relativePath,
+                    reason: error.localizedDescription
+                )
+                log("VerificationError created: \(String(describing: verificationError))", onEvent: onEvent)
+                throw verificationError
             }
             guard let data, !data.isEmpty else { break }
             await Task.yield()

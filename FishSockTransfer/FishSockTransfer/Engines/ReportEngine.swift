@@ -1,5 +1,14 @@
 import Foundation
 
+nonisolated public struct ReportWriteError: Error, LocalizedError, Equatable, Sendable {
+    public let attemptedPath: String
+    public let systemErrorDescription: String
+
+    public var errorDescription: String? {
+        "Attempted path: \(attemptedPath). System error: \(systemErrorDescription)"
+    }
+}
+
 public actor ReportEngine {
 
     public init() {}
@@ -89,7 +98,14 @@ public actor ReportEngine {
 
         // Writing synchronously falls under the actor's execution context,
         // which moves it off the MainActor natively. Data safety is maintained.
-        try text.write(to: fileURL, atomically: true, encoding: .utf8)
+        do {
+            try text.write(to: fileURL, atomically: true, encoding: .utf8)
+        } catch {
+            throw ReportWriteError(
+                attemptedPath: fileURL.path,
+                systemErrorDescription: error.localizedDescription
+            )
+        }
 
         return fileURL
     }

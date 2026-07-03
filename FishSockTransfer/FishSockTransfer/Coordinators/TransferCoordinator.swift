@@ -507,6 +507,13 @@ public actor TransferCoordinator {
             fullLogs = await loggerService.allLogs()
         }
 
+        let didAccessDestination = destination.startAccessingSecurityScopedResource()
+        defer {
+            if didAccessDestination {
+                destination.stopAccessingSecurityScopedResource()
+            }
+        }
+
         do {
             let reportURL = try await reportEngine.saveReport(
                 report: report,

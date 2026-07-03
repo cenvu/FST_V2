@@ -102,6 +102,46 @@ final class VerificationHashStrategyXCTests: XCTestCase {
         XCTAssertTrue(logMessages.contains(where: { $0.contains("Hash Algorithm: xxHash64") }))
     }
 
+    func testUnreadableDestinationHashFailureDoesNotBecomeUnknown() async throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
+        let source = root.appendingPathComponent("source", isDirectory: true)
+        let destination = root.appendingPathComponent("destination", isDirectory: true)
+        try FileManager.default.createDirectory(at: source, withIntermediateDirectories: true)
+        try FileManager.default.createDirectory(at: destination, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+
+        let sourceFile = source.appendingPathComponent("clip.mov")
+        let destinationFile = destination.appendingPathComponent("clip.mov")
+        try "camera-original".write(to: sourceFile, atomically: true, encoding: .utf8)
+        try "camera-original".write(to: destinationFile, atomically: true, encoding: .utf8)
+        try FileManager.default.setAttributes([.posixPermissions: 0o000], ofItemAtPath: destinationFile.path)
+        defer { try? FileManager.default.setAttributes([.posixPermissions: 0o644], ofItemAtPath: destinationFile.path) }
+
+        let recorder = HashStrategyVerificationEventRecorder()
+        let request = VerificationRequest(sourceURL: source, destinationURL: destination, mode: .full)
+        await VerifyEngine().startVerification(request: request) { event in
+            recorder.append(event)
+        }
+
+        let failure = recorder.snapshot().compactMap { event -> VerificationError? in
+            if case .failed(let error) = event { return error }
+            return nil
+        }.first
+
+        switch failure {
+        case .fileReadFailed(let label, let relativePath, _):
+            XCTAssertEqual(label, "Destination")
+            XCTAssertEqual(relativePath, "clip.mov")
+        case .inventoryReadFailed(let label, let path, _):
+            XCTAssertEqual(label, "Destination")
+            XCTAssertTrue(path.hasSuffix("clip.mov"))
+        case .unknown:
+            XCTFail("Unreadable destination failures must not be collapsed to unknown.")
+        default:
+            XCTFail("Expected an actionable read failure, got \(String(describing: failure))")
+        }
+    }
+
     private func report(mode: VerificationMode, status: VerificationStatus?, finalStatus: TransferState) -> TransferReport {
         TransferReport(
             date: "2026-06-22",

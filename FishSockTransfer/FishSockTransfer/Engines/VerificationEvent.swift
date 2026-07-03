@@ -7,6 +7,8 @@ nonisolated public enum VerificationError: Error, Equatable, LocalizedError, Sen
     case fileSizeMismatch
     case hashMismatch
     case noTransferableFiles
+    case inventoryReadFailed(label: String, path: String, reason: String)
+    case fileReadFailed(label: String, relativePath: String, reason: String)
     case cancelled
     case unknown
 
@@ -24,6 +26,10 @@ nonisolated public enum VerificationError: Error, Equatable, LocalizedError, Sen
             return "Verification failed. Source and destination file hashes do not match."
         case .noTransferableFiles:
             return "No transferable files found after exclusions."
+        case .inventoryReadFailed(let label, let path, let reason):
+            return "Verification failed because FST could not scan the \(label.lowercased()) inventory at \(path). \(reason)"
+        case .fileReadFailed(let label, let relativePath, let reason):
+            return "Verification failed because FST could not read the \(label.lowercased()) file: \(relativePath). \(reason)"
         case .cancelled:
             return "Verification was cancelled."
         case .unknown:

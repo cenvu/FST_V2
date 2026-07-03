@@ -180,6 +180,71 @@ final class ReportEngineXCTests: XCTestCase {
         XCTAssertFalse(savedURL.path.hasPrefix(source.path))
     }
 
+    func testSaveReportWritesToDestinationFolder() async throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
+        let destination = root.appendingPathComponent("ExternalDestination", isDirectory: true)
+        try FileManager.default.createDirectory(at: destination, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+
+        let savedURL = try await ReportEngine().saveReport(
+            report: report(finalStatus: .copyComplete, mode: .none, verificationStatus: nil),
+            bandwidthLimit: nil,
+            to: destination
+        )
+
+        XCTAssertEqual(savedURL.deletingLastPathComponent().path, destination.path)
+        XCTAssertTrue(FileManager.default.fileExists(atPath: savedURL.path))
+        XCTAssertTrue(savedURL.lastPathComponent.hasPrefix("FST_Report_"))
+    }
+
+    func testVerificationFailureReportStillSavesAndPreservesFailureReason() async throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
+        let destination = root.appendingPathComponent("ExternalDestination", isDirectory: true)
+        try FileManager.default.createDirectory(at: destination, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+
+        let savedURL = try await ReportEngine().saveReport(
+            report: report(
+                finalStatus: .error,
+                mode: .random33,
+                verificationStatus: .failed,
+                verifiedFiles: 3,
+                passedFiles: 2,
+                failedFiles: 1,
+                failureReason: "MANUAL CHECK REQUIRED: clip.mov hash mismatch."
+            ),
+            bandwidthLimit: nil,
+            to: destination
+        )
+
+        let text = try String(contentsOf: savedURL, encoding: .utf8)
+        XCTAssertTrue(text.contains("Final Status:        MANUAL CHECK REQUIRED"))
+        XCTAssertTrue(text.contains("Verification Result: FAILED"))
+        XCTAssertTrue(text.contains("Failure Reason:      MANUAL CHECK REQUIRED: clip.mov hash mismatch."))
+        XCTAssertFalse(text.contains("Final Status:        SAFE TO EJECT"))
+    }
+
+    func testReportWriteFailureIncludesAttemptedPathAndSystemError() async throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
+        let missingDestination = root.appendingPathComponent("MissingDestination", isDirectory: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+
+        do {
+            _ = try await ReportEngine().saveReport(
+                report: report(finalStatus: .copyComplete, mode: .none, verificationStatus: nil),
+                bandwidthLimit: nil,
+                to: missingDestination
+            )
+            XCTFail("Report save should fail for a missing destination folder.")
+        } catch let error as ReportWriteError {
+            XCTAssertTrue(error.attemptedPath.hasPrefix(missingDestination.path))
+            XCTAssertTrue(error.attemptedPath.contains("/FST_Report_CARD_A_"))
+            XCTAssertFalse(error.systemErrorDescription.isEmpty)
+            XCTAssertTrue(error.localizedDescription.contains(error.attemptedPath))
+            XCTAssertTrue(error.localizedDescription.contains("System error:"))
+        }
+    }
+
     private var formerFormatLabel: String {
         ["SAFE", "TO", "FORMAT"].joined(separator: " ")
     }
