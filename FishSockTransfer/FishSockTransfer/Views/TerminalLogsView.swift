@@ -107,7 +107,7 @@ private struct TerminalLogTextView: NSViewRepresentable {
 
     final class Coordinator {
         var renderedCount = 0
-        let font = NSFont.monospacedSystemFont(ofSize: 13, weight: .regular)
+        let font = NSFont.monospacedSystemFont(ofSize: 11.5, weight: .regular)
 
         private let timeFormatter: DateFormatter = {
             let formatter = DateFormatter()

@@ -19,11 +19,7 @@ public struct ContentView: View {
             headerBar
                 .padding(.horizontal, 16)
                 .padding(.top, 12)
-                .padding(.bottom, 8)
-
-            tabSelector
-                .padding(.horizontal, 16)
-                .padding(.bottom, 10)
+                .padding(.bottom, 12)
 
             Group {
                 if selectedTab == .transfer {
@@ -48,38 +44,46 @@ public struct ContentView: View {
     }
 
     private var headerBar: some View {
-        ZStack {
-            let headerFont = Font.system(.caption, weight: .semibold)
-            
-            HStack {
-                Text("FishSock Transfer")
+        let headerFont = Font.system(.caption, weight: .semibold)
+        
+        return ZStack {
+            HStack(spacing: 0) {
+                Text(rsyncHeaderBadgeText)
                     .font(headerFont)
-                    .foregroundColor(.primary)
+                    .foregroundColor(rsyncBadgeForegroundColor)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 4)
+                    .background(rsyncBadgeBackgroundColor)
+                    .clipShape(Capsule())
+                    .frame(width: 220, alignment: .leading)
 
-                Spacer()
+                Spacer(minLength: 0)
 
-                Text("CenVu | hungvh.hfs@gmail.com")
-                    .font(headerFont)
-                    .foregroundColor(.secondary)
+                Group {
+                    Text("CenVu | ")
+                        .font(headerFont)
+                        .foregroundColor(.secondary)
+                    + Text("hungvh.hfs@gmail.com")
+                        .font(headerFont)
+                        .foregroundColor(.blue)
+                }
+                .lineLimit(1)
+                .truncationMode(.middle)
+                .frame(width: 260, alignment: .trailing)
             }
 
-            Text(rsyncHeaderBadgeText)
-                .font(headerFont)
-                .foregroundColor(rsyncBadgeForegroundColor)
-                .padding(.horizontal, 10)
-                .padding(.vertical, 4)
-                .background(rsyncBadgeBackgroundColor)
-                .clipShape(Capsule())
+            tabSelector
+                .frame(width: 340, alignment: .center)
         }
-        .frame(height: 32)
+        .frame(height: 44)
         .layoutPriority(1)
     }
 
     private var tabSelector: some View {
         HStack(spacing: 0) {
             Button(action: { selectedTab = .transfer }) {
-                Text("Transfer")
-                    .fontWeight(selectedTab == .transfer ? .semibold : .regular)
+                Text("TRANSFER")
+                    .fontWeight(selectedTab == .transfer ? .bold : .semibold)
                     .padding(.horizontal, 24)
                     .padding(.vertical, 6)
                     .background(selectedTab == .transfer ? Color(NSColor.controlAccentColor).opacity(0.15) : Color.clear)
@@ -89,7 +93,7 @@ public struct ContentView: View {
             
             Button(action: { selectedTab = .logs }) {
                 HStack(spacing: 6) {
-                    Text("Technical Logs")
+                    Text("TECHNICAL LOGS")
                     Text("\(viewModel.logs.count)")
                         .font(.system(.caption, design: .monospaced))
                         .padding(.horizontal, 6)
@@ -97,7 +101,7 @@ public struct ContentView: View {
                         .background(Color.secondary.opacity(0.2))
                         .clipShape(Capsule())
                 }
-                .fontWeight(selectedTab == .logs ? .semibold : .regular)
+                .fontWeight(selectedTab == .logs ? .bold : .semibold)
                 .padding(.horizontal, 24)
                 .padding(.vertical, 6)
                 .background(selectedTab == .logs ? Color(NSColor.controlAccentColor).opacity(0.15) : Color.clear)
@@ -111,7 +115,6 @@ public struct ContentView: View {
             RoundedRectangle(cornerRadius: 8)
                 .stroke(Color.secondary.opacity(0.2), lineWidth: 1)
         )
-        .padding(.bottom, 8)
         .layoutPriority(1)
     }
 
@@ -149,6 +152,12 @@ public struct ContentView: View {
                 logs: showDiagnostics ? viewModel.logs : LogVisibilityFilter.operatorVisible(from: viewModel.logs),
                 autoScroll: viewModel.transferState == .copying || viewModel.transferState == .verifying
             )
+
+            Text("FST v1.2 build 260703.1")
+                .font(.system(size: 10.5))
+                .foregroundColor(.secondary)
+                .padding(.top, 8)
+                .frame(maxWidth: .infinity, alignment: .center)
         }
         .padding(.horizontal, 16)
         .padding(.bottom, 16)

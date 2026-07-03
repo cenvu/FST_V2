@@ -77,7 +77,7 @@ public struct TransferControlsView: View {
                 Spacer()
                 Text("\(Int(displayProgress.rounded()))%")
                     .font(.system(.title3, design: .monospaced, weight: .semibold))
-                    .foregroundColor(viewModel.transferState.statusColor)
+                    .foregroundColor(viewModel.transferState == .verifying ? .orange : (viewModel.transferState == .copying ? .blue : viewModel.transferState.statusColor))
             }
 
             ProgressView(value: displayProgress, total: 100)
@@ -118,66 +118,65 @@ public struct TransferControlsView: View {
     }
 
     private var settingsPanel: some View {
-        VStack(alignment: .leading, spacing: 14) {
+        HStack(alignment: .top, spacing: 14) {
             Text("Transfer Settings")
                 .font(.headline)
                 .foregroundColor(.primary)
-
-            HStack(alignment: .top, spacing: 14) {
-                VStack(alignment: .leading, spacing: 7) {
-                    Text("Bandwidth Limit")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                        .fontWeight(.semibold)
-
-                    Picker("", selection: $viewModel.bandwidthLimit) {
-                        ForEach(bandwidthOptions, id: \.label) { option in
-                            Text(option.label).tag(option.value)
-                        }
-                    }
-                    .pickerStyle(.menu)
-                    .labelsHidden()
-                    .frame(maxWidth: .infinity, alignment: .leading)
-
-                    if !viewModel.isTransferConfigurationLocked {
-                        Text("Copy speed cap")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                            .opacity(0.6)
-                    }
-                }
+                .padding(.top, 2)
                 .frame(maxWidth: .infinity, alignment: .leading)
 
-                VStack(alignment: .leading, spacing: 7) {
-                    Text("Verification Mode")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                        .fontWeight(.semibold)
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Bandwidth Limit")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .fontWeight(.semibold)
 
-                    Picker("", selection: $viewModel.verificationMode) {
-                        Text(VerificationMode.none.operatorLabel).tag(VerificationMode.none)
-                        Text(VerificationMode.random33.operatorLabel).tag(VerificationMode.random33)
-                        Text(VerificationMode.full.operatorLabel).tag(VerificationMode.full)
-                    }
-                    .pickerStyle(.menu)
-                    .labelsHidden()
-                    .frame(maxWidth: .infinity, alignment: .leading)
-
-                    if !viewModel.isTransferConfigurationLocked {
-                        Text(viewModel.verificationMode.operatorDescription)
-                            .font(.system(.footnote, design: .rounded))
-                            .foregroundColor(.secondary)
-                            .opacity(0.6)
-                            .fixedSize(horizontal: false, vertical: true)
+                Picker("", selection: $viewModel.bandwidthLimit) {
+                    ForEach(bandwidthOptions, id: \.label) { option in
+                        Text(option.label).tag(option.value)
                     }
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
+                .pickerStyle(.menu)
+                .labelsHidden()
+                .frame(maxWidth: 220, alignment: .leading)
+
+                Text("Copy speed cap")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .opacity(0.6)
+                    .lineLimit(1)
+                    .truncationMode(.tail)
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Verification Mode")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .fontWeight(.semibold)
+
+                Picker("", selection: $viewModel.verificationMode) {
+                    Text(VerificationMode.none.operatorLabel).tag(VerificationMode.none)
+                    Text(VerificationMode.random33.operatorLabel).tag(VerificationMode.random33)
+                    Text(VerificationMode.full.operatorLabel).tag(VerificationMode.full)
+                }
+                .pickerStyle(.menu)
+                .labelsHidden()
+                .frame(maxWidth: 220, alignment: .leading)
+
+                Text(viewModel.verificationMode.operatorDescription)
+                    .font(.system(.footnote, design: .rounded))
+                    .foregroundColor(.secondary)
+                    .opacity(0.6)
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
         .disabled(viewModel.isTransferConfigurationLocked)
         .opacity(viewModel.isTransferConfigurationLocked ? 0.70 : 1)
         .padding(12)
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(maxWidth: .infinity, minHeight: 72, alignment: .leading)
         .background(Color(NSColor.controlBackgroundColor).opacity(0.55))
         .cornerRadius(10)
         .overlay(
@@ -277,26 +276,35 @@ public struct TransferControlsView: View {
     }
 
     private var copyRuntimeMetrics: some View {
-        VStack(spacing: 12) {
-            HStack(spacing: 12) {
+        Grid(horizontalSpacing: 12, verticalSpacing: 12) {
+            GridRow {
                 runtimeMetric(title: "COPY ELAPSED", value: formatElapsed(copyElapsedSeconds))
-                runtimeMetric(title: "CURRENT SPEED", value: currentSpeedValue)
-            }
-
-            runtimeMetric(title: runtimeFileMetricTitle, value: displayCurrentFile)
-
-            HStack(spacing: 12) {
-                runtimeMetric(title: "COPIED", value: copiedBytesValue)
-                runtimeMetric(title: "FILES", value: copiedFilesValue)
                 runtimeMetric(title: "ETA", value: copyEtaValue)
+                runtimeMetric(title: "CURRENT SPEED", value: currentSpeedValue)
+                runtimeMetric(title: "COPIED", value: copiedBytesValue)
             }
 
+            GridRow {
+                runtimeMetric(title: runtimeFileMetricTitle, value: displayCurrentFile)
+                    .gridCellColumns(3)
+                runtimeMetric(title: "FILES", value: copiedFilesValue)
+            }
         }
     }
 
     private var verifyRuntimeMetrics: some View {
-        VStack(spacing: 12) {
-            runtimeMetric(title: runtimeFileMetricTitle, value: displayCurrentFile)
+        Grid(horizontalSpacing: 12, verticalSpacing: 0) {
+            GridRow {
+                Color.clear.frame(maxWidth: .infinity, maxHeight: 0)
+                Color.clear.frame(maxWidth: .infinity, maxHeight: 0)
+                Color.clear.frame(maxWidth: .infinity, maxHeight: 0)
+                Color.clear.frame(maxWidth: .infinity, maxHeight: 0)
+            }
+            GridRow {
+                runtimeMetric(title: runtimeFileMetricTitle, value: displayCurrentFile)
+                    .gridCellColumns(3)
+                runtimeMetric(title: "ETA", value: "Estimating...")
+            }
         }
     }
 
@@ -502,9 +510,9 @@ nonisolated public enum TransferControlsActionPresentation {
         case .preparing:
             return "magnifyingglass"
         case .transferring:
-            return "arrow.triangle.2.circlepath"
+            return "arrow.right.circle.fill"
         case .verifying:
-            return "checkmark.shield"
+            return "checkmark.shield.fill"
         case .copyOnlyComplete:
             return "doc.on.doc"
         case .safeToFormat:
