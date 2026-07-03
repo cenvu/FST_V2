@@ -63,6 +63,7 @@ final class ProgressParserXCTests: XCTestCase {
         XCTAssertEqual(data.progress, 1.0, accuracy: 0.0001)
         XCTAssertEqual(data.speedMBps, 0.5, accuracy: 0.0001)
         XCTAssertEqual(data.eta, 10.0, accuracy: 0.0001)
+        XCTAssertEqual(data.transferredBytes, 1_024)
     }
 
     func testParsesMegabytesPerSecond() throws {
@@ -70,6 +71,7 @@ final class ProgressParserXCTests: XCTestCase {
         XCTAssertEqual(data.progress, 48.0, accuracy: 0.0001)
         XCTAssertEqual(data.speedMBps, 120.34, accuracy: 0.0001)
         XCTAssertEqual(data.eta, 90.0, accuracy: 0.0001)
+        XCTAssertEqual(data.transferredBytes, 1_245_890_560)
     }
 
     func testParsesGigabytesPerSecond() throws {
@@ -77,17 +79,37 @@ final class ProgressParserXCTests: XCTestCase {
         XCTAssertEqual(data.progress, 75.0, accuracy: 0.0001)
         XCTAssertEqual(data.speedMBps, 1536.0, accuracy: 0.0001)
         XCTAssertEqual(data.eta, 3.0, accuracy: 0.0001)
+        XCTAssertEqual(data.transferredBytes, 9_876_543_210)
     }
 
     func testParsesHumanReadableByteCounts() throws {
         let parser = ProgressParser()
-        XCTAssertEqual(try XCTUnwrap(parser.parse(line: "32.77K  3%  512.00kB/s    0:00:10")).progress, 3.0)
+        let kilobytes = try XCTUnwrap(parser.parse(line: "32.77K  3%  512.00kB/s    0:00:10"))
+        let megabytes = try XCTUnwrap(parser.parse(line: "107.01M  12%  4.00MB/s    0:00:08"))
+        let gigabytes = try XCTUnwrap(parser.parse(line: "5.21G  88%  1.50GB/s    0:00:07"))
+
+        XCTAssertEqual(kilobytes.progress, 3.0)
+        XCTAssertEqual(kilobytes.transferredBytes, 33_556)
+        XCTAssertEqual(megabytes.progress, 12.0)
+        XCTAssertEqual(megabytes.transferredBytes, 112_208_118)
+        XCTAssertEqual(gigabytes.progress, 88.0)
+        XCTAssertEqual(gigabytes.transferredBytes, 5_594_194_903)
         XCTAssertEqual(try XCTUnwrap(parser.parse(line: "524.29K  7%  1.00MB/s    0:00:09")).progress, 7.0)
         XCTAssertEqual(try XCTUnwrap(parser.parse(line: "1.23M  12%  4.00MB/s    0:00:08")).progress, 12.0)
         XCTAssertEqual(try XCTUnwrap(parser.parse(line: "9.87G  88%  1.50GB/s    0:00:07")).progress, 88.0)
         XCTAssertEqual(try XCTUnwrap(parser.parse(line: "1.00T  91%  900.00MB/s    0:00:06")).progress, 91.0)
         XCTAssertEqual(try XCTUnwrap(parser.parse(line: "512K  6%  2.00MB/s    0:00:05")).progress, 6.0)
         XCTAssertEqual(try XCTUnwrap(parser.parse(line: "1,024  1%  512.00kB/s    0:00:10")).progress, 1.0)
+    }
+
+    func testMalformedTransferredByteTokenReturnsNilWithoutBreakingProgressFields() throws {
+        let overflowToken = String(repeating: "9", count: 400) + "K"
+        let data = try XCTUnwrap(ProgressParser().parse(line: "\(overflowToken)  12%  1.00MB/s    0:00:01"))
+
+        XCTAssertEqual(data.progress, 12.0, accuracy: 0.0001)
+        XCTAssertEqual(data.speedMBps, 1.0, accuracy: 0.0001)
+        XCTAssertEqual(data.eta, 1.0, accuracy: 0.0001)
+        XCTAssertNil(data.transferredBytes)
     }
 
     func testParsesETAFields() throws {
@@ -166,12 +188,17 @@ final class ProgressParserXCTests: XCTestCase {
             guard case .progress(let progress) = event else { return nil }
             return progress
         }
+        let transferredByteEvents = events.compactMap { event -> Int64? in
+            guard case .transferredBytes(let bytes) = event else { return nil }
+            return bytes
+        }
         let diagnosticMessages = events.compactMap { event -> String? in
             guard case .log(let message) = event, message.hasPrefix("DIAG [RSYNC TIMING]") else { return nil }
             return message
         }
 
         XCTAssertEqual(progressEvents, [0.0, 1.0])
+        XCTAssertEqual(transferredByteEvents, [33_556, 1_048_576])
         XCTAssertTrue(diagnosticMessages.contains { $0.contains("First parsed progress2 record") })
         XCTAssertTrue(diagnosticMessages.contains { $0.contains("First structured progress >0") })
     }

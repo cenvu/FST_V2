@@ -4,6 +4,7 @@ nonisolated public struct ProgressData: Equatable, Sendable {
     public let progress: Double
     public let speedMBps: Double
     public let eta: TimeInterval
+    public let transferredBytes: Int64?
 }
 
 nonisolated public final class ProgressParser: Sendable {
@@ -52,7 +53,12 @@ nonisolated public final class ProgressParser: Sendable {
             return nil
         }
 
-        return ProgressData(progress: progress, speedMBps: speedMBps, eta: eta)
+        return ProgressData(
+            progress: progress,
+            speedMBps: speedMBps,
+            eta: eta,
+            transferredBytes: parseTransferredBytes(components[0])
+        )
     }
     
     private func parseSpeed(_ string: String) -> Double? {
@@ -96,6 +102,44 @@ nonisolated public final class ProgressParser: Sendable {
         }
 
         return isPlainNumber(String(string.dropLast()))
+    }
+
+    private func parseTransferredBytes(_ string: String) -> Int64? {
+        if isCommaSeparatedInteger(string) {
+            return Int64(string.replacingOccurrences(of: ",", with: ""))
+        }
+
+        guard let unit = string.last,
+              let multiplier = byteMultiplier(for: unit),
+              isPlainNumber(String(string.dropLast())),
+              let value = Double(String(string.dropLast())),
+              value.isFinite,
+              value >= 0 else {
+            return nil
+        }
+
+        let bytes = value * multiplier
+        guard bytes.isFinite,
+              bytes <= Double(Int64.max) else {
+            return nil
+        }
+
+        return Int64(bytes.rounded(.toNearestOrAwayFromZero))
+    }
+
+    private func byteMultiplier(for unit: Character) -> Double? {
+        switch unit {
+        case "K":
+            return 1024
+        case "M":
+            return 1024 * 1024
+        case "G":
+            return 1024 * 1024 * 1024
+        case "T":
+            return 1024 * 1024 * 1024 * 1024
+        default:
+            return nil
+        }
     }
 
     private func isCommaSeparatedInteger(_ string: String) -> Bool {

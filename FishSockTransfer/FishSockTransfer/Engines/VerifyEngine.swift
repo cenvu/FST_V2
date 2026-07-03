@@ -28,6 +28,7 @@ public actor VerifyEngine {
         
         let startDate = Date()
         do {
+            onEvent(.preparing("Preparing verification inventory..."))
             log("Phase: Source inventory build started", onEvent: onEvent)
             let sourceInventory = try await buildInventory(at: request.sourceURL, label: "Source", onEvent: onEvent)
             log("Phase: Source inventory build completed", onEvent: onEvent)

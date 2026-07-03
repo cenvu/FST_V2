@@ -46,6 +46,7 @@ nonisolated public enum TransferEvent: Equatable, Sendable {
     case progress(Double)
     case speed(Double)
     case eta(TimeInterval)
+    case transferredBytes(Int64?)
     case currentFile(String)
     case log(String)
     case completed

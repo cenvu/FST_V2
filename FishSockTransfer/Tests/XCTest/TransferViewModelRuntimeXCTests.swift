@@ -72,9 +72,115 @@ final class TransferViewModelRuntimeXCTests: XCTestCase {
         XCTAssertEqual(TransferRuntimeMetricPresentation.timeValue(seconds: 0), "-")
     }
 
+    func testProjectETAUnavailableBeforeTenSecondsElapsed() {
+        let viewModel = makeViewModel()
+        viewModel.sourceMetadata = sourceMetadata(totalSizeBytes: 1_000)
+
+        viewModel.beginCopyRuntime(at: Date(timeIntervalSince1970: 100))
+        viewModel.applyTransferSpeed(10)
+        viewModel.applyTransferredBytes(100, now: Date(timeIntervalSince1970: 109))
+
+        XCTAssertEqual(viewModel.projectETA, 0, accuracy: 0.0001)
+    }
+
+    func testProjectETAUnavailableWhenSpeedIsZero() {
+        let viewModel = makeViewModel()
+        viewModel.sourceMetadata = sourceMetadata(totalSizeBytes: 1_000)
+
+        viewModel.beginCopyRuntime(at: Date(timeIntervalSince1970: 100))
+        viewModel.applyTransferSpeed(0)
+        viewModel.applyTransferredBytes(100, now: Date(timeIntervalSince1970: 120))
+
+        XCTAssertEqual(viewModel.projectETA, 0, accuracy: 0.0001)
+    }
+
+    func testProjectETAUnavailableWhenSourceTotalIsZeroOrTransferredBytesMissing() {
+        let viewModel = makeViewModel()
+
+        viewModel.sourceMetadata = sourceMetadata(totalSizeBytes: 0)
+        viewModel.beginCopyRuntime(at: Date(timeIntervalSince1970: 100))
+        viewModel.applyTransferSpeed(10)
+        viewModel.applyTransferredBytes(100, now: Date(timeIntervalSince1970: 120))
+        XCTAssertEqual(viewModel.projectETA, 0, accuracy: 0.0001)
+
+        viewModel.sourceMetadata = sourceMetadata(totalSizeBytes: 1_000)
+        viewModel.applyTransferredBytes(nil, now: Date(timeIntervalSince1970: 121))
+        XCTAssertEqual(viewModel.projectETA, 0, accuracy: 0.0001)
+    }
+
+    func testProjectETAReturnsSanePositiveValueWhenInputsAreValid() {
+        let viewModel = makeViewModel()
+        viewModel.sourceMetadata = sourceMetadata(totalSizeBytes: 10 * 1024 * 1024)
+
+        viewModel.beginCopyRuntime(at: Date(timeIntervalSince1970: 100))
+        viewModel.applyTransferSpeed(2)
+        viewModel.applyTransferredBytes(2 * 1024 * 1024, now: Date(timeIntervalSince1970: 120))
+
+        XCTAssertEqual(viewModel.projectETA, 4, accuracy: 0.0001)
+    }
+
+    func testProjectETAClearsOnTransitionToVerifying() {
+        let viewModel = makeViewModel()
+        viewModel.sourceMetadata = sourceMetadata(totalSizeBytes: 10 * 1024 * 1024)
+
+        viewModel.beginCopyRuntime(at: Date(timeIntervalSince1970: 100))
+        viewModel.applyTransferSpeed(2)
+        viewModel.applyTransferredBytes(2 * 1024 * 1024, now: Date(timeIntervalSince1970: 120))
+        XCTAssertGreaterThan(viewModel.projectETA, 0)
+
+        viewModel.applyTransferState(.verifying)
+
+        XCTAssertEqual(viewModel.projectETA, 0, accuracy: 0.0001)
+    }
+
+    func testProjectETAIsNotDerivedFromRsyncNativeETA() {
+        let viewModel = makeViewModel()
+        viewModel.sourceMetadata = sourceMetadata(totalSizeBytes: 10 * 1024 * 1024)
+
+        viewModel.beginCopyRuntime(at: Date(timeIntervalSince1970: 100))
+        viewModel.applyTransferSpeed(2)
+        viewModel.applyTransferTime(999)
+        viewModel.applyTransferredBytes(2 * 1024 * 1024, now: Date(timeIntervalSince1970: 120))
+
+        XCTAssertEqual(viewModel.eta, 999, accuracy: 0.0001)
+        XCTAssertEqual(viewModel.projectETA, 4, accuracy: 0.0001)
+    }
+
+    func testVerifyPreparingSignalTogglesUntilFirstVerificationProgress() {
+        let viewModel = makeViewModel()
+
+        viewModel.applyVerifyPreparing("Preparing verification inventory...")
+        XCTAssertTrue(viewModel.isPreparingVerify)
+        XCTAssertEqual(viewModel.verifyPhaseDescription, "Preparing verification inventory...")
+
+        viewModel.applyVerifyPreparing("")
+        XCTAssertFalse(viewModel.isPreparingVerify)
+        XCTAssertEqual(viewModel.verifyPhaseDescription, "")
+    }
+
+    func testTerminalFailureAndCancellationDoNotBecomeSafeToEject() {
+        let viewModel = makeViewModel()
+
+        viewModel.applyTransferState(.cancelled)
+        XCTAssertNotEqual(viewModel.transferState, .safeToFormat)
+
+        viewModel.applyTransferState(.error)
+        XCTAssertNotEqual(viewModel.transferState, .safeToFormat)
+    }
+
     private func makeViewModel() -> TransferViewModel {
         TransferViewModel(
             bundledRsyncService: BundledRsyncService(bundledExecutableURL: nil)
+        )
+    }
+
+    private func sourceMetadata(totalSizeBytes: Int64) -> SourceStorageMetadata {
+        SourceStorageMetadata(
+            folderName: "CARD",
+            fullPath: "/Volumes/CARD",
+            totalSizeBytes: totalSizeBytes,
+            fileCount: totalSizeBytes > 0 ? 1 : 0,
+            folderCount: 0
         )
     }
 }

@@ -303,6 +303,7 @@ nonisolated struct RsyncStdoutRecordProcessor: Sendable {
         onEvent(.progress(activeProgress))
         onEvent(.speed(data.speedMBps))
         onEvent(.eta(data.eta))
+        onEvent(.transferredBytes(data.transferredBytes))
         onEvent(.log(String(format: "Actual Runtime Speed: %.2f MB/s", data.speedMBps)))
     }
 }

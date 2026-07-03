@@ -34,6 +34,7 @@ nonisolated public enum VerificationError: Error, Equatable, LocalizedError, Sen
 
 nonisolated public enum VerificationEvent: Equatable, Sendable {
     case started
+    case preparing(String)
     case progress(Double)
     case currentFile(String)
     case log(String)

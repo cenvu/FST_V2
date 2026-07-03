@@ -16,7 +16,9 @@ public actor TransferCoordinator {
     private var onProgress: (@MainActor @Sendable (Double) -> Void)?
     private var onSpeed: (@MainActor @Sendable (Double) -> Void)?
     private var onTransferTime: (@MainActor @Sendable (TimeInterval) -> Void)?
+    private var onTransferredBytes: (@MainActor @Sendable (Int64?) -> Void)?
     private var onCurrentFile: (@MainActor @Sendable (String) -> Void)?
+    private var onVerifyPreparing: (@MainActor @Sendable (String) -> Void)?
     private var onError: (@MainActor @Sendable (String) -> Void)?
     private var onLog: (@MainActor @Sendable (LogEntry) -> Void)?
     /// Returns the full unfiltered log array from the ViewModel (including DIAG [VIEWMODEL] entries).
@@ -47,7 +49,9 @@ public actor TransferCoordinator {
         onProgress: (@MainActor @Sendable @escaping (Double) -> Void),
         onSpeed: (@MainActor @Sendable @escaping (Double) -> Void),
         onTransferTime: (@MainActor @Sendable @escaping (TimeInterval) -> Void),
+        onTransferredBytes: (@MainActor @Sendable @escaping (Int64?) -> Void),
         onCurrentFile: (@MainActor @Sendable @escaping (String) -> Void),
+        onVerifyPreparing: (@MainActor @Sendable @escaping (String) -> Void),
         onError: (@MainActor @Sendable @escaping (String) -> Void),
         onLog: (@MainActor @Sendable @escaping (LogEntry) -> Void),
         onLogsSnapshot: (@MainActor @Sendable () -> [LogEntry])? = nil
@@ -56,7 +60,9 @@ public actor TransferCoordinator {
         self.onProgress = onProgress
         self.onSpeed = onSpeed
         self.onTransferTime = onTransferTime
+        self.onTransferredBytes = onTransferredBytes
         self.onCurrentFile = onCurrentFile
+        self.onVerifyPreparing = onVerifyPreparing
         self.onError = onError
         self.onLog = onLog
         self.onLogsSnapshot = onLogsSnapshot
@@ -362,6 +368,8 @@ public actor TransferCoordinator {
                             )
                         }
                         await self.log(category: .progress, message: "Rsync Time \(self.formatTransferTime(e))")
+                    case .transferredBytes(let bytes):
+                        await self.onTransferredBytes?(bytes)
                     case .currentFile(let f):
                         await self.onCurrentFile?(f)
                         await self.log(category: .file, message: f)
@@ -407,8 +415,12 @@ public actor TransferCoordinator {
                 for await event in eventStream {
                     switch event {
                     case .progress(let p):
+                        await self.onVerifyPreparing?("")
                         await self.onProgress?(p)
                         await self.log(category: .progress, message: "Verification \(Int((p * 100).rounded()))%")
+                    case .preparing(let description):
+                        await self.onVerifyPreparing?(description)
+                        await self.log(category: .verify, message: description)
                     case .currentFile(let f):
                         await self.onCurrentFile?(f)
                         await self.log(category: .file, message: f)

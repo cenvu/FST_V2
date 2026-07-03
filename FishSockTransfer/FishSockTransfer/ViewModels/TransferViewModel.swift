@@ -33,6 +33,9 @@ public final class TransferViewModel: ObservableObject {
     @Published public var workflowPhaseTitle: String = ""
     @Published public var workflowPhaseMessage: String = ""
     @Published public var workflowElapsedSeconds: Int = 0
+    @Published public var projectETA: TimeInterval = 0.0
+    @Published public var isPreparingVerify: Bool = false
+    @Published public var verifyPhaseDescription: String = ""
     @Published public var bundledRsyncInfo: BundledRsyncInfo = .unavailable(
         version: BundledRsyncService.bundledVersion,
         diagnostics: []
@@ -46,6 +49,8 @@ public final class TransferViewModel: ObservableObject {
     private var destinationMetadataTask: Task<Void, Never>?
     private var workflowElapsedTask: Task<Void, Never>?
     private var workflowPhaseStartedAt: Date?
+    private var copyStartedAt: Date?
+    private var copyTransferredBytes: Int64 = 0
     private var didLogFirstAppliedProgress = false
     private var didLogFirstAppliedSpeed = false
     private var didLogFirstAppliedTransferTime = false
@@ -115,8 +120,14 @@ public final class TransferViewModel: ObservableObject {
                 onTransferTime: { [weak self] e in
                     self?.applyTransferTime(e)
                 },
+                onTransferredBytes: { [weak self] bytes in
+                    self?.applyTransferredBytes(bytes)
+                },
                 onCurrentFile: { [weak self] f in
                     self?.applyCurrentFile(f)
+                },
+                onVerifyPreparing: { [weak self] description in
+                    self?.applyVerifyPreparing(description)
                 },
                 onError: { [weak self] message in
                     self?.errorMessage = message
@@ -151,6 +162,7 @@ public final class TransferViewModel: ObservableObject {
 
     internal func applyTransferSpeed(_ speed: Double) {
         self.speed = speed
+        recalculateProjectETA()
         if speed > 0, !didLogFirstAppliedSpeed {
             didLogFirstAppliedSpeed = true
             addLog(category: .progress, message: String(format: "DIAG [VIEWMODEL] First speed applied: %.2f MB/s", speed))
@@ -167,6 +179,33 @@ public final class TransferViewModel: ObservableObject {
 
     internal func applyCurrentFile(_ currentFile: String) {
         self.currentFile = currentFile
+    }
+
+    internal func applyTransferredBytes(_ transferredBytes: Int64?, now: Date = Date()) {
+        guard let transferredBytes, transferredBytes > 0 else {
+            clearProjectETA()
+            return
+        }
+
+        copyTransferredBytes = transferredBytes
+        recalculateProjectETA(now: now)
+    }
+
+    internal func applyVerifyPreparing(_ description: String) {
+        guard !description.isEmpty else {
+            isPreparingVerify = false
+            verifyPhaseDescription = ""
+            return
+        }
+
+        isPreparingVerify = true
+        verifyPhaseDescription = description
+    }
+
+    internal func beginCopyRuntime(at startedAt: Date = Date()) {
+        copyStartedAt = startedAt
+        copyTransferredBytes = 0
+        clearProjectETA()
     }
     
     public func startTransfer() {
@@ -231,6 +270,8 @@ public final class TransferViewModel: ObservableObject {
     private func resetTransferMetrics() {
         progress = 0.0
         clearCopyRuntimeMetrics()
+        clearProjectETAState()
+        clearVerifyPreparing()
         clearWorkflowPhase()
         resetRuntimeDiagnosticMarkers()
     }
@@ -243,23 +284,33 @@ public final class TransferViewModel: ObservableObject {
             progress = 0.0
             clearWorkflowPhase()
             clearCopyRuntimeMetrics()
+            clearProjectETAState()
+            applyVerifyPreparing("Preparing verification...")
         case .copyComplete, .safeToFormat:
             progress = 100.0
             clearWorkflowPhase()
             clearCopyRuntimeMetrics()
+            clearProjectETAState()
+            clearVerifyPreparing()
         case .error, .cancelled:
             clearWorkflowPhase()
             clearCopyRuntimeMetrics()
+            clearProjectETAState()
+            clearVerifyPreparing()
         case .validating:
             progress = 0.0
             clearCopyRuntimeMetrics()
+            clearProjectETAState()
+            clearVerifyPreparing()
             if workflowPhaseStartedAt == nil {
                 beginPreparationPhase()
             }
         case .copying:
             clearWorkflowPhase()
+            clearVerifyPreparing()
             if previousState != .copying {
                 clearCopyRuntimeMetrics()
+                beginCopyRuntime()
             }
         }
     }
@@ -268,6 +319,54 @@ public final class TransferViewModel: ObservableObject {
         speed = 0.0
         eta = 0.0
         currentFile = ""
+    }
+
+    private func clearProjectETAState() {
+        copyStartedAt = nil
+        copyTransferredBytes = 0
+        clearProjectETA()
+    }
+
+    private func clearProjectETA() {
+        projectETA = 0.0
+    }
+
+    private func clearVerifyPreparing() {
+        isPreparingVerify = false
+        verifyPhaseDescription = ""
+    }
+
+    private func recalculateProjectETA(now: Date = Date()) {
+        guard let copyStartedAt else {
+            clearProjectETA()
+            return
+        }
+
+        let elapsed = now.timeIntervalSince(copyStartedAt)
+        guard elapsed >= 10,
+              let sourceTotalBytes = sourceMetadata?.totalSizeBytes,
+              sourceTotalBytes > 0,
+              copyTransferredBytes > 0,
+              speed > 0,
+              speed.isFinite else {
+            clearProjectETA()
+            return
+        }
+
+        let speedBytesPerSecond = speed * 1024 * 1024
+        guard speedBytesPerSecond.isFinite, speedBytesPerSecond > 0 else {
+            clearProjectETA()
+            return
+        }
+
+        let remainingBytes = max(sourceTotalBytes - copyTransferredBytes, 0)
+        let eta = Double(remainingBytes) / speedBytesPerSecond
+        guard eta.isFinite, eta > 0 else {
+            clearProjectETA()
+            return
+        }
+
+        projectETA = eta
     }
 
     private func resetRuntimeDiagnosticMarkers() {
