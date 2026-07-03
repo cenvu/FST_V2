@@ -10,9 +10,9 @@ APP_NAME="FishSockTransfer.app"
 PACKAGE_LABEL="macOS13_5plus-arm64"
 
 # Version — override from environment if needed:
-# APP_VERSION=1.2 BUILD_NUMBER=20260703 ./scripts/package-local-arm64.sh
-APP_VERSION="${APP_VERSION:-1.2}"
-BUILD_NUMBER="${BUILD_NUMBER:-20260703}"
+# APP_VERSION=1.2.1 BUILD_NUMBER=20260704 ./scripts/package-local-arm64.sh
+APP_VERSION="${APP_VERSION:-1.2.1}"
+BUILD_NUMBER="${BUILD_NUMBER:-20260704}"
 ZIP_NAME="FishSockTransfer-v${APP_VERSION}-b${BUILD_NUMBER}-local-${PACKAGE_LABEL}.zip"
 
 DIST_DIR="$REPO_ROOT/dist"

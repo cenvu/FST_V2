@@ -30,8 +30,8 @@ If the final status is unclear, unsafe, or misleading, the product has failed.
 
 Current release state:
 
-- Version: v1.2 build 20260703
-- Package: `dist/FishSockTransfer-v1.2-b20260703-local-macOS13_5plus-arm64.zip`
+- Version: v1.2.1 build 20260704
+- Package: `dist/FishSockTransfer-v1.2.1-b20260704-local-macOS13_5plus-arm64.zip`
 - Platform: macOS 13.5+, Apple Silicon arm64
 - Package type: local owner-side ad-hoc build
 - Signing: ad-hoc signed, not notarized, not Developer ID signed
@@ -88,6 +88,14 @@ Out of scope:
 - Report: plain TXT with summary plus FULL TECHNICAL LOG
 
 Production transfer must not silently fallback to Apple `/usr/bin/rsync`, Homebrew rsync, or any system rsync.
+
+## v1.2.1 Verify ETA Patch
+
+FST v1.2.1 — Verify ETA Patch
+- Added UI-only Verify ETA estimate during verification.
+- ETA is based on verify elapsed time and verify progress.
+- ETA is approximate and does not affect verification result, report, or Safe To Eject.
+- Copy progress observer and rsync lifecycle are unchanged.
 
 ## v1.2 Runtime Copy Progress
 
@@ -291,7 +299,7 @@ APP_VERSION=1.2 BUILD_NUMBER=20260703 bash scripts/package-local-arm64.sh
 Expected output:
 
 ```text
-dist/FishSockTransfer-v1.2-b20260703-local-macOS13_5plus-arm64.zip
+dist/FishSockTransfer-v1.2.1-b20260704-local-macOS13_5plus-arm64.zip
 ```
 
 The packaging script validates app version, build number, `LSMinimumSystemVersion`, bundled rsync 3.4.4, arm64 architecture, dylib loader paths, ad-hoc codesign structure, and absence of AppleDouble zip entries.
