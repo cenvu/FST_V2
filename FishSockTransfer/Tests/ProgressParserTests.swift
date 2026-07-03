@@ -33,8 +33,11 @@ struct ProgressParserTests {
         testRsyncOutputFramerHandlesNewlineRecords()
         testRsyncOutputFramerHandlesCRLFRecords()
         testRsyncOutputFramerHandlesPartialChunks()
+        testRsyncOutputFramerHandlesMixedNameAndProgressRecords()
+        testRsyncOutputFramerHandlesBurstOfFilenamesAndProgress()
         try! testRsyncCommandIncludesOutputBufferArgumentAndNoFallbackPath()
         testParsesKilobytesPerSecond()
+        testParsesCROnlyProgressRecord()
         testParsesMegabytesPerSecond()
         testParsesGigabytesPerSecond()
         testParsesHumanReadableKilobyteByteCounts()
@@ -52,6 +55,8 @@ struct ProgressParserTests {
         testCompletedCopyProgressIsOnlyFinalHundredConstant()
         testProgressDeliveryGateThrottlesDuplicateProgressButAllowsForcedFirstProgress()
         testStdoutRecordProcessorThrottlesManyProgressRecordsWithoutSuppressingFirstProgress()
+        testStdoutRecordProcessorEmitsCurrentFileForNameRecords()
+        testStdoutRecordProcessorIgnoresEmptyFilenameRecords()
 
         print("ProgressParserTests passed")
     }
@@ -100,6 +105,42 @@ struct ProgressParserTests {
         assertEqual(framer.flush(), "next", "partial chunk flush")
     }
 
+    private static func testRsyncOutputFramerHandlesMixedNameAndProgressRecords() {
+        var framer = RsyncOutputFramer()
+        let records = framer.append(Data("MACOS-APP/A Better File.dmg\n32.77K  3%  1.00MB/s    0:00:10\r".utf8))
+
+        assertEqual(
+            records,
+            [
+                "MACOS-APP/A Better File.dmg",
+                "32.77K  3%  1.00MB/s    0:00:10"
+            ],
+            "mixed name and progress records"
+        )
+    }
+
+    private static func testRsyncOutputFramerHandlesBurstOfFilenamesAndProgress() {
+        var framer = RsyncOutputFramer()
+        let records = framer.append(Data("""
+        MACOS-APP/
+        MACOS-APP/file one.mov
+        32.77K  0%  0.00kB/s    0:00:00\r250.26M  1%  117.04MB/s    0:02:30\rMACOS-APP/file two.mov
+
+        """.utf8))
+
+        assertEqual(
+            records,
+            [
+                "MACOS-APP/",
+                "MACOS-APP/file one.mov",
+                "32.77K  0%  0.00kB/s    0:00:00",
+                "250.26M  1%  117.04MB/s    0:02:30",
+                "MACOS-APP/file two.mov"
+            ],
+            "burst filename and progress records"
+        )
+    }
+
     private static func testRsyncCommandIncludesOutputBufferArgumentAndNoFallbackPath() throws {
         let rsyncURL = URL(fileURLWithPath: "/Applications/FishSockTransfer.app/Contents/Resources/rsync")
         let command = try RsyncCommand(
@@ -112,8 +153,10 @@ struct ProgressParserTests {
         )
 
         assertEqual(command.executableURL, rsyncURL, "command uses supplied bundled rsync URL")
-        assertEqual(command.arguments.contains("--outbuf=L"), true, "rsync command includes line-buffered output")
-        assertEqual(command.arguments.contains("--info=progress2"), true, "rsync command keeps progress2")
+        assertEqual(command.arguments.contains("--outbuf=N"), true, "rsync command uses unbuffered output")
+        assertEqual(command.arguments.contains("--outbuf=L"), false, "rsync command does not use line-buffered output")
+        assertEqual(command.arguments.contains("--info=name1,progress2"), true, "rsync command emits filenames and progress2")
+        assertEqual(command.arguments.contains("--info=progress2"), false, "rsync command does not omit name1")
         assertEqual(command.arguments.contains("-h"), true, "rsync command keeps human-readable output")
         assertEqual(command.arguments.contains("--bwlimit=51200"), true, "rsync command keeps converted bwlimit")
         assertEqual(command.executableURL.path.contains("/usr/bin/rsync"), false, "command must not use system rsync")
@@ -130,6 +173,17 @@ struct ProgressParserTests {
         assertApproximatelyEqual(data.progress, 1.0, "kB/s progress")
         assertApproximatelyEqual(data.speedMBps, 0.5, "kB/s speed conversion")
         assertApproximatelyEqual(data.eta, 10.0, "kB/s ETA")
+    }
+
+    private static func testParsesCROnlyProgressRecord() {
+        let data = assertNotNil(
+            ProgressParser().parse(line: "32.77K  0%  0.00kB/s    0:00:00\r"),
+            "CR-only progress2 line"
+        )
+
+        assertApproximatelyEqual(data.progress, 0.0, "CR-only progress")
+        assertApproximatelyEqual(data.speedMBps, 0.0, "CR-only speed")
+        assertApproximatelyEqual(data.eta, 0.0, "CR-only ETA")
     }
 
     private static func testParsesMegabytesPerSecond() {
@@ -326,15 +380,56 @@ struct ProgressParserTests {
 
         assertEqual(progressEvents, [0.0, 1.0], "throttled processor progress delivery")
         assertEqual(
-            diagnosticMessages.contains { $0.contains("First parsed progress2 record") },
+            diagnosticMessages.contains { $0.contains("First rsync progress after") },
             true,
-            "first parsed progress2 diagnostic"
+            "first parsed progress diagnostic"
         )
         assertEqual(
             diagnosticMessages.contains { $0.contains("First structured progress >0") },
             true,
             "first structured progress diagnostic"
         )
+    }
+
+    private static func testStdoutRecordProcessorEmitsCurrentFileForNameRecords() {
+        let diagnostics = RsyncCopyTimingDiagnostics()
+        diagnostics.reset(startedAt: Date())
+        let recorder = StandaloneTransferEventRecorder()
+        var processor = RsyncStdoutRecordProcessor(diagnostics: diagnostics) { event in
+            recorder.append(event)
+        }
+
+        processor.process("MACOS-APP/A Better File.dmg\n")
+        let events = recorder.snapshot()
+
+        assertEqual(events.contains(.currentFile("MACOS-APP/A Better File.dmg")), true, "filename emits current file")
+        assertEqual(events.contains(.log("[STDOUT] MACOS-APP/A Better File.dmg")), true, "filename stdout log")
+        assertEqual(
+            events.contains { event in
+                guard case .log(let message) = event else { return false }
+                return message.contains("First rsync filename after")
+            },
+            true,
+            "first filename diagnostic"
+        )
+    }
+
+    private static func testStdoutRecordProcessorIgnoresEmptyFilenameRecords() {
+        let diagnostics = RsyncCopyTimingDiagnostics()
+        diagnostics.reset(startedAt: Date())
+        let recorder = StandaloneTransferEventRecorder()
+        var processor = RsyncStdoutRecordProcessor(diagnostics: diagnostics) { event in
+            recorder.append(event)
+        }
+
+        processor.process("MACOS-APP/A Better File.dmg\n")
+        processor.process("   \n")
+
+        let currentFiles = recorder.snapshot().compactMap { event -> String? in
+            guard case .currentFile(let file) = event else { return nil }
+            return file
+        }
+        assertEqual(currentFiles, ["MACOS-APP/A Better File.dmg"], "empty records do not clear current file")
     }
 }
 

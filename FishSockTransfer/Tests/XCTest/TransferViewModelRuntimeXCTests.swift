@@ -55,11 +55,11 @@ final class TransferViewModelRuntimeXCTests: XCTestCase {
     func testCopyPhaseEmptyCurrentFileUsesTruthfulTotalProgressWording() {
         XCTAssertEqual(
             TransferRuntimeMetricPresentation.currentFileTitle(currentFile: "", state: .copying),
-            "COPY PROGRESS"
+            "CURRENT ITEM"
         )
         XCTAssertEqual(
             TransferRuntimeMetricPresentation.currentFileValue(currentFile: "", state: .copying),
-            "Tracking total rsync progress"
+            "Waiting for first file..."
         )
         XCTAssertNotEqual(
             TransferRuntimeMetricPresentation.currentFileValue(currentFile: "", state: .copying),
@@ -70,6 +70,174 @@ final class TransferViewModelRuntimeXCTests: XCTestCase {
     func testRsyncTimePresentationDoesNotUseETAWording() {
         XCTAssertEqual(TransferRuntimeMetricPresentation.timeValue(seconds: 90), "01:30")
         XCTAssertEqual(TransferRuntimeMetricPresentation.timeValue(seconds: 0), "-")
+    }
+
+    func testZeroPercentProgressWithSpeedAndTimeStillUpdatesRuntimeMetrics() {
+        let viewModel = makeViewModel()
+
+        viewModel.applyTransferState(.copying)
+        viewModel.applyTransferProgress(0)
+        viewModel.applyTransferSpeed(117.04)
+        viewModel.applyTransferTime(150)
+
+        XCTAssertEqual(viewModel.progress, 0, accuracy: 0.0001)
+        XCTAssertEqual(viewModel.speed, 117.04, accuracy: 0.0001)
+        XCTAssertEqual(viewModel.eta, 150, accuracy: 0.0001)
+    }
+
+    func testBlankCurrentFileDoesNotClearUsefulFileDuringActiveCopy() {
+        let viewModel = makeViewModel()
+
+        viewModel.applyTransferState(.copying)
+        viewModel.applyCurrentFile("MACOS-APP/A Better File.dmg")
+        viewModel.applyCurrentFile("")
+
+        XCTAssertEqual(viewModel.currentFile, "MACOS-APP/A Better File.dmg")
+    }
+
+    func testTerminalAndVerifyTransitionsClearCurrentItemAndRuntimeMetrics() {
+        let viewModel = makeViewModel()
+
+        viewModel.applyTransferState(.copying)
+        viewModel.applyTransferProgress(42.5)
+        viewModel.applyTransferSpeed(120.25)
+        viewModel.applyTransferTime(90)
+        viewModel.applyCurrentFile("MACOS-APP/A Better File.dmg")
+
+        viewModel.applyTransferState(.verifying)
+
+        XCTAssertEqual(viewModel.progress, 0, accuracy: 0.0001)
+        XCTAssertEqual(viewModel.speed, 0, accuracy: 0.0001)
+        XCTAssertEqual(viewModel.eta, 0, accuracy: 0.0001)
+        XCTAssertEqual(viewModel.currentFile, "")
+
+        viewModel.applyTransferState(.copying)
+        viewModel.applyTransferProgress(42.5)
+        viewModel.applyTransferSpeed(120.25)
+        viewModel.applyTransferTime(90)
+        viewModel.applyCurrentFile("MACOS-APP/A Better File.dmg")
+
+        viewModel.applyTransferState(.cancelled)
+
+        XCTAssertEqual(viewModel.speed, 0, accuracy: 0.0001)
+        XCTAssertEqual(viewModel.eta, 0, accuracy: 0.0001)
+        XCTAssertEqual(viewModel.currentFile, "")
+    }
+
+    func testViewModelUsesObserverMetricsWhenRsyncProgressUnavailable() {
+        let viewModel = makeViewModel()
+        let observedAt = Date()
+        let snapshot = CopyRuntimeSnapshot(
+            elapsedSeconds: 15,
+            currentItem: "MACOS-APP/observed.mov",
+            copiedBytes: 50 * 1_048_576,
+            totalBytes: 100 * 1_048_576,
+            copiedFiles: 3,
+            totalFiles: 6,
+            progressFraction: 0.5,
+            currentSpeedBytesPerSecond: 10 * 1_048_576,
+            averageSpeedBytesPerSecond: 5 * 1_048_576,
+            etaSeconds: 5,
+            signalSource: .destinationObserver,
+            lastObservedAt: observedAt,
+            activityState: .observingDestination
+        )
+
+        viewModel.applyTransferState(.copying)
+        viewModel.applyCopyRuntimeSnapshot(snapshot)
+
+        XCTAssertEqual(viewModel.transferState, .copying)
+        XCTAssertEqual(viewModel.progress, 50, accuracy: 0.0001)
+        XCTAssertEqual(viewModel.speed, 10, accuracy: 0.0001)
+        XCTAssertEqual(viewModel.eta, 5, accuracy: 0.0001)
+        XCTAssertEqual(viewModel.currentFile, "MACOS-APP/observed.mov")
+        XCTAssertEqual(viewModel.copyElapsedSeconds, 15)
+        XCTAssertEqual(viewModel.copyRuntimeSignalSource, .destinationObserver)
+    }
+
+    func testViewModelPrefersRsyncCurrentFileWhenObserverAlsoHasCurrentItem() {
+        let viewModel = makeViewModel()
+        let snapshot = CopyRuntimeSnapshot(
+            elapsedSeconds: 15,
+            currentItem: "MACOS-APP/observed.mov",
+            copiedBytes: 50 * 1_048_576,
+            totalBytes: 100 * 1_048_576,
+            copiedFiles: 3,
+            totalFiles: 6,
+            progressFraction: 0.5,
+            currentSpeedBytesPerSecond: 10 * 1_048_576,
+            averageSpeedBytesPerSecond: 5 * 1_048_576,
+            etaSeconds: 5,
+            signalSource: .destinationObserver,
+            lastObservedAt: Date().addingTimeInterval(20),
+            activityState: .observingDestination
+        )
+
+        viewModel.applyTransferState(.copying)
+        viewModel.applyCurrentFile("MACOS-APP/rsync.mov")
+        viewModel.applyCopyRuntimeSnapshot(snapshot)
+
+        XCTAssertEqual(viewModel.currentFile, "MACOS-APP/rsync.mov")
+        XCTAssertEqual(viewModel.copyRuntimeSignalSource, .mixed)
+    }
+
+    func testObserverMetricsDoNotAffectSafeToEjectGate() {
+        let viewModel = makeViewModel()
+        let snapshot = CopyRuntimeSnapshot(
+            elapsedSeconds: 20,
+            currentItem: "clip.mov",
+            copiedBytes: 100,
+            totalBytes: 100,
+            copiedFiles: 1,
+            totalFiles: 1,
+            progressFraction: 1,
+            currentSpeedBytesPerSecond: nil,
+            averageSpeedBytesPerSecond: 5,
+            etaSeconds: nil,
+            signalSource: .destinationObserver,
+            lastObservedAt: Date(),
+            activityState: .observingDestination
+        )
+
+        viewModel.applyTransferState(.copying)
+        viewModel.applyCopyRuntimeSnapshot(snapshot)
+
+        XCTAssertEqual(viewModel.transferState, .copying)
+        XCTAssertNotEqual(viewModel.transferState, .safeToFormat)
+        XCTAssertLessThan(viewModel.progress, 100)
+    }
+
+    func testVerifyPhaseClearsObserverMetricsAndUsesVerifyPresentation() {
+        let viewModel = makeViewModel()
+        let snapshot = CopyRuntimeSnapshot(
+            elapsedSeconds: 15,
+            currentItem: "MACOS-APP/observed.mov",
+            copiedBytes: 50,
+            totalBytes: 100,
+            copiedFiles: 3,
+            totalFiles: 6,
+            progressFraction: 0.5,
+            currentSpeedBytesPerSecond: 10,
+            averageSpeedBytesPerSecond: 5,
+            etaSeconds: 5,
+            signalSource: .destinationObserver,
+            lastObservedAt: Date(),
+            activityState: .observingDestination
+        )
+
+        viewModel.applyTransferState(.copying)
+        viewModel.applyCopyRuntimeSnapshot(snapshot)
+        viewModel.applyTransferState(.verifying)
+
+        XCTAssertNil(viewModel.copyRuntimeSnapshot)
+        XCTAssertEqual(viewModel.speed, 0, accuracy: 0.0001)
+        XCTAssertEqual(viewModel.eta, 0, accuracy: 0.0001)
+        XCTAssertEqual(TransferRuntimeMetricPresentation.progressTitle(for: .verifying), "Verify Progress")
+        XCTAssertEqual(
+            TransferRuntimeMetricPresentation.currentFileTitle(currentFile: "", state: .verifying),
+            "CURRENT VERIFY FILE"
+        )
+        XCTAssertFalse(TransferRuntimeMetricPresentation.shouldShowRsyncTime(for: .verifying))
     }
 
     private func makeViewModel() -> TransferViewModel {

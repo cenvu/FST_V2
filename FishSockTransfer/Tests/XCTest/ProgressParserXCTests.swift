@@ -37,6 +37,34 @@ final class ProgressParserXCTests: XCTestCase {
         XCTAssertEqual(framer.flush(), "next")
     }
 
+    func testRsyncOutputFramerHandlesMixedNameAndProgressRecords() {
+        var framer = RsyncOutputFramer()
+        let records = framer.append(Data("MACOS-APP/A Better File.dmg\n32.77K  3%  1.00MB/s    0:00:10\r".utf8))
+
+        XCTAssertEqual(records, [
+            "MACOS-APP/A Better File.dmg",
+            "32.77K  3%  1.00MB/s    0:00:10"
+        ])
+    }
+
+    func testRsyncOutputFramerHandlesBurstOfFilenamesAndProgress() {
+        var framer = RsyncOutputFramer()
+        let records = framer.append(Data("""
+        MACOS-APP/
+        MACOS-APP/file one.mov
+        32.77K  0%  0.00kB/s    0:00:00\r250.26M  1%  117.04MB/s    0:02:30\rMACOS-APP/file two.mov
+
+        """.utf8))
+
+        XCTAssertEqual(records, [
+            "MACOS-APP/",
+            "MACOS-APP/file one.mov",
+            "32.77K  0%  0.00kB/s    0:00:00",
+            "250.26M  1%  117.04MB/s    0:02:30",
+            "MACOS-APP/file two.mov"
+        ])
+    }
+
     func testRsyncCommandIncludesOutputBufferArgumentAndNoFallbackPath() throws {
         let rsyncURL = URL(fileURLWithPath: "/Applications/FishSockTransfer.app/Contents/Resources/rsync")
         let command = try RsyncCommand(
@@ -49,8 +77,10 @@ final class ProgressParserXCTests: XCTestCase {
         )
 
         XCTAssertEqual(command.executableURL, rsyncURL)
-        XCTAssertTrue(command.arguments.contains("--outbuf=L"))
-        XCTAssertTrue(command.arguments.contains("--info=progress2"))
+        XCTAssertTrue(command.arguments.contains("--outbuf=N"))
+        XCTAssertFalse(command.arguments.contains("--outbuf=L"))
+        XCTAssertTrue(command.arguments.contains("--info=name1,progress2"))
+        XCTAssertFalse(command.arguments.contains("--info=progress2"))
         XCTAssertTrue(command.arguments.contains("-h"))
         XCTAssertTrue(command.arguments.contains("--bwlimit=51200"))
         XCTAssertFalse(command.executableURL.path.contains("/usr/bin/rsync"))
@@ -63,6 +93,15 @@ final class ProgressParserXCTests: XCTestCase {
         XCTAssertEqual(data.progress, 1.0, accuracy: 0.0001)
         XCTAssertEqual(data.speedMBps, 0.5, accuracy: 0.0001)
         XCTAssertEqual(data.eta, 10.0, accuracy: 0.0001)
+    }
+
+    func testParsesCROnlyProgressRecord() throws {
+        let records = "32.77K  0%  0.00kB/s    0:00:00\r"
+        let data = try XCTUnwrap(ProgressParser().parse(line: records))
+
+        XCTAssertEqual(data.progress, 0.0, accuracy: 0.0001)
+        XCTAssertEqual(data.speedMBps, 0.0, accuracy: 0.0001)
+        XCTAssertEqual(data.eta, 0.0, accuracy: 0.0001)
     }
 
     func testParsesMegabytesPerSecond() throws {
@@ -172,8 +211,45 @@ final class ProgressParserXCTests: XCTestCase {
         }
 
         XCTAssertEqual(progressEvents, [0.0, 1.0])
-        XCTAssertTrue(diagnosticMessages.contains { $0.contains("First parsed progress2 record") })
+        XCTAssertTrue(diagnosticMessages.contains { $0.contains("First rsync progress after") })
         XCTAssertTrue(diagnosticMessages.contains { $0.contains("First structured progress >0") })
+    }
+
+    func testStdoutRecordProcessorEmitsCurrentFileForNameRecords() {
+        let diagnostics = RsyncCopyTimingDiagnostics()
+        diagnostics.reset(startedAt: Date())
+        let recorder = TransferEventRecorder()
+        var processor = RsyncStdoutRecordProcessor(diagnostics: diagnostics) { event in
+            recorder.append(event)
+        }
+
+        processor.process("MACOS-APP/A Better File.dmg\n")
+
+        let events = recorder.snapshot()
+        XCTAssertTrue(events.contains(.currentFile("MACOS-APP/A Better File.dmg")))
+        XCTAssertTrue(events.contains(.log("[STDOUT] MACOS-APP/A Better File.dmg")))
+        XCTAssertTrue(events.contains { event in
+            guard case .log(let message) = event else { return false }
+            return message.contains("First rsync filename after")
+        })
+    }
+
+    func testStdoutRecordProcessorIgnoresEmptyFilenameRecords() {
+        let diagnostics = RsyncCopyTimingDiagnostics()
+        diagnostics.reset(startedAt: Date())
+        let recorder = TransferEventRecorder()
+        var processor = RsyncStdoutRecordProcessor(diagnostics: diagnostics) { event in
+            recorder.append(event)
+        }
+
+        processor.process("MACOS-APP/A Better File.dmg\n")
+        processor.process("   \n")
+
+        let currentFiles = recorder.snapshot().compactMap { event -> String? in
+            guard case .currentFile(let file) = event else { return nil }
+            return file
+        }
+        XCTAssertEqual(currentFiles, ["MACOS-APP/A Better File.dmg"])
     }
 }
 
@@ -190,6 +266,167 @@ private final class TransferEventRecorder: @unchecked Sendable {
     func snapshot() -> [TransferEvent] {
         lock.withLock {
             events
+        }
+    }
+}
+
+final class DestinationActivityObserverXCTests: XCTestCase {
+    func testDestinationSnapshotComputesCopiedBytesAndFilesExcludingMetadata() throws {
+        let root = try makeTemporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: root) }
+        try writeFile(root.appendingPathComponent("clip.mov"), bytes: 1_024)
+        try writeFile(root.appendingPathComponent(".DS_Store"), bytes: 1_024)
+        let trashes = root.appendingPathComponent(".Trashes", isDirectory: true)
+        try FileManager.default.createDirectory(at: trashes, withIntermediateDirectories: true)
+        try writeFile(trashes.appendingPathComponent("ignored.mov"), bytes: 1_024)
+
+        let result = try DestinationActivitySnapshotter.snapshot(
+            destinationRootURL: root,
+            totalBytes: 2_048,
+            totalFiles: 2,
+            copyStartedAt: Date().addingTimeInterval(-5),
+            previousSamples: []
+        )
+
+        XCTAssertEqual(result.snapshot.copiedBytes, 1_024)
+        XCTAssertEqual(result.snapshot.copiedFiles, 1)
+        XCTAssertEqual(result.snapshot.currentItem, "clip.mov")
+        XCTAssertEqual(result.snapshot.signalSource, .destinationObserver)
+    }
+
+    func testDestinationSnapshotComputesAverageRollingSpeedAndETA() throws {
+        let root = try makeTemporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: root) }
+        let start = Date()
+        try writeFile(root.appendingPathComponent("clip.mov"), bytes: 1_000)
+        let first = try DestinationActivitySnapshotter.snapshot(
+            destinationRootURL: root,
+            totalBytes: 4_000,
+            totalFiles: 1,
+            copyStartedAt: start,
+            previousSamples: [],
+            now: start.addingTimeInterval(5)
+        )
+
+        try writeFile(root.appendingPathComponent("clip.mov"), bytes: 2_000)
+        let second = try DestinationActivitySnapshotter.snapshot(
+            destinationRootURL: root,
+            totalBytes: 4_000,
+            totalFiles: 1,
+            copyStartedAt: start,
+            previousSamples: first.samples,
+            now: start.addingTimeInterval(10)
+        )
+
+        XCTAssertEqual(second.snapshot.copiedBytes, 2_000)
+        XCTAssertEqual(second.snapshot.currentSpeedBytesPerSecond ?? 0, 200, accuracy: 0.0001)
+        XCTAssertEqual(second.snapshot.averageSpeedBytesPerSecond ?? 0, 200, accuracy: 0.0001)
+        XCTAssertEqual(second.snapshot.etaSeconds ?? 0, 10, accuracy: 0.0001)
+        XCTAssertEqual(second.snapshot.progressFraction ?? 0, 0.5, accuracy: 0.0001)
+    }
+
+    func testDestinationSnapshotClampsCopiedBytesToKnownTotal() throws {
+        let root = try makeTemporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: root) }
+        try writeFile(root.appendingPathComponent("clip.mov"), bytes: 4_000)
+
+        let result = try DestinationActivitySnapshotter.snapshot(
+            destinationRootURL: root,
+            totalBytes: 1_000,
+            totalFiles: 1,
+            copyStartedAt: Date().addingTimeInterval(-5),
+            previousSamples: []
+        )
+
+        XCTAssertEqual(result.snapshot.copiedBytes, 1_000)
+        XCTAssertEqual(result.snapshot.progressFraction, 1.0)
+    }
+
+    func testDestinationSnapshotDoesNotComputeETAWhenSpeedUnavailable() throws {
+        let root = try makeTemporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: root) }
+        try writeFile(root.appendingPathComponent("clip.mov"), bytes: 1_000)
+
+        let result = try DestinationActivitySnapshotter.snapshot(
+            destinationRootURL: root,
+            totalBytes: 4_000,
+            totalFiles: 1,
+            copyStartedAt: Date().addingTimeInterval(-5),
+            previousSamples: []
+        )
+
+        XCTAssertNil(result.snapshot.currentSpeedBytesPerSecond)
+        XCTAssertNil(result.snapshot.etaSeconds)
+    }
+
+    func testDestinationObserverStopsOnCancelAndCompletionReasons() async throws {
+        let root = try makeTemporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: root) }
+        let observer = DestinationActivityObserver()
+        let recorder = ObserverLogRecorder()
+
+        await observer.start(
+            destinationRootURL: root,
+            totalBytes: 1_000,
+            totalFiles: 1,
+            copyStartedAt: Date(),
+            cadenceSeconds: 60,
+            onSnapshot: { _ in },
+            onLog: { recorder.append($0) }
+        )
+        let runningAfterStart = await observer.isRunning()
+        XCTAssertTrue(runningAfterStart)
+
+        await observer.stop(reason: "cancel requested") { recorder.append($0) }
+        let runningAfterStop = await observer.isRunning()
+        XCTAssertFalse(runningAfterStop)
+
+        await observer.start(
+            destinationRootURL: root,
+            totalBytes: 1_000,
+            totalFiles: 1,
+            copyStartedAt: Date(),
+            cadenceSeconds: 60,
+            onSnapshot: { _ in },
+            onLog: { recorder.append($0) }
+        )
+        await observer.stop(reason: "rsync completed") { recorder.append($0) }
+
+        let logs = recorder.snapshot()
+        XCTAssertTrue(logs.contains { $0.contains("OBSERVER stopped: cancel requested") })
+        XCTAssertTrue(logs.contains { $0.contains("OBSERVER stopped: rsync completed") })
+    }
+
+    private func makeTemporaryDirectory() throws -> URL {
+        let url = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString, isDirectory: true)
+        try FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
+        return url
+    }
+
+    private func writeFile(_ url: URL, bytes: Int) throws {
+        let data = Data(repeating: 7, count: bytes)
+        try data.write(to: url)
+        try FileManager.default.setAttributes(
+            [.modificationDate: Date()],
+            ofItemAtPath: url.path
+        )
+    }
+}
+
+private final class ObserverLogRecorder: @unchecked Sendable {
+    private let lock = NSLock()
+    private var logs: [String] = []
+
+    func append(_ message: String) {
+        lock.withLock {
+            logs.append(message)
+        }
+    }
+
+    func snapshot() -> [String] {
+        lock.withLock {
+            logs
         }
     }
 }

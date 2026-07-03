@@ -71,7 +71,7 @@ public struct TransferControlsView: View {
     private var progressPanel: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Text("Transfer Progress")
+                Text(TransferRuntimeMetricPresentation.progressTitle(for: viewModel.transferState))
                     .font(.headline)
                     .foregroundColor(.primary)
                 Spacer()
@@ -99,10 +99,10 @@ public struct TransferControlsView: View {
                 }
 
                 VStack(spacing: 12) {
-                    runtimeMetric(title: runtimeFileMetricTitle, value: displayCurrentFile)
-                    HStack(spacing: 12) {
-                        runtimeMetric(title: "SPEED", value: formatSpeed(viewModel.speed))
-                        runtimeMetric(title: "RSYNC TIME", value: formatTransferTime(viewModel.eta))
+                    if viewModel.transferState == .copying {
+                        copyRuntimeMetrics
+                    } else if viewModel.transferState == .verifying {
+                        verifyRuntimeMetrics
                     }
                 }
             }
@@ -276,6 +276,30 @@ public struct TransferControlsView: View {
         )
     }
 
+    private var copyRuntimeMetrics: some View {
+        VStack(spacing: 12) {
+            HStack(spacing: 12) {
+                runtimeMetric(title: "COPY ELAPSED", value: formatElapsed(copyElapsedSeconds))
+                runtimeMetric(title: "CURRENT SPEED", value: currentSpeedValue)
+            }
+
+            runtimeMetric(title: runtimeFileMetricTitle, value: displayCurrentFile)
+
+            HStack(spacing: 12) {
+                runtimeMetric(title: "COPIED", value: copiedBytesValue)
+                runtimeMetric(title: "FILES", value: copiedFilesValue)
+                runtimeMetric(title: "ETA", value: copyEtaValue)
+            }
+
+        }
+    }
+
+    private var verifyRuntimeMetrics: some View {
+        VStack(spacing: 12) {
+            runtimeMetric(title: runtimeFileMetricTitle, value: displayCurrentFile)
+        }
+    }
+
     private func runtimeMetric(title: String, value: String) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(title)
@@ -306,6 +330,43 @@ public struct TransferControlsView: View {
 
     private func formatElapsed(_ elapsedSeconds: Int) -> String {
         formatDuration(max(0, elapsedSeconds))
+    }
+
+    private var copyElapsedSeconds: Int {
+        viewModel.copyRuntimeSnapshot?.elapsedSeconds ?? viewModel.copyElapsedSeconds
+    }
+
+    private var copiedBytesValue: String {
+        guard let snapshot = viewModel.copyRuntimeSnapshot else { return "-" }
+        return TransferRuntimeMetricPresentation.copiedBytesValue(
+            copiedBytes: snapshot.copiedBytes,
+            totalBytes: snapshot.totalBytes
+        )
+    }
+
+    private var copiedFilesValue: String {
+        guard let snapshot = viewModel.copyRuntimeSnapshot else { return "-" }
+        return TransferRuntimeMetricPresentation.copiedFilesValue(
+            copiedFiles: snapshot.copiedFiles,
+            totalFiles: snapshot.totalFiles
+        )
+    }
+
+    private var copyEtaValue: String {
+        if let etaSeconds = viewModel.copyRuntimeSnapshot?.etaSeconds {
+            return "\(formatTransferTime(etaSeconds)) remaining"
+        }
+
+        return formatTransferTime(viewModel.eta)
+    }
+
+    private var currentSpeedValue: String {
+        if let snapshot = viewModel.copyRuntimeSnapshot,
+           let currentSpeed = snapshot.currentSpeedBytesPerSecond {
+            return TransferRuntimeMetricPresentation.speedValue(bytesPerSecond: currentSpeed)
+        }
+
+        return formatSpeed(viewModel.speed)
     }
 
     private func formatDuration(_ totalSeconds: Int) -> String {

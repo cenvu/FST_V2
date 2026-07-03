@@ -33,6 +33,9 @@ public final class TransferViewModel: ObservableObject {
     @Published public var workflowPhaseTitle: String = ""
     @Published public var workflowPhaseMessage: String = ""
     @Published public var workflowElapsedSeconds: Int = 0
+    @Published public var copyRuntimeSnapshot: CopyRuntimeSnapshot?
+    @Published public var copyRuntimeSignalSource: CopyRuntimeSignalSource = .unavailable
+    @Published public var copyElapsedSeconds: Int = 0
     @Published public var bundledRsyncInfo: BundledRsyncInfo = .unavailable(
         version: BundledRsyncService.bundledVersion,
         diagnostics: []
@@ -46,9 +49,17 @@ public final class TransferViewModel: ObservableObject {
     private var destinationMetadataTask: Task<Void, Never>?
     private var workflowElapsedTask: Task<Void, Never>?
     private var workflowPhaseStartedAt: Date?
+    private var copyElapsedTask: Task<Void, Never>?
+    private var copyStartedAt: Date?
+    private var lastRsyncRuntimeUpdateAt: Date?
+    private var rsyncCurrentFile = ""
     private var didLogFirstAppliedProgress = false
     private var didLogFirstAppliedSpeed = false
     private var didLogFirstAppliedTransferTime = false
+    private var didLogFirstAppliedCurrentFile = false
+    private var didLogUsingDestinationObserver = false
+    private var didLogUsingRsyncMetrics = false
+    private let observerFallbackDelay: TimeInterval = 10
     
     public init(
         coordinator: TransferCoordinator? = nil,
@@ -118,6 +129,9 @@ public final class TransferViewModel: ObservableObject {
                 onCurrentFile: { [weak self] f in
                     self?.applyCurrentFile(f)
                 },
+                onCopyRuntimeSnapshot: { [weak self] snapshot in
+                    self?.applyCopyRuntimeSnapshot(snapshot)
+                },
                 onError: { [weak self] message in
                     self?.errorMessage = message
                     self?.addLog(category: .error, message: message)
@@ -142,6 +156,7 @@ public final class TransferViewModel: ObservableObject {
     }
 
     internal func applyTransferProgress(_ progress: Double) {
+        markRsyncRuntimeUpdate()
         self.progress = progress
         if progress > 0, !didLogFirstAppliedProgress {
             didLogFirstAppliedProgress = true
@@ -150,6 +165,7 @@ public final class TransferViewModel: ObservableObject {
     }
 
     internal func applyTransferSpeed(_ speed: Double) {
+        markRsyncRuntimeUpdate()
         self.speed = speed
         if speed > 0, !didLogFirstAppliedSpeed {
             didLogFirstAppliedSpeed = true
@@ -158,6 +174,7 @@ public final class TransferViewModel: ObservableObject {
     }
 
     internal func applyTransferTime(_ time: TimeInterval) {
+        markRsyncRuntimeUpdate()
         self.eta = time
         if time > 0, !didLogFirstAppliedTransferTime {
             didLogFirstAppliedTransferTime = true
@@ -166,7 +183,56 @@ public final class TransferViewModel: ObservableObject {
     }
 
     internal func applyCurrentFile(_ currentFile: String) {
+        if transferState == .copying, currentFile.isEmpty, !self.currentFile.isEmpty {
+            return
+        }
+
+        if !currentFile.isEmpty {
+            markRsyncRuntimeUpdate()
+            rsyncCurrentFile = currentFile
+        }
+
         self.currentFile = currentFile
+        if !currentFile.isEmpty, !didLogFirstAppliedCurrentFile {
+            didLogFirstAppliedCurrentFile = true
+            addLog(category: .file, message: "DIAG [VIEWMODEL] VIEWMODEL currentFile updated: \(currentFile)")
+        }
+    }
+
+    internal func applyCopyRuntimeSnapshot(_ snapshot: CopyRuntimeSnapshot) {
+        copyRuntimeSnapshot = snapshot
+        copyElapsedSeconds = snapshot.elapsedSeconds
+
+        guard transferState == .copying else { return }
+
+        let rsyncIsUseful = progress > 0 && isRsyncRuntimeFresh(relativeTo: snapshot.lastObservedAt)
+        if rsyncIsUseful {
+            copyRuntimeSignalSource = snapshot.copiedBytes > 0 ? .mixed : .rsync
+            logUsingRsyncMetricsIfNeeded()
+            return
+        }
+
+        if let progressFraction = snapshot.progressFraction {
+            progress = min(max(progressFraction * 100, 0), 99)
+        }
+
+        let displaySpeed = snapshot.currentSpeedBytesPerSecond ?? snapshot.averageSpeedBytesPerSecond
+        if let displaySpeed, displaySpeed > 0 {
+            speed = displaySpeed / 1_048_576.0
+        }
+
+        eta = snapshot.etaSeconds ?? 0
+
+        if rsyncCurrentFile.isEmpty, let observedItem = snapshot.currentItem, !observedItem.isEmpty {
+            currentFile = observedItem
+        }
+
+        copyRuntimeSignalSource = rsyncCurrentFile.isEmpty ? .destinationObserver : .mixed
+
+        if !didLogUsingDestinationObserver {
+            didLogUsingDestinationObserver = true
+            addLog(category: .progress, message: "DIAG [VIEWMODEL] VIEWMODEL using destination observer metrics")
+        }
     }
     
     public func startTransfer() {
@@ -260,20 +326,30 @@ public final class TransferViewModel: ObservableObject {
             clearWorkflowPhase()
             if previousState != .copying {
                 clearCopyRuntimeMetrics()
+                beginCopyRuntimePhase()
             }
         }
     }
 
     private func clearCopyRuntimeMetrics() {
+        stopCopyElapsedTimer()
         speed = 0.0
         eta = 0.0
         currentFile = ""
+        rsyncCurrentFile = ""
+        lastRsyncRuntimeUpdateAt = nil
+        copyRuntimeSnapshot = nil
+        copyRuntimeSignalSource = .unavailable
+        copyElapsedSeconds = 0
     }
 
     private func resetRuntimeDiagnosticMarkers() {
         didLogFirstAppliedProgress = false
         didLogFirstAppliedSpeed = false
         didLogFirstAppliedTransferTime = false
+        didLogFirstAppliedCurrentFile = false
+        didLogUsingDestinationObserver = false
+        didLogUsingRsyncMetrics = false
     }
 
     private func beginPreparationPhase() {
@@ -291,6 +367,50 @@ public final class TransferViewModel: ObservableObject {
         workflowPhaseTitle = ""
         workflowPhaseMessage = ""
         workflowElapsedSeconds = 0
+    }
+
+    private func beginCopyRuntimePhase() {
+        copyStartedAt = Date()
+        copyElapsedSeconds = 0
+        startCopyElapsedTimer()
+    }
+
+    private func stopCopyElapsedTimer() {
+        copyElapsedTask?.cancel()
+        copyElapsedTask = nil
+        copyStartedAt = nil
+    }
+
+    private func startCopyElapsedTimer() {
+        copyElapsedTask?.cancel()
+        copyElapsedTask = Task { [weak self] in
+            while !Task.isCancelled {
+                try? await Task.sleep(nanoseconds: 1_000_000_000)
+                await MainActor.run { [weak self] in
+                    guard let self, let copyStartedAt = self.copyStartedAt else { return }
+                    self.copyElapsedSeconds = max(0, Int(Date().timeIntervalSince(copyStartedAt).rounded(.down)))
+                }
+            }
+        }
+    }
+
+    private func markRsyncRuntimeUpdate(now: Date = Date()) {
+        lastRsyncRuntimeUpdateAt = now
+        if transferState == .copying {
+            copyRuntimeSignalSource = copyRuntimeSnapshot == nil ? .rsync : .mixed
+        }
+        logUsingRsyncMetricsIfNeeded()
+    }
+
+    private func isRsyncRuntimeFresh(relativeTo date: Date) -> Bool {
+        guard let lastRsyncRuntimeUpdateAt else { return false }
+        return date.timeIntervalSince(lastRsyncRuntimeUpdateAt) <= observerFallbackDelay
+    }
+
+    private func logUsingRsyncMetricsIfNeeded() {
+        guard transferState == .copying, !didLogUsingRsyncMetrics else { return }
+        didLogUsingRsyncMetrics = true
+        addLog(category: .progress, message: "DIAG [VIEWMODEL] VIEWMODEL using rsync metrics")
     }
 
     private func startWorkflowElapsedTimer() {
@@ -494,9 +614,28 @@ nonisolated public enum TransferReportStatusPresentation {
 }
 
 nonisolated public enum TransferRuntimeMetricPresentation {
+    public static func progressTitle(for state: TransferState) -> String {
+        switch state {
+        case .copying:
+            return "Copy Progress"
+        case .verifying:
+            return "Verify Progress"
+        default:
+            return "Transfer Progress"
+        }
+    }
+
     public static func currentFileTitle(currentFile: String, state: TransferState) -> String {
         if state == .copying && currentFile.isEmpty {
-            return "COPY PROGRESS"
+            return "CURRENT ITEM"
+        }
+
+        if state == .copying {
+            return "CURRENT ITEM"
+        }
+
+        if state == .verifying {
+            return "CURRENT VERIFY FILE"
         }
 
         return "CURRENT FILE"
@@ -508,7 +647,7 @@ nonisolated public enum TransferRuntimeMetricPresentation {
         }
 
         if state == .copying {
-            return "Tracking total rsync progress"
+            return "Waiting for first file..."
         }
 
         if state == .verifying {
@@ -516,6 +655,46 @@ nonisolated public enum TransferRuntimeMetricPresentation {
         }
 
         return "-"
+    }
+
+    public static func shouldShowRsyncTime(for state: TransferState) -> Bool {
+        false
+    }
+
+    public static func signalText(_ signalSource: CopyRuntimeSignalSource?) -> String {
+        switch signalSource {
+        case .rsync:
+            return "Rsync"
+        case .destinationObserver:
+            return "Observed destination"
+        case .mixed:
+            return "Mixed"
+        case .unavailable, nil:
+            return "-"
+        }
+    }
+
+    public static func copiedBytesValue(copiedBytes: Int64, totalBytes: Int64?) -> String {
+        if let totalBytes, totalBytes > 0 {
+            return "\(byteValue(copiedBytes)) / \(byteValue(totalBytes))"
+        }
+
+        guard copiedBytes > 0 else { return "-" }
+        return byteValue(copiedBytes)
+    }
+
+    public static func copiedFilesValue(copiedFiles: Int, totalFiles: Int?) -> String {
+        if let totalFiles, totalFiles > 0 {
+            return "\(copiedFiles) / \(totalFiles)"
+        }
+
+        guard copiedFiles > 0 else { return "-" }
+        return "\(copiedFiles)"
+    }
+
+    public static func speedValue(bytesPerSecond: Double?) -> String {
+        guard let bytesPerSecond, bytesPerSecond > 0 else { return "-" }
+        return String(format: "%.2f MB/s", bytesPerSecond / 1_048_576.0)
     }
 
     public static func timeValue(seconds: TimeInterval) -> String {
@@ -530,5 +709,22 @@ nonisolated public enum TransferRuntimeMetricPresentation {
         }
 
         return String(format: "%02d:%02d", minutes, seconds)
+    }
+
+    private static func byteValue(_ bytes: Int64) -> String {
+        let units = ["B", "KB", "MB", "GB", "TB"]
+        var value = Double(max(0, bytes))
+        var unitIndex = 0
+
+        while value >= 1024, unitIndex < units.count - 1 {
+            value /= 1024
+            unitIndex += 1
+        }
+
+        if unitIndex == 0 {
+            return "\(Int(value)) B"
+        }
+
+        return String(format: "%.1f %@", value, units[unitIndex])
     }
 }

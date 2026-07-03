@@ -84,6 +84,7 @@ public actor RsyncEngine {
                 }
                 
                 do {
+                    copyTimingDiagnostics.reset(startedAt: Date())
                     try rsyncProcess.run()
                     Task {
                         self.markRsyncProcessStarted(onEvent: onEvent)
@@ -130,8 +131,7 @@ public actor RsyncEngine {
     }
     
     private func markRsyncProcessStarted(onEvent: @escaping @Sendable (TransferEvent) -> Void) {
-        copyTimingDiagnostics.reset(startedAt: Date())
-        onEvent(.log("DIAG [RSYNC TIMING] Process started at +0s"))
+        onEvent(.log("DIAG [RSYNC TIMING] Rsync process started at +0s"))
         startRsyncTimingHeartbeat(onEvent: onEvent)
     }
 
@@ -281,15 +281,30 @@ nonisolated struct RsyncStdoutRecordProcessor: Sendable {
         }
 
         guard let data = parser.parse(line: record) else {
+            if let filename = parser.parseFilename(line: record) {
+                if let diagnostic = diagnostics.markFirstParsedFilename(filename) {
+                    onEvent(.log(diagnostic))
+                }
+                if let diagnostic = diagnostics.markFirstEngineCurrentFileEvent(filename) {
+                    onEvent(.log(diagnostic))
+                }
+                onEvent(.log("[STDOUT] \(filename)"))
+                onEvent(.currentFile(filename))
+                return
+            }
+
             onEvent(.log("[STDOUT] \(trimmed)"))
             return
         }
 
-        if let diagnostic = diagnostics.markFirstParsedProgress2() {
+        if let diagnostic = diagnostics.markFirstParsedProgress2(data) {
             onEvent(.log(diagnostic))
         }
 
         let activeProgress = ProgressParser.activeCopyProgress(data.progress)
+        if let diagnostic = diagnostics.markFirstEngineProgressEvent(data, activeProgress: activeProgress) {
+            onEvent(.log(diagnostic))
+        }
         let firstProgressDiagnostic = activeProgress > 0 ? diagnostics.markFirstStructuredProgressOverZero(activeProgress) : nil
         if let firstProgressDiagnostic {
             onEvent(.log(firstProgressDiagnostic))
@@ -335,13 +350,265 @@ nonisolated struct RsyncProgressDeliveryGate: Sendable {
     }
 }
 
+public actor DestinationActivityObserver {
+    private var observationTask: Task<Void, Never>?
+    private var isObserving = false
+
+    public init() {}
+
+    public func start(
+        destinationRootURL: URL,
+        totalBytes: Int64?,
+        totalFiles: Int?,
+        copyStartedAt: Date,
+        cadenceSeconds: TimeInterval = 5,
+        onSnapshot: @escaping @Sendable (CopyRuntimeSnapshot) -> Void,
+        onLog: @escaping @Sendable (String) -> Void
+    ) {
+        observationTask?.cancel()
+        isObserving = true
+        let cadenceNanoseconds = UInt64(max(5, cadenceSeconds) * 1_000_000_000)
+        onLog("DIAG [OBSERVER] OBSERVER started: \(destinationRootURL.path)")
+
+        observationTask = Task.detached(priority: .utility) {
+            var samples: [DestinationActivitySample] = []
+
+            while !Task.isCancelled {
+                do {
+                    let now = Date()
+                    let result = try DestinationActivitySnapshotter.snapshot(
+                        destinationRootURL: destinationRootURL,
+                        totalBytes: totalBytes,
+                        totalFiles: totalFiles,
+                        copyStartedAt: copyStartedAt,
+                        previousSamples: samples,
+                        now: now
+                    )
+                    samples = result.samples
+                    onSnapshot(result.snapshot)
+                    onLog(DestinationActivitySnapshotter.diagnosticMessage(for: result.snapshot))
+                } catch is CancellationError {
+                    return
+                } catch {
+                    onLog("DIAG [OBSERVER] OBSERVER unavailable: \(error.localizedDescription)")
+                }
+
+                try? await Task.sleep(nanoseconds: cadenceNanoseconds)
+            }
+        }
+    }
+
+    public func stop(reason: String, onLog: @escaping @Sendable (String) -> Void) {
+        observationTask?.cancel()
+        observationTask = nil
+        if isObserving {
+            onLog("DIAG [OBSERVER] OBSERVER stopped: \(reason)")
+        }
+        isObserving = false
+    }
+
+    public func isRunning() -> Bool {
+        isObserving && observationTask?.isCancelled == false
+    }
+}
+
+nonisolated struct DestinationActivitySample: Equatable, Sendable {
+    let observedAt: Date
+    let copiedBytes: Int64
+    let copiedFiles: Int
+    let currentItem: String?
+}
+
+nonisolated struct DestinationActivitySnapshotResult: Equatable, Sendable {
+    let snapshot: CopyRuntimeSnapshot
+    let samples: [DestinationActivitySample]
+}
+
+nonisolated enum DestinationActivitySnapshotter {
+    private static let rollingWindowSeconds: TimeInterval = 15
+
+    static func snapshot(
+        destinationRootURL: URL,
+        totalBytes: Int64?,
+        totalFiles: Int?,
+        copyStartedAt: Date,
+        previousSamples: [DestinationActivitySample],
+        now: Date = Date(),
+        fileManager: FileManager = .default
+    ) throws -> DestinationActivitySnapshotResult {
+        let scan = try scanDestination(destinationRootURL: destinationRootURL, fileManager: fileManager)
+        let copiedBytes = clampCopiedBytes(scan.copiedBytes, totalBytes: totalBytes)
+        let copiedFiles = clampCopiedFiles(scan.copiedFiles, totalFiles: totalFiles)
+        let elapsedSeconds = max(0, Int(now.timeIntervalSince(copyStartedAt).rounded(.down)))
+        let sample = DestinationActivitySample(
+            observedAt: now,
+            copiedBytes: copiedBytes,
+            copiedFiles: copiedFiles,
+            currentItem: scan.currentItem
+        )
+        let samples = (previousSamples + [sample]).filter {
+            now.timeIntervalSince($0.observedAt) <= rollingWindowSeconds
+        }
+
+        let currentSpeed = rollingSpeedBytesPerSecond(samples: samples)
+        let averageSpeed = averageSpeedBytesPerSecond(copiedBytes: copiedBytes, elapsedSeconds: elapsedSeconds)
+        let progress = progressFraction(copiedBytes: copiedBytes, totalBytes: totalBytes)
+        let eta = etaSeconds(
+            copiedBytes: copiedBytes,
+            totalBytes: totalBytes,
+            currentSpeedBytesPerSecond: currentSpeed
+        )
+
+        return DestinationActivitySnapshotResult(
+            snapshot: CopyRuntimeSnapshot(
+                elapsedSeconds: elapsedSeconds,
+                currentItem: scan.currentItem,
+                copiedBytes: copiedBytes,
+                totalBytes: totalBytes,
+                copiedFiles: copiedFiles,
+                totalFiles: totalFiles,
+                progressFraction: progress,
+                currentSpeedBytesPerSecond: currentSpeed,
+                averageSpeedBytesPerSecond: averageSpeed,
+                etaSeconds: eta,
+                signalSource: .destinationObserver,
+                lastObservedAt: now,
+                activityState: .observingDestination
+            ),
+            samples: samples
+        )
+    }
+
+    static func diagnosticMessage(for snapshot: CopyRuntimeSnapshot) -> String {
+        let currentItem = snapshot.currentItem ?? "-"
+        let speed = snapshot.currentSpeedBytesPerSecond.map { String(format: "%.2f MB/s", $0 / 1_048_576.0) } ?? "-"
+        let eta = snapshot.etaSeconds.map { formatDuration($0) } ?? "-"
+        return "DIAG [OBSERVER] OBSERVER sample: copiedBytes=\(snapshot.copiedBytes) files=\(snapshot.copiedFiles) currentItem=\(currentItem) speed=\(speed) eta=\(eta)"
+    }
+
+    private static func scanDestination(
+        destinationRootURL: URL,
+        fileManager: FileManager
+    ) throws -> (copiedBytes: Int64, copiedFiles: Int, currentItem: String?) {
+        guard fileManager.fileExists(atPath: destinationRootURL.path) else {
+            return (0, 0, nil)
+        }
+
+        let keys: [URLResourceKey] = [.isDirectoryKey, .isRegularFileKey, .fileSizeKey, .contentModificationDateKey]
+        guard let enumerator = fileManager.enumerator(
+            at: destinationRootURL,
+            includingPropertiesForKeys: keys,
+            options: [.skipsPackageDescendants],
+            errorHandler: nil
+        ) else {
+            return (0, 0, nil)
+        }
+
+        var copiedBytes: Int64 = 0
+        var copiedFiles = 0
+        var mostRecentFile: (path: String, modifiedAt: Date)?
+
+        for case let itemURL as URL in enumerator {
+            try Task.checkCancellation()
+            let values = try itemURL.resourceValues(forKeys: Set(keys))
+
+            if shouldExclude(itemURL, rootURL: destinationRootURL) {
+                if values.isDirectory == true {
+                    enumerator.skipDescendants()
+                }
+                continue
+            }
+
+            guard values.isRegularFile == true else { continue }
+
+            copiedFiles += 1
+            copiedBytes += Int64(max(0, values.fileSize ?? 0))
+
+            let relativePath = TransferFileExclusionPolicy.relativePath(for: itemURL, rootURL: destinationRootURL)
+            let modifiedAt = values.contentModificationDate ?? .distantPast
+            if mostRecentFile == nil || modifiedAt > mostRecentFile!.modifiedAt {
+                mostRecentFile = (relativePath, modifiedAt)
+            }
+        }
+
+        return (copiedBytes, copiedFiles, mostRecentFile?.path)
+    }
+
+    private static func shouldExclude(_ url: URL, rootURL: URL) -> Bool {
+        if TransferFileExclusionPolicy.shouldExclude(url, rootURL: rootURL) {
+            return true
+        }
+
+        return url.lastPathComponent.hasPrefix("FST_Report")
+    }
+
+    private static func clampCopiedBytes(_ copiedBytes: Int64, totalBytes: Int64?) -> Int64 {
+        guard let totalBytes, totalBytes >= 0 else { return max(0, copiedBytes) }
+        return min(max(0, copiedBytes), totalBytes)
+    }
+
+    private static func clampCopiedFiles(_ copiedFiles: Int, totalFiles: Int?) -> Int {
+        guard let totalFiles, totalFiles >= 0 else { return max(0, copiedFiles) }
+        return min(max(0, copiedFiles), totalFiles)
+    }
+
+    private static func progressFraction(copiedBytes: Int64, totalBytes: Int64?) -> Double? {
+        guard let totalBytes, totalBytes > 0 else { return nil }
+        return min(max(Double(copiedBytes) / Double(totalBytes), 0), 1)
+    }
+
+    private static func rollingSpeedBytesPerSecond(samples: [DestinationActivitySample]) -> Double? {
+        guard let first = samples.first, let last = samples.last, samples.count >= 2 else { return nil }
+        let elapsed = last.observedAt.timeIntervalSince(first.observedAt)
+        guard elapsed > 0 else { return nil }
+        let deltaBytes = last.copiedBytes - first.copiedBytes
+        guard deltaBytes > 0 else { return nil }
+        return Double(deltaBytes) / elapsed
+    }
+
+    private static func averageSpeedBytesPerSecond(copiedBytes: Int64, elapsedSeconds: Int) -> Double? {
+        guard copiedBytes > 0, elapsedSeconds > 0 else { return nil }
+        return Double(copiedBytes) / Double(elapsedSeconds)
+    }
+
+    private static func etaSeconds(
+        copiedBytes: Int64,
+        totalBytes: Int64?,
+        currentSpeedBytesPerSecond: Double?
+    ) -> TimeInterval? {
+        guard let totalBytes, totalBytes > copiedBytes,
+              let currentSpeedBytesPerSecond, currentSpeedBytesPerSecond > 0 else {
+            return nil
+        }
+
+        return Double(totalBytes - copiedBytes) / currentSpeedBytesPerSecond
+    }
+
+    private static func formatDuration(_ duration: TimeInterval) -> String {
+        guard duration > 0 else { return "-" }
+        let totalSeconds = Int(duration.rounded())
+        let hours = totalSeconds / 3600
+        let minutes = (totalSeconds % 3600) / 60
+        let seconds = totalSeconds % 60
+
+        if hours > 0 {
+            return String(format: "%d:%02d:%02d", hours, minutes, seconds)
+        }
+
+        return String(format: "%02d:%02d", minutes, seconds)
+    }
+}
+
 nonisolated private struct RsyncCopyTimingState {
     var startedAt: Date?
     var didLogFirstRawStdout = false
     var didLogFirstRawStderr = false
     var didLogFirstFramedStdout = false
     var didLogFirstFramedStderr = false
+    var didLogFirstFilename = false
     var didLogFirstProgress2 = false
+    var didLogFirstEngineCurrentFileEvent = false
+    var didLogFirstEngineProgressEvent = false
     var didLogFirstProgressOverZero = false
 }
 
@@ -365,7 +632,7 @@ nonisolated final class RsyncCopyTimingDiagnostics: @unchecked Sendable {
         lock.withLock {
             guard !state.didLogFirstRawStdout else { return nil }
             state.didLogFirstRawStdout = true
-            return "DIAG [RSYNC RAW] First stdout chunk: \(byteCount) bytes at +\(elapsedSecondsLocked())s"
+            return "DIAG [RSYNC RAW] First rsync stdout byte after \(elapsedSecondsLocked())s; chunk \(byteCount) bytes"
         }
     }
 
@@ -373,7 +640,7 @@ nonisolated final class RsyncCopyTimingDiagnostics: @unchecked Sendable {
         lock.withLock {
             guard !state.didLogFirstRawStderr else { return nil }
             state.didLogFirstRawStderr = true
-            return "DIAG [RSYNC RAW] First stderr chunk: \(byteCount) bytes at +\(elapsedSecondsLocked())s"
+            return "DIAG [RSYNC RAW] First rsync stderr byte after \(elapsedSecondsLocked())s; chunk \(byteCount) bytes"
         }
     }
 
@@ -393,11 +660,48 @@ nonisolated final class RsyncCopyTimingDiagnostics: @unchecked Sendable {
         }
     }
 
-    func markFirstParsedProgress2() -> String? {
+    func markFirstParsedFilename(_ filename: String) -> String? {
+        lock.withLock {
+            guard !state.didLogFirstFilename else { return nil }
+            state.didLogFirstFilename = true
+            return "DIAG [RSYNC TIMING] First rsync filename after \(elapsedSecondsLocked())s: \(filename)"
+        }
+    }
+
+    func markFirstParsedProgress2(_ data: ProgressData) -> String? {
         lock.withLock {
             guard !state.didLogFirstProgress2 else { return nil }
             state.didLogFirstProgress2 = true
-            return "DIAG [RSYNC TIMING] First parsed progress2 record at +\(elapsedSecondsLocked())s"
+            return String(
+                format: "DIAG [RSYNC TIMING] First rsync progress after %ds: %.1f%% / %.2f MB/s / %@",
+                elapsedSecondsLocked(),
+                data.progress,
+                data.speedMBps,
+                Self.timeValue(seconds: data.eta)
+            )
+        }
+    }
+
+    func markFirstEngineCurrentFileEvent(_ filename: String) -> String? {
+        lock.withLock {
+            guard !state.didLogFirstEngineCurrentFileEvent else { return nil }
+            state.didLogFirstEngineCurrentFileEvent = true
+            return "DIAG [RSYNC EVENT] ENGINE EVENT currentFile after \(elapsedSecondsLocked())s: \(filename)"
+        }
+    }
+
+    func markFirstEngineProgressEvent(_ data: ProgressData, activeProgress: Double) -> String? {
+        lock.withLock {
+            guard !state.didLogFirstEngineProgressEvent else { return nil }
+            state.didLogFirstEngineProgressEvent = true
+            return String(
+                format: "DIAG [RSYNC EVENT] ENGINE EVENT progress after %ds: raw %.1f%% / active %.1f%% / %.2f MB/s / %@",
+                elapsedSecondsLocked(),
+                data.progress,
+                activeProgress,
+                data.speedMBps,
+                Self.timeValue(seconds: data.eta)
+            )
         }
     }
 
@@ -418,6 +722,20 @@ nonisolated final class RsyncCopyTimingDiagnostics: @unchecked Sendable {
     private func elapsedSecondsLocked(now: Date = Date()) -> Int {
         guard let startedAt = state.startedAt else { return 0 }
         return max(0, Int(now.timeIntervalSince(startedAt).rounded(.down)))
+    }
+
+    private static func timeValue(seconds: TimeInterval) -> String {
+        guard seconds > 0 else { return "-" }
+        let totalSeconds = Int(seconds.rounded())
+        let hours = totalSeconds / 3600
+        let minutes = (totalSeconds % 3600) / 60
+        let seconds = totalSeconds % 60
+
+        if hours > 0 {
+            return String(format: "%d:%02d:%02d", hours, minutes, seconds)
+        }
+
+        return String(format: "%02d:%02d", minutes, seconds)
     }
 }
 
@@ -441,7 +759,7 @@ nonisolated struct RsyncCommand: Sendable {
         self.versionDescription = "bundled rsync \(bundledInfo.version)"
         self.diagnostics = bundledInfo.diagnostics
 
-        var arguments = ["-a", "-h", "--info=progress2", "--outbuf=L"]
+        var arguments = ["-a", "-h", "--info=name1,progress2", "--outbuf=N"]
 
         if let bwlimitArgument = try RsyncBandwidthLimit.rsyncArgument(forKiBPerSecond: request.bandwidthLimit),
            let bwlimitKiBPerSecond = request.bandwidthLimit {

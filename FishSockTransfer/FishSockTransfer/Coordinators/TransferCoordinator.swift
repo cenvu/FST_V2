@@ -10,6 +10,7 @@ public actor TransferCoordinator {
     private let verifyEngine: VerifyEngine
     private let reportEngine: ReportEngine
     private let bundledRsyncService: BundledRsyncService
+    private let destinationActivityObserver = DestinationActivityObserver()
     
     // Callbacks for ViewModel
     private var onStateChanged: (@MainActor @Sendable (TransferState) -> Void)?
@@ -17,6 +18,7 @@ public actor TransferCoordinator {
     private var onSpeed: (@MainActor @Sendable (Double) -> Void)?
     private var onTransferTime: (@MainActor @Sendable (TimeInterval) -> Void)?
     private var onCurrentFile: (@MainActor @Sendable (String) -> Void)?
+    private var onCopyRuntimeSnapshot: (@MainActor @Sendable (CopyRuntimeSnapshot) -> Void)?
     private var onError: (@MainActor @Sendable (String) -> Void)?
     private var onLog: (@MainActor @Sendable (LogEntry) -> Void)?
     /// Returns the full unfiltered log array from the ViewModel (including DIAG [VIEWMODEL] entries).
@@ -48,6 +50,7 @@ public actor TransferCoordinator {
         onSpeed: (@MainActor @Sendable @escaping (Double) -> Void),
         onTransferTime: (@MainActor @Sendable @escaping (TimeInterval) -> Void),
         onCurrentFile: (@MainActor @Sendable @escaping (String) -> Void),
+        onCopyRuntimeSnapshot: (@MainActor @Sendable @escaping (CopyRuntimeSnapshot) -> Void) = { _ in },
         onError: (@MainActor @Sendable @escaping (String) -> Void),
         onLog: (@MainActor @Sendable @escaping (LogEntry) -> Void),
         onLogsSnapshot: (@MainActor @Sendable () -> [LogEntry])? = nil
@@ -57,6 +60,7 @@ public actor TransferCoordinator {
         self.onSpeed = onSpeed
         self.onTransferTime = onTransferTime
         self.onCurrentFile = onCurrentFile
+        self.onCopyRuntimeSnapshot = onCopyRuntimeSnapshot
         self.onError = onError
         self.onLog = onLog
         self.onLogsSnapshot = onLogsSnapshot
@@ -94,6 +98,11 @@ public actor TransferCoordinator {
         
         Task.detached {
             if currentState == .copying {
+                await self.destinationActivityObserver.stop(reason: "cancel requested") { message in
+                    Task {
+                        await self.log(category: .progress, message: message)
+                    }
+                }
                 await rsyncEngine.cancel()
             } else if currentState == .verifying {
                 await verifyEngine.cancel()
@@ -166,7 +175,7 @@ public actor TransferCoordinator {
         await updateState(.copying)
         let request = TransferRequest(sourceURL: source, destinationURL: destination, bandwidthLimit: bandwidthLimit)
         copyStartedAt = Date()
-        let (rsyncSuccess, rsyncError) = await executeRsync(request: request)
+        let (rsyncSuccess, rsyncError) = await executeRsync(request: request, sourceMetadata: sourceMetadata, copyStartedAt: copyStartedAt ?? Date())
         copyEndedAt = Date()
         
         if isCancelled {
@@ -313,9 +322,19 @@ public actor TransferCoordinator {
         )
     }
     
-    private func executeRsync(request: TransferRequest) async -> (Bool, Error?) {
+    private func executeRsync(
+        request: TransferRequest,
+        sourceMetadata: SourceStorageMetadata?,
+        copyStartedAt: Date
+    ) async -> (Bool, Error?) {
         return await withCheckedContinuation { continuation in
             Task {
+                await startDestinationActivityObserver(
+                    request: request,
+                    sourceMetadata: sourceMetadata,
+                    copyStartedAt: copyStartedAt
+                )
+
                 let eventStream = AsyncStream(TransferEvent.self) { eventContinuation in
                     Task {
                         await rsyncEngine.startTransfer(request: request) { event in
@@ -327,13 +346,24 @@ public actor TransferCoordinator {
 
                 var didResume = false
                 let rsyncEventStartedAt = Date()
+                var didLogFirstProgressEventForward = false
                 var didLogFirstProgressForward = false
+                var didLogFirstSpeedEventForward = false
                 var didLogFirstSpeedForward = false
+                var didLogFirstTransferTimeEventForward = false
                 var didLogFirstTransferTimeForward = false
+                var didLogFirstCurrentFileForward = false
                 for await event in eventStream {
                     switch event {
                     case .progress(let p):
                         await self.onProgress?(p)
+                        if !didLogFirstProgressEventForward {
+                            didLogFirstProgressEventForward = true
+                            await self.log(
+                                category: .progress,
+                                message: String(format: "DIAG [COORDINATOR] COORDINATOR FORWARDED progress event: %.1f%% at +%ds", p, self.elapsedSeconds(since: rsyncEventStartedAt))
+                            )
+                        }
                         if p > 0, !didLogFirstProgressForward {
                             didLogFirstProgressForward = true
                             await self.log(
@@ -344,6 +374,13 @@ public actor TransferCoordinator {
                         await self.log(category: .progress, message: "Progress \(Int(p.rounded()))%")
                     case .speed(let s):
                         await self.onSpeed?(s)
+                        if !didLogFirstSpeedEventForward {
+                            didLogFirstSpeedEventForward = true
+                            await self.log(
+                                category: .progress,
+                                message: String(format: "DIAG [COORDINATOR] COORDINATOR FORWARDED speed event: %.2f MB/s at +%ds", s, self.elapsedSeconds(since: rsyncEventStartedAt))
+                            )
+                        }
                         if s > 0, !didLogFirstSpeedForward {
                             didLogFirstSpeedForward = true
                             await self.log(
@@ -354,6 +391,13 @@ public actor TransferCoordinator {
                         await self.log(category: .progress, message: String(format: "Speed %.2f MB/s", s))
                     case .eta(let e):
                         await self.onTransferTime?(e)
+                        if !didLogFirstTransferTimeEventForward {
+                            didLogFirstTransferTimeEventForward = true
+                            await self.log(
+                                category: .progress,
+                                message: "DIAG [COORDINATOR] COORDINATOR FORWARDED rsync time event: \(self.formatTransferTime(e)) at +\(self.elapsedSeconds(since: rsyncEventStartedAt))s"
+                            )
+                        }
                         if e > 0, !didLogFirstTransferTimeForward {
                             didLogFirstTransferTimeForward = true
                             await self.log(
@@ -364,20 +408,30 @@ public actor TransferCoordinator {
                         await self.log(category: .progress, message: "Rsync Time \(self.formatTransferTime(e))")
                     case .currentFile(let f):
                         await self.onCurrentFile?(f)
+                        if !f.isEmpty, !didLogFirstCurrentFileForward {
+                            didLogFirstCurrentFileForward = true
+                            await self.log(
+                                category: .file,
+                                message: "DIAG [COORDINATOR] COORDINATOR FORWARDED currentFile at +\(self.elapsedSeconds(since: rsyncEventStartedAt))s: \(f)"
+                            )
+                        }
                         await self.log(category: .file, message: f)
                     case .log(let logStr):
                         await self.logRsyncLine(logStr)
                     case .started:
                         await self.log(category: .info, message: "Transfer Started")
                     case .completed:
+                        await self.stopDestinationActivityObserver(reason: "rsync completed")
                         await self.log(category: .success, message: "Transfer Completed")
                         continuation.resume(returning: (true, nil))
                         didResume = true
                     case .cancelled:
+                        await self.stopDestinationActivityObserver(reason: "rsync cancelled")
                         await self.log(category: .warning, message: "Transfer Cancelled")
                         continuation.resume(returning: (false, nil))
                         didResume = true
                     case .failed(let err):
+                        await self.stopDestinationActivityObserver(reason: "rsync failed")
                         await self.log(category: .error, message: "TRANSFER ERROR: \(err.localizedDescription)")
                         continuation.resume(returning: (false, err))
                         didResume = true
@@ -387,6 +441,39 @@ public actor TransferCoordinator {
                         break
                     }
                 }
+            }
+        }
+    }
+
+    private func startDestinationActivityObserver(
+        request: TransferRequest,
+        sourceMetadata: SourceStorageMetadata?,
+        copyStartedAt: Date
+    ) async {
+        let destinationRootURL = request.destinationURL.appendingPathComponent(request.sourceURL.lastPathComponent, isDirectory: true)
+        await destinationActivityObserver.start(
+            destinationRootURL: destinationRootURL,
+            totalBytes: sourceMetadata?.totalSizeBytes,
+            totalFiles: sourceMetadata?.fileCount,
+            copyStartedAt: copyStartedAt,
+            cadenceSeconds: 5,
+            onSnapshot: { [weak self] snapshot in
+                Task {
+                    await self?.onCopyRuntimeSnapshot?(snapshot)
+                }
+            },
+            onLog: { [weak self] message in
+                Task {
+                    await self?.log(category: .progress, message: message)
+                }
+            }
+        )
+    }
+
+    private func stopDestinationActivityObserver(reason: String) async {
+        await destinationActivityObserver.stop(reason: reason) { [weak self] message in
+            Task {
+                await self?.log(category: .progress, message: message)
             }
         }
     }

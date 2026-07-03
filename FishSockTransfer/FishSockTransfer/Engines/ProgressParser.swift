@@ -28,6 +28,25 @@ nonisolated public final class ProgressParser: Sendable {
         return nil
     }
 
+    public func parseFilename(line: String) -> String? {
+        let trimmed = line.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return nil }
+        guard parseRecord(trimmed) == nil else { return nil }
+
+        let lowercased = trimmed.lowercased()
+        let ignoredStatusLines = [
+            "sending incremental file list",
+            "receiving incremental file list"
+        ]
+        guard !ignoredStatusLines.contains(lowercased),
+              !lowercased.hasPrefix("sent "),
+              !lowercased.hasPrefix("total size is ") else {
+            return nil
+        }
+
+        return trimmed
+    }
+
     private func parseRecord(_ line: String) -> ProgressData? {
         let trimmed = line.trimmingCharacters(in: .whitespacesAndNewlines)
         guard trimmed.contains("%") else { return nil }
