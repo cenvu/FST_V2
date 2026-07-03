@@ -18,7 +18,7 @@ public final class TransferViewModel: ObservableObject {
     @Published public var destinationURL: URL?
     @Published public var bandwidthLimit: Int? = nil
     @Published public var verificationMode: VerificationMode = .random33
-    
+
     @Published public var transferState: TransferState = .ready
     @Published public var progress: Double = 0.0
     @Published public var speed: Double = 0.0
@@ -40,7 +40,7 @@ public final class TransferViewModel: ObservableObject {
         version: BundledRsyncService.bundledVersion,
         diagnostics: []
     )
-    
+
     private let coordinator: TransferCoordinator
     private let driveService: DriveService
     private let bundledRsyncService: BundledRsyncService
@@ -49,8 +49,10 @@ public final class TransferViewModel: ObservableObject {
     private var destinationMetadataTask: Task<Void, Never>?
     private var workflowElapsedTask: Task<Void, Never>?
     private var workflowPhaseStartedAt: Date?
-    private var copyElapsedTask: Task<Void, Never>?
+    private var runtimeElapsedTask: Task<Void, Never>?
     private var copyStartedAt: Date?
+    private var verifyStartedAt: Date?
+    public private(set) var verifyElapsedSeconds: Int = 0
     private var lastRsyncRuntimeUpdateAt: Date?
     private var rsyncCurrentFile = ""
     private var didLogFirstAppliedProgress = false
@@ -60,7 +62,7 @@ public final class TransferViewModel: ObservableObject {
     private var didLogUsingDestinationObserver = false
     private var didLogUsingRsyncMetrics = false
     private let observerFallbackDelay: TimeInterval = 10
-    
+
     public init(
         coordinator: TransferCoordinator? = nil,
         driveService: DriveService? = nil,
@@ -110,7 +112,7 @@ public final class TransferViewModel: ObservableObject {
         errorMessage = nil
         return true
     }
-    
+
     private func setupBindings() {
         callbacksConfiguredTask = Task { [weak self, coordinator] in
             await coordinator.configureCallbacks(
@@ -158,6 +160,7 @@ public final class TransferViewModel: ObservableObject {
     internal func applyTransferProgress(_ progress: Double) {
         markRsyncRuntimeUpdate()
         self.progress = progress
+        updateVerifyETA()
         if progress > 0, !didLogFirstAppliedProgress {
             didLogFirstAppliedProgress = true
             addLog(category: .progress, message: String(format: "DIAG [VIEWMODEL] First progress applied: %.1f%%", progress))
@@ -234,7 +237,7 @@ public final class TransferViewModel: ObservableObject {
             addLog(category: .progress, message: "DIAG [VIEWMODEL] VIEWMODEL using destination observer metrics")
         }
     }
-    
+
     public func startTransfer() {
         reportStatusMessage = nil
 
@@ -265,7 +268,7 @@ public final class TransferViewModel: ObservableObject {
                 return
             }
         }
-        
+
         resetTransferMetrics()
         beginPreparationPhase()
         errorMessage = nil
@@ -274,7 +277,7 @@ public final class TransferViewModel: ObservableObject {
         addLog(category: .info, message: "Scanning source and checking destination...")
         addLog(category: .info, message: "Source: \(sourceURL.lastPathComponent)")
         addLog(category: .info, message: "Destination: \(destinationURL.lastPathComponent)")
-        
+
         let callbacksConfiguredTask = callbacksConfiguredTask
         Task { [coordinator, sourceURL, destinationURL, bandwidthLimit, verificationMode, callbacksConfiguredTask] in
             await callbacksConfiguredTask?.value
@@ -286,17 +289,18 @@ public final class TransferViewModel: ObservableObject {
             )
         }
     }
-    
+
     public func cancelTransfer() {
         addLog(category: .warning, message: "User requested transfer cancellation")
         Task { [coordinator] in
             await coordinator.cancelTransfer()
         }
     }
-    
+
     private func resetTransferMetrics() {
         progress = 0.0
         clearCopyRuntimeMetrics()
+        clearVerifyRuntimeMetrics()
         clearWorkflowPhase()
         resetRuntimeDiagnosticMarkers()
     }
@@ -309,16 +313,23 @@ public final class TransferViewModel: ObservableObject {
             progress = 0.0
             clearWorkflowPhase()
             clearCopyRuntimeMetrics()
+            if previousState != .verifying {
+                clearVerifyRuntimeMetrics()
+                beginVerifyRuntimePhase()
+            }
         case .copyComplete, .safeToFormat:
             progress = 100.0
             clearWorkflowPhase()
             clearCopyRuntimeMetrics()
+            clearVerifyRuntimeMetrics()
         case .error, .cancelled:
             clearWorkflowPhase()
             clearCopyRuntimeMetrics()
+            clearVerifyRuntimeMetrics()
         case .validating:
             progress = 0.0
             clearCopyRuntimeMetrics()
+            clearVerifyRuntimeMetrics()
             if workflowPhaseStartedAt == nil {
                 beginPreparationPhase()
             }
@@ -332,7 +343,9 @@ public final class TransferViewModel: ObservableObject {
     }
 
     private func clearCopyRuntimeMetrics() {
-        stopCopyElapsedTimer()
+        if transferState != .verifying {
+            stopRuntimeElapsedTimer()
+        }
         speed = 0.0
         eta = 0.0
         currentFile = ""
@@ -372,26 +385,62 @@ public final class TransferViewModel: ObservableObject {
     private func beginCopyRuntimePhase() {
         copyStartedAt = Date()
         copyElapsedSeconds = 0
-        startCopyElapsedTimer()
+        startRuntimeElapsedTimer()
     }
 
-    private func stopCopyElapsedTimer() {
-        copyElapsedTask?.cancel()
-        copyElapsedTask = nil
+    private func beginVerifyRuntimePhase() {
+        verifyStartedAt = Date()
+        verifyElapsedSeconds = 0
+        eta = 0.0
+        startRuntimeElapsedTimer()
+    }
+
+    private func clearVerifyRuntimeMetrics() {
+        if transferState != .copying {
+            stopRuntimeElapsedTimer()
+        }
+        verifyStartedAt = nil
+        verifyElapsedSeconds = 0
+        eta = 0.0
+    }
+
+    private func stopRuntimeElapsedTimer() {
+        runtimeElapsedTask?.cancel()
+        runtimeElapsedTask = nil
         copyStartedAt = nil
+        verifyStartedAt = nil
     }
 
-    private func startCopyElapsedTimer() {
-        copyElapsedTask?.cancel()
-        copyElapsedTask = Task { [weak self] in
+    private func startRuntimeElapsedTimer() {
+        runtimeElapsedTask?.cancel()
+        runtimeElapsedTask = Task { [weak self] in
             while !Task.isCancelled {
                 try? await Task.sleep(nanoseconds: 1_000_000_000)
                 await MainActor.run { [weak self] in
-                    guard let self, let copyStartedAt = self.copyStartedAt else { return }
-                    self.copyElapsedSeconds = max(0, Int(Date().timeIntervalSince(copyStartedAt).rounded(.down)))
+                    guard let self else { return }
+                    if let copyStartedAt = self.copyStartedAt, self.transferState == .copying {
+                        self.copyElapsedSeconds = max(0, Int(Date().timeIntervalSince(copyStartedAt).rounded(.down)))
+                    } else if let verifyStartedAt = self.verifyStartedAt, self.transferState == .verifying {
+                        self.verifyElapsedSeconds = max(0, Int(Date().timeIntervalSince(verifyStartedAt).rounded(.down)))
+                        self.updateVerifyETA()
+                    }
                 }
             }
         }
+    }
+
+    private func updateVerifyETA() {
+        guard transferState == .verifying else { return }
+
+        let progressFraction = self.progress
+        guard progressFraction > 0, progressFraction < 1, progressFraction.isFinite else {
+            return
+        }
+
+        guard verifyElapsedSeconds > 0 else { return }
+
+        let remainingSeconds = Double(verifyElapsedSeconds) * (1.0 - progressFraction) / progressFraction
+        self.eta = remainingSeconds
     }
 
     private func markRsyncRuntimeUpdate(now: Date = Date()) {
@@ -570,7 +619,7 @@ public final class TransferViewModel: ObservableObject {
             }
         }
     }
-    
+
     private func addLog(category: LogCategory, message: String) {
         appendLog(LogEntry(category: category, message: message))
     }
@@ -581,6 +630,13 @@ public final class TransferViewModel: ObservableObject {
             reportStatusMessage = message
         }
     }
+
+#if DEBUG
+    internal func setVerifyElapsedSecondsForTesting(_ seconds: Int) {
+        self.verifyElapsedSeconds = seconds
+        self.updateVerifyETA()
+    }
+#endif
 }
 
 nonisolated public enum TransferDestinationPreview {

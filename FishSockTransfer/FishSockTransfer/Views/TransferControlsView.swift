@@ -303,9 +303,19 @@ public struct TransferControlsView: View {
             GridRow {
                 runtimeMetric(title: runtimeFileMetricTitle, value: displayCurrentFile)
                     .gridCellColumns(3)
-                runtimeMetric(title: "ETA", value: "Estimating...")
+                runtimeMetric(title: "ETA", value: verifyEtaValue)
             }
         }
+    }
+
+    private var verifyEtaValue: String {
+        if viewModel.progress >= 0.99 {
+            return "Finalizing..."
+        }
+        guard viewModel.eta > 0, viewModel.verifyElapsedSeconds > 0 else {
+            return "Estimating..."
+        }
+        return "~\(formatTransferTime(viewModel.eta)) remaining"
     }
 
     private func runtimeMetric(title: String, value: String) -> some View {

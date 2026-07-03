@@ -240,6 +240,98 @@ final class TransferViewModelRuntimeXCTests: XCTestCase {
         XCTAssertFalse(TransferRuntimeMetricPresentation.shouldShowRsyncTime(for: .verifying))
     }
 
+    func testVerifyETABeforeProgressIsEstimating() {
+        let viewModel = makeViewModel()
+        viewModel.applyTransferState(.verifying)
+
+        XCTAssertEqual(viewModel.progress, 0, accuracy: 0.0001)
+        XCTAssertEqual(viewModel.eta, 0, accuracy: 0.0001)
+        XCTAssertEqual(viewModel.verifyElapsedSeconds, 0)
+    }
+
+    func testVerifyETAAt25PercentAfter30SecondsIs90Seconds() {
+        let viewModel = makeViewModel()
+        viewModel.applyTransferState(.verifying)
+        viewModel.setVerifyElapsedSecondsForTesting(30)
+        viewModel.applyTransferProgress(0.25) // 25%
+
+        XCTAssertEqual(viewModel.eta, 90, accuracy: 0.0001)
+    }
+
+    func testVerifyETAZeroPercentDoesNotDivideByZero() {
+        let viewModel = makeViewModel()
+        viewModel.applyTransferState(.verifying)
+        viewModel.setVerifyElapsedSecondsForTesting(30)
+        viewModel.applyTransferProgress(0.0) // 0%
+
+        XCTAssertEqual(viewModel.eta, 0, accuracy: 0.0001)
+        XCTAssertFalse(viewModel.eta.isNaN)
+        XCTAssertFalse(viewModel.eta.isInfinite)
+    }
+
+    func testVerifyETAHundredPercentHandledSafely() {
+        let viewModel = makeViewModel()
+        viewModel.applyTransferState(.verifying)
+        viewModel.setVerifyElapsedSecondsForTesting(30)
+        viewModel.applyTransferProgress(1.0) // 100%
+
+        XCTAssertEqual(viewModel.eta, 0, accuracy: 0.0001)
+        XCTAssertFalse(viewModel.eta.isNaN)
+        XCTAssertFalse(viewModel.eta.isInfinite)
+    }
+
+    func testVerifyETAClearsOnVerifyCompleted() {
+        let viewModel = makeViewModel()
+        viewModel.applyTransferState(.verifying)
+        viewModel.setVerifyElapsedSecondsForTesting(30)
+        viewModel.applyTransferProgress(0.5)
+        XCTAssertEqual(viewModel.eta, 30, accuracy: 0.0001)
+
+        viewModel.applyTransferState(.safeToFormat)
+        XCTAssertEqual(viewModel.eta, 0, accuracy: 0.0001)
+        XCTAssertEqual(viewModel.verifyElapsedSeconds, 0)
+    }
+
+    func testVerifyETAClearsOnCancelFailureResetNewJob() {
+        let viewModel = makeViewModel()
+
+        viewModel.applyTransferState(.verifying)
+        viewModel.setVerifyElapsedSecondsForTesting(30)
+        viewModel.applyTransferProgress(0.5)
+        XCTAssertEqual(viewModel.eta, 30, accuracy: 0.0001)
+
+        viewModel.applyTransferState(.cancelled)
+        XCTAssertEqual(viewModel.eta, 0, accuracy: 0.0001)
+        XCTAssertEqual(viewModel.verifyElapsedSeconds, 0)
+
+        viewModel.applyTransferState(.verifying)
+        viewModel.setVerifyElapsedSecondsForTesting(30)
+        viewModel.applyTransferProgress(0.5)
+        XCTAssertEqual(viewModel.eta, 30, accuracy: 0.0001)
+
+        viewModel.applyTransferState(.error)
+        XCTAssertEqual(viewModel.eta, 0, accuracy: 0.0001)
+        XCTAssertEqual(viewModel.verifyElapsedSeconds, 0)
+
+        viewModel.applyTransferState(.verifying)
+        viewModel.setVerifyElapsedSecondsForTesting(30)
+        viewModel.applyTransferProgress(0.5)
+        XCTAssertEqual(viewModel.eta, 30, accuracy: 0.0001)
+
+        viewModel.applyTransferState(.ready)
+        XCTAssertEqual(viewModel.eta, 0, accuracy: 0.0001)
+        XCTAssertEqual(viewModel.verifyElapsedSeconds, 0)
+
+        viewModel.applyTransferState(.verifying)
+        viewModel.setVerifyElapsedSecondsForTesting(30)
+        viewModel.applyTransferProgress(0.5)
+        XCTAssertEqual(viewModel.eta, 30, accuracy: 0.0001)
+
+        viewModel.applyTransferState(.validating) // New job
+        XCTAssertEqual(viewModel.eta, 0, accuracy: 0.0001)
+        XCTAssertEqual(viewModel.verifyElapsedSeconds, 0)
+    }
+
     private func makeViewModel() -> TransferViewModel {
         TransferViewModel(
             bundledRsyncService: BundledRsyncService(bundledExecutableURL: nil)
