@@ -146,6 +146,78 @@ final class TransferViewModelRuntimeXCTests: XCTestCase {
         XCTAssertEqual(viewModel.projectETA, 4, accuracy: 0.0001)
     }
 
+    func testEstimatedCopyTimeForFiniteBandwidthUsesSourceSizeAndSelectedLimit() {
+        let viewModel = makeViewModel()
+        viewModel.sourceMetadata = sourceMetadata(totalSizeBytes: 46 * 120 * 1024 * 1024)
+        viewModel.bandwidthLimit = RsyncBandwidthLimit.kibPerSecond(for: 120)
+
+        XCTAssertEqual(viewModel.estimatedCopyTimeSeconds, 46, accuracy: 0.0001)
+        XCTAssertEqual(
+            TransferRuntimeMetricPresentation.estimatedCopyTimeValue(seconds: viewModel.estimatedCopyTimeSeconds),
+            "~00:46"
+        )
+    }
+
+    func testEstimatedCopyTimeUnavailableForUnlimitedBandwidth() {
+        let viewModel = makeViewModel()
+        viewModel.sourceMetadata = sourceMetadata(totalSizeBytes: 46 * 120 * 1024 * 1024)
+        viewModel.bandwidthLimit = nil
+
+        XCTAssertEqual(viewModel.estimatedCopyTimeSeconds, 0, accuracy: 0.0001)
+        XCTAssertEqual(TransferRuntimeMetricPresentation.estimatedCopyTimeValue(seconds: 0), "-")
+    }
+
+    func testEstimatedCopyTimeUnavailableWithoutSourceMetadata() {
+        let viewModel = makeViewModel()
+        viewModel.bandwidthLimit = RsyncBandwidthLimit.kibPerSecond(for: 120)
+
+        XCTAssertNil(viewModel.sourceMetadata)
+        XCTAssertEqual(viewModel.estimatedCopyTimeSeconds, 0, accuracy: 0.0001)
+    }
+
+    func testEstimatedCopyTimeDoesNotDependOnRsyncNativeETA() {
+        let viewModel = makeViewModel()
+        viewModel.sourceMetadata = sourceMetadata(totalSizeBytes: 46 * 120 * 1024 * 1024)
+        viewModel.bandwidthLimit = RsyncBandwidthLimit.kibPerSecond(for: 120)
+
+        let estimateBeforeRsyncETA = viewModel.estimatedCopyTimeSeconds
+        viewModel.applyTransferTime(999)
+
+        XCTAssertEqual(viewModel.eta, 999, accuracy: 0.0001)
+        XCTAssertEqual(viewModel.estimatedCopyTimeSeconds, estimateBeforeRsyncETA, accuracy: 0.0001)
+    }
+
+    func testEstimatedCopyTimeDoesNotAlterProjectETA() {
+        let viewModel = makeViewModel()
+        viewModel.sourceMetadata = sourceMetadata(totalSizeBytes: 10 * 1024 * 1024)
+        viewModel.bandwidthLimit = RsyncBandwidthLimit.kibPerSecond(for: 120)
+
+        viewModel.beginCopyRuntime(at: Date(timeIntervalSince1970: 100))
+        viewModel.applyTransferSpeed(2)
+        viewModel.applyTransferredBytes(2 * 1024 * 1024, now: Date(timeIntervalSince1970: 120))
+
+        let projectETABeforeEstimateRead = viewModel.projectETA
+        XCTAssertGreaterThan(viewModel.estimatedCopyTimeSeconds, 0)
+        XCTAssertEqual(viewModel.projectETA, projectETABeforeEstimateRead, accuracy: 0.0001)
+    }
+
+    func testReadyResetKeepsEstimatedCopyTimeAsPlanningValueAndClearsProjectETA() {
+        let viewModel = makeViewModel()
+        viewModel.sourceMetadata = sourceMetadata(totalSizeBytes: 46 * 120 * 1024 * 1024)
+        viewModel.bandwidthLimit = RsyncBandwidthLimit.kibPerSecond(for: 120)
+
+        viewModel.beginCopyRuntime(at: Date(timeIntervalSince1970: 100))
+        viewModel.applyTransferSpeed(2)
+        viewModel.applyTransferredBytes(2 * 1024 * 1024, now: Date(timeIntervalSince1970: 120))
+        XCTAssertGreaterThan(viewModel.projectETA, 0)
+
+        viewModel.applyTransferState(.ready)
+
+        XCTAssertEqual(viewModel.projectETA, 0, accuracy: 0.0001)
+        XCTAssertEqual(viewModel.estimatedCopyTimeSeconds, 46, accuracy: 0.0001)
+        XCTAssertNotEqual(viewModel.transferState, .safeToFormat)
+    }
+
     func testVerifyPreparingSignalTogglesUntilFirstVerificationProgress() {
         let viewModel = makeViewModel()
 

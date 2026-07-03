@@ -102,6 +102,7 @@ public struct TransferControlsView: View {
                     VStack(spacing: 12) {
                         HStack(spacing: 12) {
                             runtimeMetric(title: "COPY ELAPSED", value: formatElapsed(viewModel.copyElapsedSeconds))
+                            runtimeMetric(title: "EST. COPY TIME", value: formatEstimatedCopyTime(viewModel.estimatedCopyTimeSeconds))
                             runtimeMetric(title: "PROJECT ETA", value: formatProjectETA(viewModel.projectETA))
                         }
                         runtimeMetric(title: runtimeFileMetricTitle, value: displayCurrentFile)
@@ -324,6 +325,10 @@ public struct TransferControlsView: View {
     private func formatProjectETA(_ eta: TimeInterval) -> String {
         guard eta > 0 else { return "Calculating..." }
         return TransferRuntimeMetricPresentation.timeValue(seconds: eta)
+    }
+
+    private func formatEstimatedCopyTime(_ seconds: TimeInterval) -> String {
+        TransferRuntimeMetricPresentation.estimatedCopyTimeValue(seconds: seconds)
     }
 
     private func formatTransferTime(_ time: TimeInterval) -> String {

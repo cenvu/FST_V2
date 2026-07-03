@@ -469,6 +469,32 @@ public final class TransferViewModel: ObservableObject {
         }
     }
 
+    public var estimatedCopyTimeSeconds: TimeInterval {
+        guard let sourceTotalBytes = sourceMetadata?.totalSizeBytes,
+              sourceTotalBytes > 0,
+              let bandwidthLimit,
+              bandwidthLimit > 0 else {
+            return 0
+        }
+
+        let selectedLimitMBps = Double(bandwidthLimit) / 1024.0
+        guard selectedLimitMBps.isFinite, selectedLimitMBps > 0 else {
+            return 0
+        }
+
+        let bandwidthBytesPerSecond = selectedLimitMBps * 1024.0 * 1024.0
+        guard bandwidthBytesPerSecond.isFinite, bandwidthBytesPerSecond > 0 else {
+            return 0
+        }
+
+        let estimate = Double(sourceTotalBytes) / bandwidthBytesPerSecond
+        guard estimate.isFinite, estimate > 0 else {
+            return 0
+        }
+
+        return estimate
+    }
+
     public var startBlockedReason: String? {
         if isTransferConfigurationLocked {
             return "Transfer in progress. Source, destination, and settings locked."
@@ -667,5 +693,10 @@ nonisolated public enum TransferRuntimeMetricPresentation {
         }
 
         return String(format: "%02d:%02d", minutes, seconds)
+    }
+
+    public static func estimatedCopyTimeValue(seconds: TimeInterval) -> String {
+        guard seconds > 0 else { return "-" }
+        return "~\(timeValue(seconds: seconds))"
     }
 }
