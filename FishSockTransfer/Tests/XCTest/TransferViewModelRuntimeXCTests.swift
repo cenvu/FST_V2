@@ -55,11 +55,11 @@ final class TransferViewModelRuntimeXCTests: XCTestCase {
     func testCopyPhaseEmptyCurrentFileUsesTruthfulTotalProgressWording() {
         XCTAssertEqual(
             TransferRuntimeMetricPresentation.currentFileTitle(currentFile: "", state: .copying),
-            "COPY PROGRESS"
+            "COPY STATUS"
         )
         XCTAssertEqual(
             TransferRuntimeMetricPresentation.currentFileValue(currentFile: "", state: .copying),
-            "Tracking total rsync progress"
+            "Waiting for rsync progress output..."
         )
         XCTAssertNotEqual(
             TransferRuntimeMetricPresentation.currentFileValue(currentFile: "", state: .copying),

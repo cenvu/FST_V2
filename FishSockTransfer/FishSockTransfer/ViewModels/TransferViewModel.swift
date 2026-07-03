@@ -36,6 +36,8 @@ public final class TransferViewModel: ObservableObject {
     @Published public var projectETA: TimeInterval = 0.0
     @Published public var isPreparingVerify: Bool = false
     @Published public var verifyPhaseDescription: String = ""
+    @Published public var copyElapsedSeconds: Int = 0
+    @Published public var lastCopyDuration: Int? = nil
     @Published public var bundledRsyncInfo: BundledRsyncInfo = .unavailable(
         version: BundledRsyncService.bundledVersion,
         diagnostics: []
@@ -48,6 +50,7 @@ public final class TransferViewModel: ObservableObject {
     private var sourceMetadataTask: Task<Void, Never>?
     private var destinationMetadataTask: Task<Void, Never>?
     private var workflowElapsedTask: Task<Void, Never>?
+    private var copyElapsedTask: Task<Void, Never>?
     private var workflowPhaseStartedAt: Date?
     private var copyStartedAt: Date?
     private var copyTransferredBytes: Int64 = 0
@@ -205,7 +208,10 @@ public final class TransferViewModel: ObservableObject {
     internal func beginCopyRuntime(at startedAt: Date = Date()) {
         copyStartedAt = startedAt
         copyTransferredBytes = 0
+        copyElapsedSeconds = 0
+        lastCopyDuration = nil
         clearProjectETA()
+        startCopyElapsedTimer()
     }
     
     public func startTransfer() {
@@ -269,6 +275,7 @@ public final class TransferViewModel: ObservableObject {
     
     private func resetTransferMetrics() {
         progress = 0.0
+        lastCopyDuration = nil
         clearCopyRuntimeMetrics()
         clearProjectETAState()
         clearVerifyPreparing()
@@ -281,12 +288,14 @@ public final class TransferViewModel: ObservableObject {
         case .ready:
             resetTransferMetrics()
         case .verifying:
+            snapshotLastCopyDuration()
             progress = 0.0
             clearWorkflowPhase()
             clearCopyRuntimeMetrics()
             clearProjectETAState()
             applyVerifyPreparing("Preparing verification...")
         case .copyComplete, .safeToFormat:
+            snapshotLastCopyDuration()
             progress = 100.0
             clearWorkflowPhase()
             clearCopyRuntimeMetrics()
@@ -319,6 +328,14 @@ public final class TransferViewModel: ObservableObject {
         speed = 0.0
         eta = 0.0
         currentFile = ""
+        copyElapsedTask?.cancel()
+        copyElapsedTask = nil
+    }
+
+    private func snapshotLastCopyDuration() {
+        if let startedAt = copyStartedAt {
+            lastCopyDuration = max(0, Int(Date().timeIntervalSince(startedAt).rounded(.down)))
+        }
     }
 
     private func clearProjectETAState() {
@@ -400,6 +417,19 @@ public final class TransferViewModel: ObservableObject {
                 await MainActor.run { [weak self] in
                     guard let self, let startedAt = self.workflowPhaseStartedAt else { return }
                     self.workflowElapsedSeconds = max(0, Int(Date().timeIntervalSince(startedAt).rounded(.down)))
+                }
+            }
+        }
+    }
+
+    private func startCopyElapsedTimer() {
+        copyElapsedTask?.cancel()
+        copyElapsedTask = Task { [weak self] in
+            while !Task.isCancelled {
+                try? await Task.sleep(nanoseconds: 1_000_000_000)
+                await MainActor.run { [weak self] in
+                    guard let self, let startedAt = self.copyStartedAt else { return }
+                    self.copyElapsedSeconds = max(0, Int(Date().timeIntervalSince(startedAt).rounded(.down)))
                 }
             }
         }
@@ -593,25 +623,33 @@ nonisolated public enum TransferReportStatusPresentation {
 }
 
 nonisolated public enum TransferRuntimeMetricPresentation {
-    public static func currentFileTitle(currentFile: String, state: TransferState) -> String {
+    public static func currentFileTitle(currentFile: String, state: TransferState, isPreparingVerify: Bool = false) -> String {
         if state == .copying && currentFile.isEmpty {
-            return "COPY PROGRESS"
+            return "COPY STATUS"
+        }
+
+        if state == .verifying {
+            if isPreparingVerify { return "VERIFY STATUS" }
+            if currentFile.isEmpty { return "VERIFY PROGRESS" }
         }
 
         return "CURRENT FILE"
     }
 
-    public static func currentFileValue(currentFile: String, state: TransferState) -> String {
+    public static func currentFileValue(currentFile: String, state: TransferState, isPreparingVerify: Bool = false, verifyPhaseDescription: String = "") -> String {
         guard currentFile.isEmpty else {
             return currentFile
         }
 
         if state == .copying {
-            return "Tracking total rsync progress"
+            return "Waiting for rsync progress output..."
         }
 
         if state == .verifying {
-            return "Preparing verification..."
+            if isPreparingVerify {
+                return verifyPhaseDescription.isEmpty ? "Preparing verification..." : verifyPhaseDescription
+            }
+            return "Verifying..."
         }
 
         return "-"

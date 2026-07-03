@@ -98,11 +98,29 @@ public struct TransferControlsView: View {
                     .foregroundColor(.secondary)
                 }
 
-                VStack(spacing: 12) {
-                    runtimeMetric(title: runtimeFileMetricTitle, value: displayCurrentFile)
-                    HStack(spacing: 12) {
-                        runtimeMetric(title: "SPEED", value: formatSpeed(viewModel.speed))
-                        runtimeMetric(title: "RSYNC TIME", value: formatTransferTime(viewModel.eta))
+                if viewModel.transferState == .copying {
+                    VStack(spacing: 12) {
+                        HStack(spacing: 12) {
+                            runtimeMetric(title: "COPY ELAPSED", value: formatElapsed(viewModel.copyElapsedSeconds))
+                            runtimeMetric(title: "PROJECT ETA", value: formatProjectETA(viewModel.projectETA))
+                        }
+                        runtimeMetric(title: runtimeFileMetricTitle, value: displayCurrentFile)
+                        HStack(spacing: 12) {
+                            runtimeMetric(title: "SPEED", value: formatSpeed(viewModel.speed))
+                        }
+                    }
+                } else if viewModel.transferState == .verifying {
+                    VStack(spacing: 12) {
+                        if let duration = viewModel.lastCopyDuration {
+                            HStack(spacing: 12) {
+                                runtimeMetric(title: "COPY DURATION", value: formatDuration(duration))
+                            }
+                        }
+                        runtimeMetric(title: runtimeFileMetricTitle, value: displayCurrentFile)
+                    }
+                } else {
+                    VStack(spacing: 12) {
+                        runtimeMetric(title: runtimeFileMetricTitle, value: displayCurrentFile)
                     }
                 }
             }
@@ -265,14 +283,17 @@ public struct TransferControlsView: View {
     private var displayCurrentFile: String {
         TransferRuntimeMetricPresentation.currentFileValue(
             currentFile: viewModel.currentFile,
-            state: viewModel.transferState
+            state: viewModel.transferState,
+            isPreparingVerify: viewModel.isPreparingVerify,
+            verifyPhaseDescription: viewModel.verifyPhaseDescription
         )
     }
 
     private var runtimeFileMetricTitle: String {
         TransferRuntimeMetricPresentation.currentFileTitle(
             currentFile: viewModel.currentFile,
-            state: viewModel.transferState
+            state: viewModel.transferState,
+            isPreparingVerify: viewModel.isPreparingVerify
         )
     }
 
@@ -298,6 +319,11 @@ public struct TransferControlsView: View {
     private func formatSpeed(_ speed: Double) -> String {
         guard speed > 0 else { return "-" }
         return String(format: "%.2f MB/s", speed)
+    }
+
+    private func formatProjectETA(_ eta: TimeInterval) -> String {
+        guard eta > 0 else { return "Calculating..." }
+        return TransferRuntimeMetricPresentation.timeValue(seconds: eta)
     }
 
     private func formatTransferTime(_ time: TimeInterval) -> String {
