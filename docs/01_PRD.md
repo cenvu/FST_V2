@@ -122,8 +122,8 @@ A first-time operator can launch FST, select source, select destination, choose 
 
 Current release:
 
-- Version: v1.1 build 20260630
-- Package: `dist/FishSockTransfer-v1.1-b20260630-local-macOS13_5plus-arm64.zip`
+- Version: v1.2 build 20260703
+- Package: `dist/FishSockTransfer-v1.2-b20260703-local-macOS13_5plus-arm64.zip`
 - Package type: local owner-side ad-hoc build
 - Platform: macOS 13.5+, Apple Silicon arm64 only
 - Signing: ad-hoc signed, not notarized, not Developer ID signed
@@ -160,6 +160,21 @@ Rules:
 - Use dependency flow: View -> ViewModel -> Coordinator -> Engine -> Service.
 - Never mutate source media.
 - Never run rsync, hashing, scanning, or report generation on MainActor.
+
+v1.2 release focus:
+
+- Runtime Copy Progress / Operator Progress.
+- Copy UI shows elapsed time, current item, copied bytes, total bytes, copied files, total files, ETA, current speed, and a large Copy Progress bar.
+- Verify UI shows current verify file and a large Verify Progress bar.
+- Technical Logs retain rsync and destination observer diagnostics.
+
+Truth layers:
+
+- Safety truth: verification result, report generation, and SAFE TO EJECT.
+- Transfer truth: bundled rsync 3.4.4 lifecycle, exit status, errors, and cancellation.
+- Operator truth: destination observer progress metrics for visibility only.
+
+Destination observer metrics are estimates for operator visibility. They must never mark copy success, verification success, or SAFE TO EJECT.
 
 ---
 
@@ -458,8 +473,8 @@ Performance:
 
 Compatibility:
 
-- v1.1 package: macOS 13.5+
-- v1.1 package: Apple Silicon arm64 only
+- v1.2 release candidate: macOS 13.5+
+- v1.2 release candidate: Apple Silicon arm64 only
 - Intel optional unless explicitly required
 
 Maintainability:

@@ -30,8 +30,8 @@ If the final status is unclear, unsafe, or misleading, the product has failed.
 
 Current release state:
 
-- Version: v1.1 build 20260630
-- Package: `dist/FishSockTransfer-v1.1-b20260630-local-macOS13_5plus-arm64.zip`
+- Version: v1.2 build 20260703
+- Package: `dist/FishSockTransfer-v1.2-b20260703-local-macOS13_5plus-arm64.zip`
 - Platform: macOS 13.5+, Apple Silicon arm64
 - Package type: local owner-side ad-hoc build
 - Signing: ad-hoc signed, not notarized, not Developer ID signed
@@ -88,6 +88,25 @@ Out of scope:
 - Report: plain TXT with summary plus FULL TECHNICAL LOG
 
 Production transfer must not silently fallback to Apple `/usr/bin/rsync`, Homebrew rsync, or any system rsync.
+
+## v1.2 Runtime Copy Progress
+
+v1.2 is the Runtime Copy Progress / Operator Progress release.
+
+FST now separates three kinds of truth:
+
+- Safety truth: verification result, final report, and the SAFE TO EJECT gate.
+- Transfer truth: bundled rsync 3.4.4 lifecycle, exit status, errors, and cancellation.
+- Operator truth: destination observer UI metrics such as copied bytes, copied files, current item, speed, elapsed time, and ETA.
+
+The destination activity observer is visibility-only. It helps the operator see progress during rsync-silent windows, but it must never decide copy success, verification success, report truth, or SAFE TO EJECT.
+
+Known limitations:
+
+- rsync stdout can still arrive late or in bursts.
+- ETA is an observed estimate, not a safety guarantee.
+- Current item text may show APFS or rsync partial filenames.
+- Multi-destination remains outside the MVP.
 
 ---
 
@@ -266,13 +285,13 @@ See `FST_AI/README.md` for details.
 Create the current local Apple Silicon package with:
 
 ```bash
-bash scripts/package-local-arm64.sh
+APP_VERSION=1.2 BUILD_NUMBER=20260703 bash scripts/package-local-arm64.sh
 ```
 
 Expected output:
 
 ```text
-dist/FishSockTransfer-v1.1-b20260630-local-macOS13_5plus-arm64.zip
+dist/FishSockTransfer-v1.2-b20260703-local-macOS13_5plus-arm64.zip
 ```
 
 The packaging script validates app version, build number, `LSMinimumSystemVersion`, bundled rsync 3.4.4, arm64 architecture, dylib loader paths, ad-hoc codesign structure, and absence of AppleDouble zip entries.

@@ -34,8 +34,8 @@ Do not add features that do not reduce media-loss risk.
 
 ## Current Release Snapshot
 
-- Version: v1.1 build 20260630
-- Package: `dist/FishSockTransfer-v1.1-b20260630-local-macOS13_5plus-arm64.zip`
+- Version: v1.2 build 20260703
+- Package: `dist/FishSockTransfer-v1.2-b20260703-local-macOS13_5plus-arm64.zip`
 - Platform: macOS 13.5+, Apple Silicon arm64 only
 - Package type: local owner-side ad-hoc build
 - Signing: ad-hoc signed, not notarized, not Developer ID signed
@@ -44,6 +44,8 @@ Do not add features that do not reduce media-loss risk.
 - Operator-facing verified success: SAFE TO EJECT
 
 FST does not format media and does not eject media.
+
+v1.2 is the Runtime Copy Progress / Operator Progress release. It adds UI visibility for rsync-silent windows through a destination activity observer. This observer is not part of copy success, verification success, report success, or SAFE TO EJECT.
 
 ---
 
@@ -127,6 +129,29 @@ Allowed dependency direction only:
 ```text
 View -> ViewModel -> Coordinator -> Engine -> Service
 ```
+
+## v1.2 Truth Layers
+
+FST separates runtime feedback into three truth layers:
+
+1. Safety truth: verification result, report generation, and SAFE TO EJECT.
+2. Transfer truth: bundled rsync 3.4.4 lifecycle, exit status, errors, and cancellation.
+3. Operator truth: destination observer metrics for copied bytes, copied files, current item, speed, elapsed time, and ETA.
+
+Rules:
+
+- Rsync remains authoritative for copy lifecycle and exit status.
+- Verification/hash/report logic remains authoritative for SAFE TO EJECT.
+- Destination observer metrics are UI-only estimates and must never decide copy success or safety.
+- If rsync progress parsing is delayed, the UI may still show active destination activity.
+- Technical Logs may include rsync diagnostics and observer diagnostics.
+
+Known limitations:
+
+- rsync stdout may arrive late because pipes are not terminals.
+- ETA is an observed estimate and may change under APFS, cache, thermal, or device throttling behavior.
+- Current item may show APFS or rsync partial filenames.
+- Multi-destination remains out of MVP scope.
 
 Forbidden:
 
@@ -719,7 +744,7 @@ Core rules:
 
 Swift:
 
-- macOS 13.5+ for the v1.1 local package
+- macOS 13.5+ for the v1.2 release candidate
 - Swift 5.9+
 - Swift 6 compatible
 - prefer `async/await`

@@ -93,8 +93,8 @@ Rules:
 
 ## 4. Technical Baseline
 
-- current version v1.1 build 20260630
-- local package `dist/FishSockTransfer-v1.1-b20260630-local-macOS13_5plus-arm64.zip`
+- current version v1.2 build 20260703
+- local package `dist/FishSockTransfer-v1.2-b20260703-local-macOS13_5plus-arm64.zip`
 - macOS 13.5+
 - Apple Silicon arm64 package
 - ad-hoc signed, not notarized, not Developer ID signed
@@ -111,6 +111,21 @@ Rules:
 - speed limit
 - logs
 - TXT report
+
+v1.2 release focus:
+
+- Runtime Copy Progress / Operator Progress.
+- Destination activity observer for UI visibility when rsync output is delayed.
+- Large Copy Progress and Verify Progress surfaces for operator clarity.
+- Technical Logs retain rsync and observer diagnostics.
+
+Truth layers:
+
+- Safety truth: verification result, report generation, and SAFE TO EJECT.
+- Transfer truth: bundled rsync 3.4.4 lifecycle, exit status, errors, and cancellation.
+- Operator truth: destination observer metrics for visibility only.
+
+The destination observer must never influence copy success, verify success, report safety, or SAFE TO EJECT.
 
 Out of MVP:
 

@@ -71,8 +71,8 @@ Do not use older agent routing if it conflicts with `FST_AI/`.
 
 ## Current Release Snapshot
 
-- Version: v1.1 build 20260630
-- Package: `dist/FishSockTransfer-v1.1-b20260630-local-macOS13_5plus-arm64.zip`
+- Version: v1.2 build 20260703
+- Package: `dist/FishSockTransfer-v1.2-b20260703-local-macOS13_5plus-arm64.zip`
 - Platform: macOS 13.5+, Apple Silicon arm64 only
 - Package type: local owner-side ad-hoc build
 - Signing: ad-hoc signed, not notarized, not Developer ID signed
@@ -81,6 +81,8 @@ Do not use older agent routing if it conflicts with `FST_AI/`.
 - Transfer engine: bundled rsync 3.4.4 only
 
 FST does not format media and does not eject media.
+
+v1.2 is the Runtime Copy Progress / Operator Progress release. The destination activity observer may improve UI visibility when rsync output is delayed, but it is operator truth only. Rsync remains authoritative for transfer lifecycle and exit status. Verification, report generation, and the SAFE TO EJECT gate remain authoritative for safety.
 
 Agent division:
 

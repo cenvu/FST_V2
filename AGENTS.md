@@ -109,8 +109,8 @@ Safety-critical changes:
 
 ## Current Release State
 
-- Current version: v1.1 build 20260630
-- Current package: `dist/FishSockTransfer-v1.1-b20260630-local-macOS13_5plus-arm64.zip`
+- Current version: v1.2 build 20260703
+- Current package: `dist/FishSockTransfer-v1.2-b20260703-local-macOS13_5plus-arm64.zip`
 - Platform: macOS 13.5+, Apple Silicon arm64 only
 - Package type: local owner-side ad-hoc build
 - Signing: ad-hoc signed, not notarized, not Developer ID signed

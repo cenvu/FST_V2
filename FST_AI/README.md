@@ -55,6 +55,18 @@ Current locked scope:
 - No Apple/System/Homebrew rsync fallback
 - Detailed TXT Report V1 before advanced features
 
+## v1.2 Runtime Progress Safety Model
+
+v1.2 is the Runtime Copy Progress / Operator Progress release.
+
+FST separates three kinds of truth:
+
+- Safety truth: verification result, report generation, and SAFE TO EJECT.
+- Transfer truth: bundled rsync 3.4.4 lifecycle, exit status, errors, and cancellation.
+- Operator truth: destination observer metrics for copied bytes, copied files, current item, speed, elapsed time, and ETA.
+
+The destination activity observer is UI-only. It may improve visibility when rsync output is delayed, but it must never decide copy success, verification success, final report truth, or SAFE TO EJECT.
+
 Deferred:
 
 - Multi-destination
