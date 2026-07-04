@@ -1,0 +1,31 @@
+# NOTICE
+
+## FishSock Transfer (FST)
+Copyright (c) Vũ Huy Hùng / Cen
+
+### Credits
+- **Vũ Huy Hùng / Cen** — project owner, product direction, DIT workflow design
+- **Hà Minh Quang** — logo and app icon contribution
+
+---
+
+## Third-Party Dependencies
+
+The FishSock Transfer application bundles third-party software components. These components remain under their own respective licenses.
+
+### rsync
+The application bundles `rsync` version 3.4.4.
+License: GPL (General Public License)
+<!-- TODO: Verify exact GPL version (v2 or v3) and append full text of rsync license here -->
+
+### Dynamic Libraries
+The application bundles several dynamic libraries to support the transfer engine:
+- libcrypto
+- liblz4
+- libpopt
+- libxxhash
+- libzstd
+<!-- TODO: Verify exact licenses for libcrypto, liblz4, libpopt, libxxhash, libzstd and append license text here -->
+
+---
+*All other third-party components remain under their own respective licenses.*
