@@ -12,14 +12,16 @@ public struct NotificationTabView: View {
     public var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 12) {
-                notificationStatusSection
-                telegramSetupSection
-                notifyEventsSection
-                heartbeatSection
+                statusAndSetupSection
+                    .fixedSize(horizontal: false, vertical: true)
+
+                eventsAndHeartbeatSection
+                    .fixedSize(horizontal: false, vertical: true)
+
                 messagePreviewSection
             }
             .padding(.horizontal, 16)
-            .padding(.bottom, 16)
+            .padding(.bottom, 12)
             .frame(maxWidth: .infinity, alignment: .topLeading)
         }
         .onChange(of: viewModel.notificationSettings) { _ in
@@ -30,20 +32,31 @@ public struct NotificationTabView: View {
         }
     }
 
-    private var notificationStatusSection: some View {
-        NotificationSection(title: "Notification Status") {
-            LazyVGrid(columns: statusColumns, alignment: .leading, spacing: 10) {
-                statusRow("Telegram status", viewModel.notificationStatus.telegramStatus)
-                statusRow("Connection status", viewModel.notificationStatus.connectionStatus.displayText)
-                statusRow("Last message", viewModel.notificationStatus.lastMessageStatus)
-                statusRow("Last error", viewModel.notificationStatus.lastErrorSummary ?? "-")
-            }
-        }
-    }
-
-    private var telegramSetupSection: some View {
-        NotificationSection(title: "Telegram Setup") {
+    private var statusAndSetupSection: some View {
+        HStack(alignment: .top, spacing: 16) {
+            // Notification Status (Left 1/3 approx)
             VStack(alignment: .leading, spacing: 10) {
+                Text("Notification Status")
+                    .font(.headline)
+                    .foregroundColor(.primary)
+
+                LazyVGrid(columns: statusColumns, alignment: .leading, spacing: 10) {
+                    statusRow("Telegram status", viewModel.notificationStatus.telegramStatus)
+                    statusRow("Connection status", viewModel.notificationStatus.connectionStatus.displayText)
+                    statusRow("Last message", viewModel.notificationStatus.lastMessageStatus)
+                    statusRow("Last error", viewModel.notificationStatus.lastErrorSummary ?? "-")
+                }
+            }
+            .frame(minWidth: 220, maxWidth: 300, alignment: .top)
+
+            Divider()
+
+            // Telegram Setup (Right 2/3 approx)
+            VStack(alignment: .leading, spacing: 10) {
+                Text("Telegram Setup")
+                    .font(.headline)
+                    .foregroundColor(.primary)
+
                 Toggle("Enable Telegram Notification", isOn: $viewModel.notificationSettings.isTelegramEnabled)
                     .toggleStyle(.checkbox)
 
@@ -65,36 +78,73 @@ public struct NotificationTabView: View {
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }
+            .frame(maxWidth: .infinity, alignment: .top)
         }
+        .padding(12)
+        .background(Color(NSColor.controlBackgroundColor).opacity(0.55))
+        .clipShape(RoundedRectangle(cornerRadius: 10))
+        .overlay(
+            RoundedRectangle(cornerRadius: 10)
+                .stroke(Color.secondary.opacity(0.16), lineWidth: 1)
+        )
     }
 
-    private var notifyEventsSection: some View {
-        NotificationSection(title: "Notify Events") {
-            VStack(alignment: .leading, spacing: 8) {
-                Toggle("Job starts", isOn: $viewModel.notificationSettings.notifyJobStarts)
-                Toggle("Heartbeat while running", isOn: $viewModel.notificationSettings.notifyHeartbeat)
-                Toggle("Transfer fails", isOn: $viewModel.notificationSettings.notifyTransferFails)
-                Toggle("Copy completed", isOn: $viewModel.notificationSettings.notifyCopyCompleted)
-                Toggle("Verify completed / Safe to eject", isOn: $viewModel.notificationSettings.notifyVerifyCompleted)
-            }
-            .toggleStyle(.checkbox)
-        }
-    }
+    private var eventsAndHeartbeatSection: some View {
+        HStack(alignment: .top, spacing: 16) {
+            // Notify Events (Left 1/2)
+            VStack(alignment: .leading, spacing: 10) {
+                Text("Notify Events")
+                    .font(.headline)
+                    .foregroundColor(.primary)
 
-    private var heartbeatSection: some View {
-        NotificationSection(title: "Heartbeat Interval") {
-            Picker("Heartbeat Interval", selection: $viewModel.notificationSettings.heartbeatInterval) {
-                ForEach(TelegramHeartbeatInterval.allCases) { interval in
-                    Text(interval.displayLabel).tag(interval)
+                VStack(alignment: .leading, spacing: 8) {
+                    Toggle("Job starts", isOn: $viewModel.notificationSettings.notifyJobStarts)
+                    Toggle("Heartbeat while running", isOn: $viewModel.notificationSettings.notifyHeartbeat)
+                    Toggle("Transfer fails", isOn: $viewModel.notificationSettings.notifyTransferFails)
+                    Toggle("Copy completed", isOn: $viewModel.notificationSettings.notifyCopyCompleted)
+                    Toggle("Verify completed / Safe to eject", isOn: $viewModel.notificationSettings.notifyVerifyCompleted)
                 }
+                .toggleStyle(.checkbox)
             }
-            .pickerStyle(.segmented)
-            .frame(maxWidth: 280, alignment: .leading)
+            .frame(maxWidth: .infinity, alignment: .topLeading)
+
+            Divider()
+
+            // Heartbeat Interval (Right 1/2)
+            VStack(alignment: .leading, spacing: 10) {
+                Text("Heartbeat Interval")
+                    .font(.headline)
+                    .foregroundColor(.primary)
+
+                Picker("Heartbeat Interval", selection: $viewModel.notificationSettings.heartbeatInterval) {
+                    ForEach(TelegramHeartbeatInterval.allCases) { interval in
+                        Text(interval.displayLabel).tag(interval)
+                    }
+                }
+                .pickerStyle(.segmented)
+                .frame(maxWidth: 280, alignment: .leading)
+
+                Text("Sends a periodic status update during long transfers.")
+                    .font(.footnote)
+                    .foregroundColor(.secondary)
+            }
+            .frame(maxWidth: .infinity, alignment: .topLeading)
         }
+        .padding(12)
+        .background(Color(NSColor.controlBackgroundColor).opacity(0.55))
+        .clipShape(RoundedRectangle(cornerRadius: 10))
+        .overlay(
+            RoundedRectangle(cornerRadius: 10)
+                .stroke(Color.secondary.opacity(0.16), lineWidth: 1)
+        )
     }
 
     private var messagePreviewSection: some View {
-        NotificationSection(title: "Message Preview") {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Message Preview")
+                .font(.headline)
+                .foregroundColor(.primary)
+
             Text(NotificationMessageFactory.preview(
                 settings: viewModel.notificationSettings,
                 sourceName: viewModel.sourceURL?.lastPathComponent ?? "Source Volume",
@@ -103,11 +153,20 @@ public struct NotificationTabView: View {
             .font(.system(.body, design: .monospaced))
             .foregroundColor(.secondary)
             .textSelection(.enabled)
-            .frame(maxWidth: .infinity, alignment: .leading)
+            .fixedSize(horizontal: false, vertical: true)
             .padding(10)
+            .frame(maxWidth: .infinity, alignment: .leading)
             .background(Color(NSColor.textBackgroundColor).opacity(0.6))
             .clipShape(RoundedRectangle(cornerRadius: 8))
         }
+        .padding(12)
+        .frame(maxWidth: .infinity, alignment: .topLeading)
+        .background(Color(NSColor.controlBackgroundColor).opacity(0.55))
+        .clipShape(RoundedRectangle(cornerRadius: 10))
+        .overlay(
+            RoundedRectangle(cornerRadius: 10)
+                .stroke(Color.secondary.opacity(0.16), lineWidth: 1)
+        )
     }
 
     private var statusColumns: [GridItem] {
@@ -129,28 +188,5 @@ public struct NotificationTabView: View {
                 .lineLimit(2)
                 .truncationMode(.middle)
         }
-    }
-}
-
-private struct NotificationSection<Content: View>: View {
-    let title: String
-    @ViewBuilder let content: Content
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text(title)
-                .font(.headline)
-                .foregroundColor(.primary)
-
-            content
-        }
-        .padding(12)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color(NSColor.controlBackgroundColor).opacity(0.55))
-        .clipShape(RoundedRectangle(cornerRadius: 10))
-        .overlay(
-            RoundedRectangle(cornerRadius: 10)
-                .stroke(Color.secondary.opacity(0.16), lineWidth: 1)
-        )
     }
 }

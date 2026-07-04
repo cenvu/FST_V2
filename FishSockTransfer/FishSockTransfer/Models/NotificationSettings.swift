@@ -200,11 +200,7 @@ nonisolated public enum NotificationMessageFactory {
             etaSeconds: 18 * 60
         )
 
-        var preview = message(for: .heartbeat, context: context)
-        if settings.notifyVerifyCompleted {
-            preview += "\n\nSuccess example:\nSAFE TO EJECT / VERIFIED OK"
-        }
-        return preview
+        return message(for: .heartbeat, context: context)
     }
 
     public static func containsUnsafePath(_ message: String, sourceURL: URL?, destinationURL: URL?) -> Bool {
