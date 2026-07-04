@@ -155,15 +155,12 @@ Designed for the strict **Copy -> Verify -> Safe To Eject** workflow, FST does n
 - **Vũ Huy Hùng / Cen** — project owner, product direction, DIT workflow design.
 - **Hà Minh Quang** — logo and app icon contribution.
 
-## 14. License
-FST is distributed under a **source-available, strong-copyleft, non-commercial** licensing model. 
-Source code rights and brand/trademark rights are separate. Reading, learning from, modifying, and sharing the code may be allowed under the license terms. However, commercial use, selling, reselling, paid hosting, paid redistribution, or using FST as the main value of a commercial service requires explicit written permission from the project owner unless the final `LICENSE` says otherwise.
-See `LICENSE` for source code terms. See `TRADEMARKS.md` cho các điều khoản FishSock, FishSock Transfer, FST name, app icon, logo, and branding usage guidelines.
+## 14. Legal / License / Disclaimer
+FST is source-available for review, learning, and non-commercial use. It is not offered as OSI-approved open-source software. Commercial use, paid redistribution, resale, white-labeling, or use as a material part of a paid product/service requires prior written permission from the project owner. FishSock, FishSock Transfer, FST branding, the app logo, and the app icon are not licensed with the source code.
 
-## 15. Trademark
-**FishSock**, **FishSock Transfer**, **FST** (when used as a product name), the app icon, logo, and visual identity belong to the project owner and are not automatically licensed with the source code.
-Hà Minh Quang contributed the logo and app icon artwork. That contribution credit does not mean third parties may reuse the FishSock logo/icon/branding for forks or commercial products without permission.
-Forks or modified builds distributed publicly must use a different name and icon unless written permission is granted.
+FST is a copy/verify/report support tool. Users remain responsible for selecting the correct source and destination, reviewing reports, maintaining independent backups, and deciding whether source media can be erased, formatted, reused, or released. The project owner and contributors are not responsible for data loss caused by user actions, misuse, wrong configuration, unsafe ejecting, accidental deletion/formatting, ignoring warnings, or failure to maintain independent backups.
+
+See `LICENSE`, `TRADEMARKS.md`, `NOTICE`, `THIRD_PARTY_LICENSES.md`, `COMMERCIAL_LICENSE.md`, `CONTRIBUTOR_TERMS.md`, and `DISCLAIMER.md`.
 
 ---
 
@@ -289,15 +286,12 @@ FST (FishSock Transfer) là một tiện ích native trên macOS dành cho DIT, 
 - **Vũ Huy Hùng / Cen** — chủ dự án, định hướng sản phẩm, thiết kế workflow DIT.
 - **Hà Minh Quang** — đóng góp thiết kế logo và icon ứng dụng.
 
-## 14. Giấy phép
-FST được phân phối dưới mô hình giấy phép **source-available, strong-copyleft, non-commercial**.
-Quyền đối với mã nguồn và quyền đối với thương hiệu là tách biệt. Việc đọc, học hỏi, sửa đổi và chia sẻ mã nguồn có thể được cho phép theo các điều khoản của giấy phép. Tuy nhiên, việc sử dụng cho mục đích thương mại, bán, bán lại, lưu trữ có thu phí, phân phối lại có thu phí, hoặc sử dụng FST làm giá trị chính của một dịch vụ thương mại yêu cầu sự cho phép bằng văn bản từ chủ dự án trừ khi tệp `LICENSE` chính thức có quy định khác.
-Xem tệp `LICENSE` để biết các điều khoản mã nguồn. Xem `TRADEMARKS.md` để biết các quy định sử dụng tên FishSock, FishSock Transfer, FST, icon, logo và thương hiệu.
+## 14. Pháp lý / Giấy phép / Miễn trừ trách nhiệm (Legal / License / Disclaimer)
+FST công khai mã nguồn (source-available) để xem xét, học hỏi và sử dụng phi thương mại. Đây không phải là phần mềm nguồn mở chuẩn OSI. Việc sử dụng thương mại, phân phối lại có thu phí, bán lại, white-labeling, hoặc sử dụng như một phần quan trọng của sản phẩm/dịch vụ có thu phí yêu cầu sự cho phép bằng văn bản từ chủ dự án. Thương hiệu FishSock, FishSock Transfer, FST, logo ứng dụng và biểu tượng (icon) ứng dụng không được cấp phép cùng với mã nguồn.
 
-## 15. Thương hiệu
-**FishSock**, **FishSock Transfer**, **FST** (khi dùng làm tên sản phẩm), icon ứng dụng, logo và bộ nhận diện hình ảnh thuộc về chủ dự án và không tự động được cấp phép cùng mã nguồn.
-Hà Minh Quang đóng góp thiết kế logo và icon ứng dụng. Việc ghi nhận đóng góp này không đồng nghĩa với việc bên thứ ba có thể tái sử dụng logo/icon/thương hiệu FishSock cho các bản fork hoặc sản phẩm thương mại mà không có sự cho phép.
-Các bản fork hoặc bản build sửa đổi được phân phối công khai phải sử dụng tên và icon khác trừ khi có sự đồng ý bằng văn bản.
+FST là công cụ hỗ trợ sao chép/xác minh/báo cáo. Người dùng chịu trách nhiệm trong việc chọn đúng nguồn và đích, xem xét báo cáo, duy trì các bản sao lưu độc lập, và quyết định xem thiết bị nguồn có thể được xóa, format, tái sử dụng hay giao lại hay không. Chủ dự án và những người đóng góp không chịu trách nhiệm đối với việc mất dữ liệu do hành động của người dùng, sử dụng sai cách, cấu hình sai, tháo thiết bị không an toàn, vô tình xóa/format, phớt lờ cảnh báo, hoặc không duy trì bản sao lưu độc lập.
+
+Xem `LICENSE`, `TRADEMARKS.md`, `NOTICE`, `THIRD_PARTY_LICENSES.md`, `COMMERCIAL_LICENSE.md`, `CONTRIBUTOR_TERMS.md`, và `DISCLAIMER.md`.
 
 ---
 

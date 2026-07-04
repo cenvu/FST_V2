@@ -1,13 +1,102 @@
-# LICENSE
+# FST Source-Available Non-Commercial License v1.0
 
+## 1. Copyright and ownership
 Copyright (c) Vũ Huy Hùng / Cen
 
-License terms are pending final legal review.
+FST / FishSock Transfer source code and project materials are owned by Vũ Huy Hùng / Cen unless otherwise stated.
+Logo and app icon contribution: Hà Minh Quang.
 
-Until a final license is published, no commercial use is granted.
+## 2. Permission for non-commercial use
+Subject to all terms, permission is granted to:
+- view the source code
+- study the source code
+- fork the repository
+- modify the code
+- build and run the software
+- redistribute unmodified or modified copies for non-commercial purposes only
 
-No permission is granted to sell, resell, host commercially, redistribute commercially, or use the software as the primary value of a paid product/service.
+## 3. Redistribution conditions
+Redistribution must:
+- keep copyright notices
+- keep LICENSE
+- keep NOTICE
+- keep TRADEMARKS.md
+- keep THIRD_PARTY_LICENSES.md if present
+- clearly mark modified versions as modified
+- not imply official endorsement
+- not use FishSock / FishSock Transfer / FST branding for forked or modified builds without written permission
+- include source code or link to source for any modified version distributed publicly
 
-No trademark or branding rights are granted. (See TRADEMARKS.md)
+## 4. Commercial use restriction
+Commercial use requires prior written permission from the copyright holder.
 
-For commercial licensing, contact the project owner.
+Explicitly prohibited without written permission:
+- selling the software
+- reselling the software
+- paid redistribution
+- paid hosting
+- white-labeling
+- selling modified builds
+- bundling FST into a paid software product
+- bundling FST into a paid production workflow/toolkit as a paid feature
+- offering FST or a modified version as the primary or material value of a paid product or service
+- using FST branding, logo, or icon commercially
+- using FST internally as a material part of a paid client service where the software contributes meaningful commercial value, unless written permission is granted
+
+## 5. No trademark or branding rights
+This license does not grant rights to:
+- FishSock
+- FishSock Transfer
+- FST when used as product branding
+- app name
+- app logo
+- app icon
+- visual identity
+- confusingly similar names, logos, icons, or branding
+
+Please refer to TRADEMARKS.md for details.
+
+## 6. Third-party components
+Third-party components remain under their own licenses.
+Bundled rsync 3.4.4, if distributed with the app, remains under its own license.
+The FST license does not relicense rsync or any other third-party component.
+Users and redistributors must comply with third-party license terms.
+
+Please refer to THIRD_PARTY_LICENSES.md for details.
+
+## 7. Contributions
+By submitting a contribution to this repository, the contributor agrees that the project owner may use, modify, distribute, sublicense, relicense, and commercially license that contribution as part of FST, subject to contributor having the right to submit it.
+
+Please refer to CONTRIBUTOR_TERMS.md for details.
+
+## 8. No warranty
+The software is provided "as is", without warranty of any kind.
+
+## 9. No liability for data loss, user-caused data loss, and production loss
+In no event shall the copyright holder or contributors be liable for:
+- data loss
+- media loss
+- lost footage
+- checksum/verification errors
+- user-caused data loss
+- wrong source selection
+- wrong destination selection
+- accidental overwrite
+- accidental deletion
+- accidental formatting
+- unsafe ejecting/removal of drives
+- ignoring warnings, logs, reports, or failed verification results
+- using the app outside recommended workflow
+- production delay
+- business interruption
+- lost profits
+- consequential, incidental, indirect, special, exemplary, or punitive damages
+
+The project owner and contributors are not responsible for data loss caused by user actions, misuse, wrong configuration, unsafe handling of storage media, formatting/erasing source media, ignoring warnings, or failure to maintain independent backups.
+
+## 10. Operator responsibility
+FST is a support tool for copy/verify/report workflows.
+The operator remains responsible for maintaining independent backups, reviewing reports, confirming source and destination paths, checking final status, and deciding whether source media can be erased, formatted, reused, or released.
+
+## 11. Interim legal review note
+This license is an interim project license pending formal legal review.
