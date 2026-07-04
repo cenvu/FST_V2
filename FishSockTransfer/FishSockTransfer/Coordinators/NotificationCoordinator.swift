@@ -174,7 +174,7 @@ public actor NotificationCoordinator {
             )
         }
 
-        let message = NotificationMessageFactory.message(for: event, context: context)
+        let message = NotificationMessageFactory.message(for: event, context: context, detail: settings.messageDetail)
         do {
             try await service.sendMessage(
                 message,

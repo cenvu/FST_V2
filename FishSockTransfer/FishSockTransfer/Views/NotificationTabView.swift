@@ -110,23 +110,35 @@ public struct NotificationTabView: View {
 
             Divider()
 
-            // Heartbeat Interval (Right 1/2)
-            VStack(alignment: .leading, spacing: 10) {
-                Text("Heartbeat Interval")
+            // Notification Options (Right 1/2)
+            VStack(alignment: .leading, spacing: 12) {
+                Text("Notification Options")
                     .font(.headline)
                     .foregroundColor(.primary)
 
-                Picker("Heartbeat Interval", selection: $viewModel.notificationSettings.heartbeatInterval) {
-                    ForEach(TelegramHeartbeatInterval.allCases) { interval in
-                        Text(interval.displayLabel).tag(interval)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Heartbeat Interval").font(.caption).foregroundColor(.secondary)
+                    Picker("Heartbeat Interval", selection: $viewModel.notificationSettings.heartbeatInterval) {
+                        ForEach(TelegramHeartbeatInterval.allCases) { interval in
+                            Text(interval.displayLabel).tag(interval)
+                        }
                     }
+                    .labelsHidden()
+                    .pickerStyle(.segmented)
+                    .frame(maxWidth: 280, alignment: .leading)
                 }
-                .pickerStyle(.segmented)
-                .frame(maxWidth: 280, alignment: .leading)
 
-                Text("Sends a periodic status update during long transfers.")
-                    .font(.footnote)
-                    .foregroundColor(.secondary)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Message Detail").font(.caption).foregroundColor(.secondary)
+                    Picker("Message Detail", selection: $viewModel.notificationSettings.messageDetail) {
+                        ForEach(TelegramMessageDetail.allCases) { detail in
+                            Text(detail.displayLabel).tag(detail)
+                        }
+                    }
+                    .labelsHidden()
+                    .pickerStyle(.segmented)
+                    .frame(maxWidth: 280, alignment: .leading)
+                }
             }
             .frame(maxWidth: .infinity, alignment: .topLeading)
         }

@@ -21,6 +21,17 @@ nonisolated public enum TelegramHeartbeatInterval: Int, CaseIterable, Codable, E
     }
 }
 
+nonisolated public enum TelegramMessageDetail: String, CaseIterable, Codable, Equatable, Identifiable, Sendable {
+    case compact = "Compact"
+    case standard = "Standard"
+
+    public var id: String { rawValue }
+
+    public var displayLabel: String {
+        rawValue
+    }
+}
+
 nonisolated public struct NotificationSettings: Codable, Equatable, Sendable {
     public var isTelegramEnabled: Bool
     public var chatID: String
@@ -30,6 +41,7 @@ nonisolated public struct NotificationSettings: Codable, Equatable, Sendable {
     public var notifyCopyCompleted: Bool
     public var notifyVerifyCompleted: Bool
     public var heartbeatInterval: TelegramHeartbeatInterval
+    public var messageDetail: TelegramMessageDetail
 
     public init(
         isTelegramEnabled: Bool = false,
@@ -39,7 +51,8 @@ nonisolated public struct NotificationSettings: Codable, Equatable, Sendable {
         notifyTransferFails: Bool = true,
         notifyCopyCompleted: Bool = true,
         notifyVerifyCompleted: Bool = true,
-        heartbeatInterval: TelegramHeartbeatInterval = .fifteenMinutes
+        heartbeatInterval: TelegramHeartbeatInterval = .fifteenMinutes,
+        messageDetail: TelegramMessageDetail = .standard
     ) {
         self.isTelegramEnabled = isTelegramEnabled
         self.chatID = chatID
@@ -49,6 +62,7 @@ nonisolated public struct NotificationSettings: Codable, Equatable, Sendable {
         self.notifyCopyCompleted = notifyCopyCompleted
         self.notifyVerifyCompleted = notifyVerifyCompleted
         self.heartbeatInterval = heartbeatInterval
+        self.messageDetail = messageDetail
     }
 
     public static let `default` = NotificationSettings()
@@ -146,7 +160,7 @@ nonisolated public enum NotificationEventKind: String, Equatable, Hashable, Send
 }
 
 nonisolated public enum NotificationMessageFactory {
-    public static func message(for event: NotificationEventKind, context: NotificationTransferContext) -> String {
+    public static func message(for event: NotificationEventKind, context: NotificationTransferContext, detail: TelegramMessageDetail = .standard) -> String {
         let header: String
         switch event {
         case .jobStarted:
@@ -168,12 +182,14 @@ nonisolated public enum NotificationMessageFactory {
             "Source: \(safeDisplayName(context.sourceName))",
             "Destination: \(safeDisplayName(context.destinationName))",
             "Phase: \(context.phase)",
-            String(format: "Progress: %.0f%%", max(0, min(context.progressPercent, 100))),
-            "Elapsed: \(formatDuration(context.elapsedSeconds))"
+            String(format: "Progress: %.0f%%", max(0, min(context.progressPercent, 100)))
         ]
 
-        if let etaSeconds = context.etaSeconds, etaSeconds > 0 {
-            lines.append("ETA: \(formatDuration(Int(etaSeconds.rounded())))")
+        if detail == .standard {
+            lines.append("Elapsed: \(formatDuration(context.elapsedSeconds))")
+            if let etaSeconds = context.etaSeconds, etaSeconds > 0 {
+                lines.append("ETA: \(formatDuration(Int(etaSeconds.rounded())))")
+            }
         }
 
         if event == .transferFailed {
@@ -200,7 +216,7 @@ nonisolated public enum NotificationMessageFactory {
             etaSeconds: 18 * 60
         )
 
-        return message(for: .heartbeat, context: context)
+        return message(for: .heartbeat, context: context, detail: settings.messageDetail)
     }
 
     public static func containsUnsafePath(_ message: String, sourceURL: URL?, destinationURL: URL?) -> Bool {
