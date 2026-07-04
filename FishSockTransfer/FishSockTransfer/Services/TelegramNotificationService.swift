@@ -47,7 +47,11 @@ public final class TelegramNotificationService: NotificationService, @unchecked 
         let description: String?
     }
 
-    public init() {}
+    private let session: URLSession
+
+    public init(session: URLSession = .shared) {
+        self.session = session
+    }
 
     public func sendMessage(_ message: String, configuration: TelegramNotificationConfiguration) async throws {
         guard configuration.isComplete else {
@@ -69,18 +73,24 @@ public final class TelegramNotificationService: NotificationService, @unchecked 
         ])
 
         do {
-            let (data, response) = try await URLSession.shared.data(for: request)
+            let (data, response) = try await session.data(for: request)
             guard let httpResponse = response as? HTTPURLResponse else {
                 throw TelegramNotificationError.transport("No HTTP response.")
             }
 
-            if let apiResponse = try? JSONDecoder().decode(TelegramSendMessageResponse.self, from: data),
-               !apiResponse.ok {
-                throw TelegramNotificationError.apiRejected(apiResponse.description ?? "Unknown Telegram API error.")
-            }
-
             guard 200..<300 ~= httpResponse.statusCode else {
                 throw TelegramNotificationError.apiRejected("HTTP \(httpResponse.statusCode)")
+            }
+
+            let apiResponse: TelegramSendMessageResponse
+            do {
+                apiResponse = try JSONDecoder().decode(TelegramSendMessageResponse.self, from: data)
+            } catch {
+                throw TelegramNotificationError.apiRejected("Invalid Telegram response.")
+            }
+
+            guard apiResponse.ok else {
+                throw TelegramNotificationError.apiRejected(apiResponse.description ?? "Unknown Telegram API error.")
             }
         } catch let error as TelegramNotificationError {
             throw error

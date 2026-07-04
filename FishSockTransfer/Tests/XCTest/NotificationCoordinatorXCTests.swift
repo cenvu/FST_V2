@@ -74,6 +74,26 @@ final class NotificationCoordinatorXCTests: XCTestCase {
         XCTAssertEqual(service.sentMessages().count, 1)
     }
 
+    func testTelegramHTTP200WithInvalidJSONIsSurfacedAsError() async throws {
+        let session = URLSession.fstTestSession(
+            statusCode: 200,
+            body: Data("not-json".utf8)
+        )
+        let service = TelegramNotificationService(session: session)
+
+        do {
+            try await service.sendMessage(
+                "test",
+                configuration: TelegramNotificationConfiguration(botToken: "token", chatID: "123")
+            )
+            XCTFail("Invalid Telegram JSON must not be treated as a successful send.")
+        } catch let error as TelegramNotificationError {
+            XCTAssertEqual(error, .apiRejected("Invalid Telegram response."))
+        } catch {
+            XCTFail("Unexpected error type: \(error)")
+        }
+    }
+
     func testHeartbeatIntervalSupportsOnlyFifteenAndThirtyMinutes() {
         XCTAssertEqual(TelegramHeartbeatInterval.allCases.map(\.rawValue), [15, 30])
         XCTAssertEqual(TelegramHeartbeatInterval.from(minutes: 15), .fifteenMinutes)
@@ -113,6 +133,40 @@ final class NotificationCoordinatorXCTests: XCTestCase {
         )
         XCTAssertNil(tooSoonAgain)
         XCTAssertEqual(service.sentMessages().count, 1)
+    }
+
+    func testFailedHeartbeatAttemptIsThrottledUntilNextInterval() async {
+        let service = MockNotificationService(error: TelegramNotificationError.transport("offline"))
+        let coordinator = NotificationCoordinator(service: service)
+        let start = Date()
+        await coordinator.markRunningStarted(now: start)
+
+        let failed = await coordinator.sendHeartbeatIfDue(
+            settings: enabledSettings(heartbeatInterval: .fifteenMinutes),
+            token: "token",
+            context: context(phase: "Copying"),
+            now: start.addingTimeInterval(15 * 60)
+        )
+        XCTAssertEqual(failed?.connectionStatus, .error)
+        XCTAssertEqual(service.sentMessages().count, 1)
+
+        let tooSoon = await coordinator.sendHeartbeatIfDue(
+            settings: enabledSettings(heartbeatInterval: .fifteenMinutes),
+            token: "token",
+            context: context(phase: "Copying"),
+            now: start.addingTimeInterval(16 * 60)
+        )
+        XCTAssertNil(tooSoon)
+        XCTAssertEqual(service.sentMessages().count, 1)
+
+        let nextInterval = await coordinator.sendHeartbeatIfDue(
+            settings: enabledSettings(heartbeatInterval: .fifteenMinutes),
+            token: "token",
+            context: context(phase: "Copying"),
+            now: start.addingTimeInterval(30 * 60)
+        )
+        XCTAssertEqual(nextInterval?.connectionStatus, .error)
+        XCTAssertEqual(service.sentMessages().count, 2)
     }
 
     func testFailureSendsImmediately() async {
@@ -245,5 +299,43 @@ private final class MockNotificationService: NotificationService, @unchecked Sen
         lock.lock()
         defer { lock.unlock() }
         return messages
+    }
+}
+
+private final class TelegramURLProtocolMock: URLProtocol, @unchecked Sendable {
+    nonisolated(unsafe) static var statusCode = 200
+    nonisolated(unsafe) static var body = Data()
+
+    override class func canInit(with request: URLRequest) -> Bool {
+        true
+    }
+
+    override class func canonicalRequest(for request: URLRequest) -> URLRequest {
+        request
+    }
+
+    override func startLoading() {
+        let response = HTTPURLResponse(
+            url: request.url!,
+            statusCode: Self.statusCode,
+            httpVersion: "HTTP/1.1",
+            headerFields: ["Content-Type": "application/json"]
+        )!
+        client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
+        client?.urlProtocol(self, didLoad: Self.body)
+        client?.urlProtocolDidFinishLoading(self)
+    }
+
+    override func stopLoading() {}
+}
+
+private extension URLSession {
+    static func fstTestSession(statusCode: Int, body: Data) -> URLSession {
+        TelegramURLProtocolMock.statusCode = statusCode
+        TelegramURLProtocolMock.body = body
+
+        let configuration = URLSessionConfiguration.ephemeral
+        configuration.protocolClasses = [TelegramURLProtocolMock.self]
+        return URLSession(configuration: configuration)
     }
 }

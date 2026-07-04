@@ -5,7 +5,7 @@ import Foundation
 public actor NotificationCoordinator {
     private let service: NotificationService
     private var sentTerminalEvents: Set<NotificationEventKind> = []
-    private var lastHeartbeatAt: Date?
+    private var lastHeartbeatAttemptAt: Date?
 
     public init(service: NotificationService = TelegramNotificationService()) {
         self.service = service
@@ -13,12 +13,12 @@ public actor NotificationCoordinator {
 
     public func resetForNewJob() {
         sentTerminalEvents.removeAll()
-        lastHeartbeatAt = nil
+        lastHeartbeatAttemptAt = nil
     }
 
     public func markRunningStarted(now: Date = Date()) {
-        if lastHeartbeatAt == nil {
-            lastHeartbeatAt = now
+        if lastHeartbeatAttemptAt == nil {
+            lastHeartbeatAttemptAt = now
         }
     }
 
@@ -120,11 +120,13 @@ public actor NotificationCoordinator {
         guard settings.notifyHeartbeat else { return nil }
         guard context.phase == "Copying" || context.phase == "Verifying" else { return nil }
 
-        if let lastHeartbeatAt, now.timeIntervalSince(lastHeartbeatAt) < settings.heartbeatInterval.seconds {
+        if let lastHeartbeatAttemptAt, now.timeIntervalSince(lastHeartbeatAttemptAt) < settings.heartbeatInterval.seconds {
             return nil
         }
 
-        let status = await send(
+        lastHeartbeatAttemptAt = now
+
+        return await send(
             event: .heartbeat,
             settings: settings,
             token: token,
@@ -132,12 +134,6 @@ public actor NotificationCoordinator {
             now: now,
             deduplicate: false
         )
-
-        if status.connectionStatus == .ready {
-            lastHeartbeatAt = now
-        }
-
-        return status
     }
 
     private func send(
