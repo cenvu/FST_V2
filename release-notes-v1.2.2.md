@@ -1,20 +1,34 @@
-## FishSockTransfer v1.2.2
+# FST v1.2.2
 
-### Highlights
-- Updated macOS app icon with rounded icon assets.
-- Refined header branding/contact presentation.
-- Updated Technical Logs metadata/footer presentation.
-- Minor UI polish and documentation consistency updates.
+Local Apple Silicon build for testing and early use.
 
-### Safety / Core Workflow
-- Copy → Verify → Safe To Eject workflow unchanged.
-- Bundled rsync remains 3.4.4.
-- No changes to transfer engine, verification engine, rsync command logic, report generation, or Safe To Eject eligibility logic.
+## Platform
 
-### Package
 - macOS 13.5+
 - Apple Silicon arm64
-- Local build package: `FishSockTransfer-v1.2.2-b20260704-local-macOS13_5plus-arm64.zip`
 
-### Note
-This package is intended as a local/current project build unless signing/notarization status is explicitly confirmed.
+## Package
+
+- FishSockTransfer-v1.2.2-b20260704-local-macOS13_5plus-arm64.zip
+
+## Important
+
+This build is:
+
+- Ad-hoc signed
+- Not notarized
+- Not Developer ID signed
+
+macOS may show a warning on first launch. Use right-click -> Open for the first launch.
+
+## Workflow
+
+Copy -> Verify -> Safe To Eject
+
+## Safety Note
+
+Only eject or remove source media when FST shows SAFE TO EJECT.
+
+## SHA256
+
+46453b43f8fc26a0e0b627c31c42ebe1ce11b8dba988a6dd83354bdc740fc2d2  FishSockTransfer-v1.2.2-b20260704-local-macOS13_5plus-arm64.zip
