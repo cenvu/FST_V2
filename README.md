@@ -3,10 +3,38 @@
 [![macOS 13.5+](https://img.shields.io/badge/macOS-13.5%2B-blue.svg)](https://apple.com/macos)
 [![Apple Silicon arm64](https://img.shields.io/badge/architecture-Apple_Silicon_arm64-ff69b4.svg)]()
 [![Swift 5.9+](https://img.shields.io/badge/Swift-5.9%2B-FA7343.svg)](https://swift.org)
-[![Version v1.2.1](https://img.shields.io/badge/version-v1.2.1-success.svg)]()
+[![Version v1.2.2](https://img.shields.io/badge/version-v1.2.2-success.svg)]()
 [![License](https://img.shields.io/badge/license-Source_Available_/_Non--Commercial-orange.svg)](LICENSE)
 
 *English documentation below. Kéo xuống để xem tài liệu tiếng Việt.*
+
+---
+
+## Workflow Preview / Xem trước workflow
+
+The screenshots below show the intended operator flow in FST, from selecting a source/destination to transfer, verification, safe-to-eject confirmation, and technical logs.
+
+Các hình bên dưới minh hoạ luồng thao tác chính trong FST, từ chọn nguồn/đích, chuyển dữ liệu, xác minh, xác nhận an toàn để rút thiết bị, đến phần log kỹ thuật.
+
+### 1. Start / Bắt đầu
+
+![FST Start screen](ui/1.START.png)
+
+### 2. Transferring / Đang chuyển dữ liệu
+
+![FST transferring screen](ui/2.TRANSFERING.png)
+
+### 3. Verifying / Đang xác minh
+
+![FST verifying screen](ui/3.VERIFYING.png)
+
+### 4. Safe To Eject / An toàn để rút thiết bị
+
+![FST safe to eject screen](ui/4.SAFE_TO_EJECT.png)
+
+### 5. Technical Logs / Log kỹ thuật
+
+![FST technical logs screen](ui/5.TECH_LOG.png)
 
 ---
 
@@ -18,7 +46,7 @@ Designed for the strict **Copy -> Verify -> Safe To Eject** workflow, FST does n
 **Data Safety > Reliability > Truthful Operator Feedback > Clarity > Maintainability > Performance > Convenience**
 
 ## 3. Current Status
-- **Version:** v1.2.1
+- **Version:** v1.2.2
 - **Build date:** 20260704
 - **Platform:** macOS 13.5+, Apple Silicon arm64 only
 - **Signing:** Ad-hoc signed (Not notarized, not Developer ID signed)
@@ -80,7 +108,7 @@ Designed for the strict **Copy -> Verify -> Safe To Eject** workflow, FST does n
 2. Build natively in Xcode.
 3. Or use the existing package script:
    ```bash
-   APP_VERSION=1.2.1 BUILD_NUMBER=20260704 bash scripts/package-local-arm64.sh
+   APP_VERSION=1.2.2 BUILD_NUMBER=20260704 bash scripts/package-local-arm64.sh
    ```
 
 ## 9. Basic Usage
@@ -152,7 +180,7 @@ FST (FishSock Transfer) là một tiện ích native trên macOS dành cho DIT, 
 **An toàn dữ liệu > Độ tin cậy > Phản hồi trung thực cho người vận hành > Rõ ràng > Dễ bảo trì > Hiệu năng > Tiện lợi**
 
 ## 3. Trạng thái hiện tại
-- **Phiên bản:** v1.2.1
+- **Phiên bản:** v1.2.2
 - **Ngày build:** 20260704
 - **Nền tảng:** macOS 13.5+, chỉ hỗ trợ Apple Silicon arm64
 - **Chứng chỉ:** Ad-hoc signed (Không notarize, không Developer ID signed)
@@ -214,7 +242,7 @@ FST (FishSock Transfer) là một tiện ích native trên macOS dành cho DIT, 
 2. Build trực tiếp bằng Xcode.
 3. Hoặc sử dụng script đóng gói có sẵn:
    ```bash
-   APP_VERSION=1.2.1 BUILD_NUMBER=20260704 bash scripts/package-local-arm64.sh
+   APP_VERSION=1.2.2 BUILD_NUMBER=20260704 bash scripts/package-local-arm64.sh
    ```
 
 ## 9. Cách sử dụng

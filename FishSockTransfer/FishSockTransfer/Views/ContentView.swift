@@ -48,28 +48,19 @@ public struct ContentView: View {
         
         return ZStack {
             HStack(spacing: 0) {
-                Text(rsyncHeaderBadgeText)
+                Text("CenVu D.I.T Tools")
                     .font(headerFont)
-                    .foregroundColor(rsyncBadgeForegroundColor)
+                    .foregroundColor(.secondary)
                     .padding(.horizontal, 10)
                     .padding(.vertical, 4)
-                    .background(rsyncBadgeBackgroundColor)
+                    .background(Color.secondary.opacity(0.12))
                     .clipShape(Capsule())
                     .frame(width: 220, alignment: .leading)
 
                 Spacer(minLength: 0)
 
-                Group {
-                    Text("CenVu | ")
-                        .font(headerFont)
-                        .foregroundColor(.secondary)
-                    + Text("hungvh.hfs@gmail.com")
-                        .font(headerFont)
-                        .foregroundColor(.blue)
-                }
-                .lineLimit(1)
-                .truncationMode(.middle)
-                .frame(width: 260, alignment: .trailing)
+                HeaderSocialLinksView()
+                    .frame(width: 150, alignment: .trailing)
             }
 
             tabSelector
@@ -153,24 +144,19 @@ public struct ContentView: View {
                 autoScroll: viewModel.transferState == .copying || viewModel.transferState == .verifying
             )
 
-            Text("FST v1.2 build 260703.1")
-                .font(.system(size: 10.5))
-                .foregroundColor(.secondary)
-                .padding(.top, 8)
-                .frame(maxWidth: .infinity, alignment: .center)
+            TechnicalLogsMetadataFooter(
+                rsyncVersionText: rsyncHeaderBadgeText,
+                isRsyncAvailable: viewModel.bundledRsyncInfo.isAvailable
+            )
+            .padding(.top, 8)
+            .frame(maxWidth: .infinity, alignment: .center)
         }
         .padding(.horizontal, 16)
         .padding(.bottom, 16)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
     }
 
-    private var rsyncBadgeBackgroundColor: Color {
-        viewModel.bundledRsyncInfo.isAvailable ? Color.secondary.opacity(0.12) : Color.orange.opacity(0.16)
-    }
 
-    private var rsyncBadgeForegroundColor: Color {
-        viewModel.bundledRsyncInfo.isAvailable ? Color.secondary : Color.orange
-    }
 
     private var rsyncHeaderBadgeText: String {
         let info = viewModel.bundledRsyncInfo
@@ -197,5 +183,120 @@ public struct ContentView: View {
         }
 
         return "Bundled rsync unavailable"
+    }
+}
+
+struct HeaderSocialLinksView: View {
+    var body: some View {
+        HStack(spacing: 10) {
+            SocialIconLink(
+                iconName: "icon_facebook_mono",
+                url: URL(string: "https://fb.com/cenvu")!,
+                accessibilityLabel: "Open CenVu Facebook",
+                helpTooltip: "Facebook"
+            )
+            SocialIconLink(
+                iconName: "icon_instagram_mono",
+                url: URL(string: "https://www.instagram.com/cenvu/")!,
+                accessibilityLabel: "Open CenVu Instagram",
+                helpTooltip: "Instagram"
+            )
+            SocialIconLink(
+                iconName: "icon_whatsapp_mono",
+                url: URL(string: "https://wa.me/84842841222")!,
+                accessibilityLabel: "Message CenVu on WhatsApp",
+                helpTooltip: "WhatsApp"
+            )
+            SocialIconLink(
+                iconName: "icon_telegram_mono",
+                url: URL(string: "https://t.me/+84842841222")!,
+                accessibilityLabel: "Message CenVu on Telegram",
+                helpTooltip: "Telegram"
+            )
+        }
+    }
+}
+
+struct SocialIconLink: View {
+    let iconName: String
+    let url: URL
+    let accessibilityLabel: String
+    let helpTooltip: String
+    
+    @State private var isHovered = false
+    
+    var body: some View {
+        Link(destination: url) {
+            Image(iconName)
+                .resizable()
+                .renderingMode(.template)
+                .aspectRatio(contentMode: .fit)
+                .frame(width: 14, height: 14)
+                .foregroundColor(isHovered ? .accentColor : .secondary)
+                .opacity(isHovered ? 1.0 : 0.7)
+                .frame(width: 24, height: 24)
+                .background(
+                    RoundedRectangle(cornerRadius: 6)
+                        .fill(isHovered ? Color.accentColor.opacity(0.12) : Color.clear)
+                )
+                .shadow(color: isHovered ? Color.accentColor.opacity(0.2) : .clear, radius: 2)
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(accessibilityLabel)
+        .help(helpTooltip)
+        .onHover { hovering in
+            withAnimation(.easeInOut(duration: 0.15)) {
+                isHovered = hovering
+            }
+        }
+    }
+}
+
+struct TechnicalLogsMetadataFooter: View {
+    let rsyncVersionText: String
+    let isRsyncAvailable: Bool
+    
+    var body: some View {
+        HStack(spacing: 12) {
+            MetadataBadge(label: "version", value: "v1.2.2", helpText: "App version from README.md", isError: false)
+            MetadataBadge(
+                label: "bundled rsync",
+                value: rsyncVersionText.replacingOccurrences(of: "Bundled rsync ", with: ""),
+                helpText: "Bundled rsync version used by FST",
+                isError: !isRsyncAvailable
+            )
+            MetadataBadge(label: "license", value: "Source Available / Non-Commercial", helpText: "Project license from README.md", isError: false)
+        }
+    }
+}
+
+struct MetadataBadge: View {
+    let label: String
+    let value: String
+    let helpText: String
+    let isError: Bool
+    
+    var body: some View {
+        HStack(spacing: 0) {
+            Text(label)
+                .font(.system(size: 10.5, weight: .regular))
+                .foregroundColor(.secondary)
+                .padding(.horizontal, 6)
+                .padding(.vertical, 3)
+                .background(Color(NSColor.controlBackgroundColor).opacity(0.5))
+            
+            Text(value)
+                .font(.system(size: 10.5, weight: .medium))
+                .foregroundColor(isError ? .orange : .primary)
+                .padding(.horizontal, 6)
+                .padding(.vertical, 3)
+                .background(isError ? Color.orange.opacity(0.16) : Color.secondary.opacity(0.15))
+        }
+        .clipShape(RoundedRectangle(cornerRadius: 4))
+        .overlay(
+            RoundedRectangle(cornerRadius: 4)
+                .stroke(isError ? Color.orange.opacity(0.3) : Color.secondary.opacity(0.2), lineWidth: 1)
+        )
+        .help(helpText)
     }
 }
