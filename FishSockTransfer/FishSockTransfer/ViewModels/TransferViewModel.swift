@@ -42,14 +42,20 @@ public final class TransferViewModel: ObservableObject {
         version: BundledRsyncService.bundledVersion,
         diagnostics: []
     )
+    @Published public var notificationSettings: NotificationSettings = .default
+    @Published public var telegramBotToken: String = ""
+    @Published public var notificationStatus: NotificationRuntimeStatus = .from(settings: .default, token: "")
 
     private let coordinator: TransferCoordinator
     private let driveService: DriveService
     private let bundledRsyncService: BundledRsyncService
+    private let notificationCoordinator: NotificationCoordinator
+    private let notificationSettingsStore: NotificationSettingsStore
     private var callbacksConfiguredTask: Task<Void, Never>?
     private var sourceMetadataTask: Task<Void, Never>?
     private var destinationMetadataTask: Task<Void, Never>?
     private var workflowElapsedTask: Task<Void, Never>?
+    private var notificationHeartbeatTask: Task<Void, Never>?
     private var workflowPhaseStartedAt: Date?
     private var runtimeElapsedTask: Task<Void, Never>?
     private var copyStartedAt: Date?
@@ -68,11 +74,18 @@ public final class TransferViewModel: ObservableObject {
     public init(
         coordinator: TransferCoordinator? = nil,
         driveService: DriveService? = nil,
-        bundledRsyncService: BundledRsyncService = BundledRsyncService()
+        bundledRsyncService: BundledRsyncService = BundledRsyncService(),
+        notificationCoordinator: NotificationCoordinator = NotificationCoordinator(),
+        notificationSettingsStore: NotificationSettingsStore = NotificationSettingsStore()
     ) {
         self.bundledRsyncService = bundledRsyncService
         self.coordinator = coordinator ?? TransferCoordinator(bundledRsyncService: bundledRsyncService)
         self.driveService = driveService ?? DriveService()
+        self.notificationCoordinator = notificationCoordinator
+        self.notificationSettingsStore = notificationSettingsStore
+        self.notificationSettings = notificationSettingsStore.loadSettings()
+        self.telegramBotToken = notificationSettingsStore.loadBotToken()
+        self.notificationStatus = .from(settings: self.notificationSettings, token: self.telegramBotToken)
         setupBindings()
         refreshBundledRsyncInfo()
     }
@@ -157,6 +170,7 @@ public final class TransferViewModel: ObservableObject {
         let previousState = transferState
         transferState = state
         handleTransferStateChange(state, previousState: previousState)
+        notifyTransferStateChange(state, previousState: previousState)
     }
 
     internal func applyTransferProgress(_ progress: Double) {
@@ -279,6 +293,7 @@ public final class TransferViewModel: ObservableObject {
         addLog(category: .info, message: "Scanning source and checking destination...")
         addLog(category: .info, message: "Source: \(sourceURL.lastPathComponent)")
         addLog(category: .info, message: "Destination: \(destinationURL.lastPathComponent)")
+        notifyJobStarted()
 
         let callbacksConfiguredTask = callbacksConfiguredTask
         Task { [coordinator, sourceURL, destinationURL, bandwidthLimit, verificationMode, callbacksConfiguredTask] in
@@ -341,6 +356,216 @@ public final class TransferViewModel: ObservableObject {
                 clearCopyRuntimeMetrics()
                 beginCopyRuntimePhase()
             }
+        }
+    }
+
+    public func persistNotificationSettings() {
+        notificationSettingsStore.saveSettings(notificationSettings)
+        notificationStatus = .from(settings: notificationSettings, token: telegramBotToken)
+    }
+
+    public func persistTelegramBotToken() {
+        do {
+            try notificationSettingsStore.saveBotToken(telegramBotToken)
+            notificationStatus = .from(settings: notificationSettings, token: telegramBotToken)
+        } catch {
+            notificationStatus = NotificationRuntimeStatus(
+                telegramStatus: notificationSettings.isTelegramEnabled ? "Enabled" : "Disabled",
+                connectionStatus: .error,
+                lastMessageStatus: "Unable to save Telegram token",
+                lastErrorSummary: error.localizedDescription
+            )
+        }
+    }
+
+    public func testTelegramNotification() {
+        let settings = notificationSettings
+        let token = telegramBotToken
+        let context = makeNotificationContext(phase: "Test")
+
+        Task { [weak self, notificationCoordinator] in
+            let status = await notificationCoordinator.sendTestMessage(
+                settings: settings,
+                token: token,
+                context: context
+            )
+            await MainActor.run {
+                self?.applyNotificationStatus(status)
+            }
+        }
+    }
+
+    private func notifyJobStarted() {
+        let settings = notificationSettings
+        let token = telegramBotToken
+        let context = makeNotificationContext(phase: "Starting")
+
+        Task { [weak self, notificationCoordinator] in
+            if let status = await notificationCoordinator.notifyJobStarted(
+                settings: settings,
+                token: token,
+                context: context
+            ) {
+                await MainActor.run {
+                    self?.applyNotificationStatus(status)
+                }
+            }
+        }
+    }
+
+    private func notifyTransferStateChange(_ state: TransferState, previousState: TransferState) {
+        if state == .copying || state == .verifying {
+            startNotificationHeartbeatIfNeeded()
+            Task { [notificationCoordinator] in
+                await notificationCoordinator.markRunningStarted()
+            }
+        } else {
+            stopNotificationHeartbeat()
+        }
+
+        if previousState == .copying && (state == .verifying || state == .copyComplete) {
+            sendCopyCompletedNotification()
+        }
+
+        switch state {
+        case .safeToFormat:
+            sendVerifiedSuccessNotification()
+        case .error:
+            sendFailureNotification()
+        default:
+            break
+        }
+    }
+
+    private func sendCopyCompletedNotification() {
+        let settings = notificationSettings
+        let token = telegramBotToken
+        let context = makeNotificationContext(phase: "Copy Completed", progressPercent: 100)
+
+        Task { [weak self, notificationCoordinator] in
+            if let status = await notificationCoordinator.notifyCopyCompleted(
+                settings: settings,
+                token: token,
+                context: context
+            ) {
+                await MainActor.run {
+                    self?.applyNotificationStatus(status)
+                }
+            }
+        }
+    }
+
+    private func sendFailureNotification() {
+        let settings = notificationSettings
+        let token = telegramBotToken
+        let context = makeNotificationContext(phase: "Transfer Error", failureSummary: errorMessage)
+
+        Task { [weak self, notificationCoordinator] in
+            if let status = await notificationCoordinator.notifyFailure(
+                settings: settings,
+                token: token,
+                context: context
+            ) {
+                await MainActor.run {
+                    self?.applyNotificationStatus(status)
+                }
+            }
+        }
+    }
+
+    private func sendVerifiedSuccessNotification() {
+        let settings = notificationSettings
+        let token = telegramBotToken
+        let context = makeNotificationContext(phase: "SAFE TO EJECT", progressPercent: 100)
+
+        Task { [weak self, notificationCoordinator] in
+            if let status = await notificationCoordinator.notifyVerifiedSuccess(
+                settings: settings,
+                token: token,
+                context: context
+            ) {
+                await MainActor.run {
+                    self?.applyNotificationStatus(status)
+                }
+            }
+        }
+    }
+
+    private func startNotificationHeartbeatIfNeeded() {
+        guard notificationHeartbeatTask == nil else { return }
+
+        notificationHeartbeatTask = Task { [weak self] in
+            while !Task.isCancelled {
+                try? await Task.sleep(nanoseconds: 60_000_000_000)
+                await MainActor.run {
+                    self?.sendHeartbeatNotificationIfDue()
+                }
+            }
+        }
+    }
+
+    private func stopNotificationHeartbeat() {
+        notificationHeartbeatTask?.cancel()
+        notificationHeartbeatTask = nil
+    }
+
+    private func sendHeartbeatNotificationIfDue() {
+        guard transferState == .copying || transferState == .verifying else {
+            stopNotificationHeartbeat()
+            return
+        }
+
+        let settings = notificationSettings
+        let token = telegramBotToken
+        let context = makeNotificationContext(phase: transferState == .copying ? "Copying" : "Verifying")
+
+        Task { [weak self, notificationCoordinator] in
+            if let status = await notificationCoordinator.sendHeartbeatIfDue(
+                settings: settings,
+                token: token,
+                context: context
+            ) {
+                await MainActor.run {
+                    self?.applyNotificationStatus(status)
+                }
+            }
+        }
+    }
+
+    private func makeNotificationContext(
+        phase: String,
+        progressPercent: Double? = nil,
+        failureSummary: String? = nil
+    ) -> NotificationTransferContext {
+        let sourceName = sourceURL?.lastPathComponent ?? "Source Volume"
+        let destinationName = destinationURL?.lastPathComponent ?? "Destination Volume"
+        let elapsedSeconds = transferState == .verifying ? verifyElapsedSeconds : copyElapsedSeconds
+        let displayProgress: Double
+        if let progressPercent {
+            displayProgress = progressPercent
+        } else if transferState == .verifying, progress <= 1 {
+            displayProgress = progress * 100
+        } else {
+            displayProgress = progress
+        }
+
+        return NotificationTransferContext(
+            sourceName: sourceName,
+            destinationName: destinationName,
+            phase: phase,
+            progressPercent: displayProgress,
+            elapsedSeconds: elapsedSeconds,
+            etaSeconds: eta > 0 ? eta : nil,
+            failureSummary: failureSummary
+        )
+    }
+
+    private func applyNotificationStatus(_ status: NotificationRuntimeStatus) {
+        notificationStatus = status
+        if status.connectionStatus == .error {
+            addLog(category: .warning, message: "Telegram notification warning: \(status.lastErrorSummary ?? status.lastMessageStatus)")
+        } else if status.lastMessageStatus.hasPrefix("Sent ") {
+            addLog(category: .info, message: "Telegram notification: \(status.lastMessageStatus)")
         }
     }
 

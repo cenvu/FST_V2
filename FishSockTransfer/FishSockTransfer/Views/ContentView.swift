@@ -5,6 +5,7 @@ import SwiftUI
 public struct ContentView: View {
     private enum MainTab {
         case transfer
+        case notification
         case logs
     }
 
@@ -26,6 +27,8 @@ public struct ContentView: View {
             Group {
                 if selectedTab == .transfer {
                     transferTabContent
+                } else if selectedTab == .notification {
+                    notificationTabContent
                 } else {
                     technicalLogsTabContent
                 }
@@ -66,7 +69,7 @@ public struct ContentView: View {
             }
 
             tabSelector
-                .frame(width: 340, alignment: .center)
+                .frame(width: 560, alignment: .center)
         }
         .frame(height: 44)
         .layoutPriority(1)
@@ -83,10 +86,20 @@ public struct ContentView: View {
                     .foregroundColor(selectedTab == .transfer ? Color(NSColor.controlAccentColor) : .secondary)
             }
             .buttonStyle(.plain)
+
+            Button(action: { selectedTab = .notification }) {
+                Text("NOTIFICATION")
+                    .fontWeight(selectedTab == .notification ? .bold : .semibold)
+                    .padding(.horizontal, 24)
+                    .padding(.vertical, 6)
+                    .background(selectedTab == .notification ? Color(NSColor.controlAccentColor).opacity(0.15) : Color.clear)
+                    .foregroundColor(selectedTab == .notification ? Color(NSColor.controlAccentColor) : .secondary)
+            }
+            .buttonStyle(.plain)
             
             Button(action: { selectedTab = .logs }) {
                 HStack(spacing: 6) {
-                    Text("TECHNICAL LOGS")
+                    Text("TECHNICAL LOG")
                     Text("\(viewModel.logs.count)")
                         .font(.system(.caption, design: .monospaced))
                         .padding(.horizontal, 6)
@@ -126,6 +139,11 @@ public struct ContentView: View {
         .padding(.horizontal, 16)
         .padding(.bottom, 16)
         .frame(maxWidth: .infinity, alignment: .top)
+    }
+
+    private var notificationTabContent: some View {
+        NotificationTabView(viewModel: viewModel)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
     }
 
     private var technicalLogsTabContent: some View {
