@@ -1,3 +1,5 @@
+<!-- FST / CenVu | (+84) 842 841 222 -->
+
 ---
 name: fst-verify-engine-review
 description: Review FST verify engine behavior, copy verification correctness, mismatch handling, source identity checks, and false-pass risks.

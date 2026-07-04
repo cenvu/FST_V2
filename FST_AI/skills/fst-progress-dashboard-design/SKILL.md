@@ -1,3 +1,5 @@
+<!-- FST / CenVu | (+84) 842 841 222 -->
+
 ---
 name: fst-progress-dashboard-design
 description: Guide FST progress dashboard design so Project ETA, phase, progress, warnings, and SAFE TO EJECT state are clear for operators.

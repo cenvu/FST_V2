@@ -1,3 +1,5 @@
+<!-- FST / CenVu | (+84) 842 841 222 -->
+
 # FST XCTest Coverage
 
 `xcodebuild test` now runs the primary XCTest regression suite for pure model, parser, report, metadata-only safety, and bundled-rsync validation behavior.

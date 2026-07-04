@@ -1,3 +1,5 @@
+<!-- FST / CenVu | (+84) 842 841 222 -->
+
 ---
 name: fst-core-safety-review
 description: Review safety-critical FST changes affecting copy, verify, state, reports, or SAFE TO EJECT.

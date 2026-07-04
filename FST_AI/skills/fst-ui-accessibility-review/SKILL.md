@@ -1,3 +1,5 @@
+<!-- FST / CenVu | (+84) 842 841 222 -->
+
 ---
 name: fst-ui-accessibility-review
 description: Review FST UI accessibility as an operational safety feature, including contrast, text clarity, focus, reduced motion, and non-color state communication.

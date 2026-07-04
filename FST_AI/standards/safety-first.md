@@ -1,3 +1,5 @@
+<!-- FST / CenVu | (+84) 842 841 222 -->
+
 # Safety First
 
 FST must never imply that source media is safe for operator handoff unless the application has reliable evidence.

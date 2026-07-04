@@ -1,3 +1,5 @@
+<!-- FST / CenVu | (+84) 842 841 222 -->
+
 ---
 name: fst-diagnose-bug
 description: Diagnose FST bugs using evidence-first debugging before implementation.

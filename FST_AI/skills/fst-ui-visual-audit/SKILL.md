@@ -1,3 +1,5 @@
+<!-- FST / CenVu | (+84) 842 841 222 -->
+
 ---
 name: fst-ui-visual-audit
 description: Audit FST UI changes for visual hierarchy, operator readability, warning/error visibility, and anti-patterns.

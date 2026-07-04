@@ -1,3 +1,5 @@
+<!-- FST / CenVu | (+84) 842 841 222 -->
+
 ---
 name: fst-report-correctness-review
 description: Review whether FST report output truthfully matches canonical job state, copy result, verify result, errors, warnings, and SAFE TO EJECT decision.

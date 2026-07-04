@@ -1,3 +1,5 @@
+<!-- FST / CenVu | (+84) 842 841 222 -->
+
 # Template: Mi Final Decision
 
 Use this template when Mi decides whether to accept, revise, reject, or require runtime QA.

@@ -1,3 +1,5 @@
+<!-- FST / CenVu | (+84) 842 841 222 -->
+
 ---
 name: fst-ui-state-review
 description: Review whether FST UI states accurately reflect backend copy, verify, progress, error, and safety states.

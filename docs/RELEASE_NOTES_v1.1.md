@@ -1,3 +1,5 @@
+<!-- FST / CenVu | (+84) 842 841 222 -->
+
 # FST v1.1 Release Notes
 
 Version: 1.1  

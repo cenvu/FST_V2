@@ -1,3 +1,5 @@
+<!-- FST / CenVu | (+84) 842 841 222 -->
+
 ---
 name: fst-code-review
 description: Review FST code changes with data safety, verify correctness, and SAFE TO EJECT priority.

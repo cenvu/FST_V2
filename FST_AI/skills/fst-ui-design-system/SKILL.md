@@ -1,3 +1,5 @@
+<!-- FST / CenVu | (+84) 842 841 222 -->
+
 ---
 name: fst-ui-design-system
 description: Guide FST UI design system decisions using operational clarity, accessibility, SwiftUI constraints, and safety-first visual hierarchy.

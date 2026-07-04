@@ -1,3 +1,5 @@
+// FST / CenVu | (+84) 842 841 222
+
 import Foundation
 
 private func assertEqual<T: Equatable>(_ actual: T, _ expected: T, _ message: String) {

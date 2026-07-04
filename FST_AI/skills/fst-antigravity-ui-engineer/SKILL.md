@@ -1,3 +1,5 @@
+<!-- FST / CenVu | (+84) 842 841 222 -->
+
 ---
 name: fst-antigravity-ui-engineer
 description: Guide Antigravity/Gemini Pro to implement FST SwiftUI UI with operator clarity and strict core-logic boundaries.

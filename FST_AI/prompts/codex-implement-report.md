@@ -1,3 +1,5 @@
+<!-- FST / CenVu | (+84) 842 841 222 -->
+
 # Prompt: Codex Implement Report
 
 ROLE:

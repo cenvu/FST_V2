@@ -1,3 +1,5 @@
+<!-- FST / CenVu | (+84) 842 841 222 -->
+
 # Template: Runtime Test Evidence
 
 Use this template to record evidence from manual Xcode runtime testing.

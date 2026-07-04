@@ -1,3 +1,5 @@
+<!-- FST / CenVu | (+84) 842 841 222 -->
+
 # Shared Language
 
 Use consistent terminology across code, UI, report, prompts, and docs.

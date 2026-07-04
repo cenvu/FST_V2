@@ -1,3 +1,5 @@
+<!-- FST / CenVu | (+84) 842 841 222 -->
+
 # Claude - Primary QA, Code Reviewer, and Safety Reviewer
 
 ## Mission

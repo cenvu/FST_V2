@@ -1,3 +1,5 @@
+<!-- FST / CenVu | (+84) 842 841 222 -->
+
 ---
 name: fst-progress-eta-review
 description: Review FST progress, parser, and ETA behavior with whole-job ETA as the primary operator signal.

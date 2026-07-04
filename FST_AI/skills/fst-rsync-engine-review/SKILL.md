@@ -1,3 +1,5 @@
+<!-- FST / CenVu | (+84) 842 841 222 -->
+
 ---
 name: fst-rsync-engine-review
 description: Review FST rsync engine behavior, bundled rsync usage, source safety, destructive flag risks, and progress output handling.

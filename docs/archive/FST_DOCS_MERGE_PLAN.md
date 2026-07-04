@@ -1,3 +1,5 @@
+<!-- FST / CenVu | (+84) 842 841 222 -->
+
 # FST Documentation Merge Plan
 
 Version: 2026-06-21

@@ -1,3 +1,5 @@
+// FST / CenVu | (+84) 842 841 222
+
 import XCTest
 
 private final class VerificationEventRecorder: @unchecked Sendable {

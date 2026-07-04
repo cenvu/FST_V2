@@ -1,3 +1,5 @@
+<!-- FST / CenVu | (+84) 842 841 222 -->
+
 ---
 name: fst-runtime-qa
 description: Prepare and review runtime QA scenarios for FST copy, verify, cancel, failure, report, and safety behavior.

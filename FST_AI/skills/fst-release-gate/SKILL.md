@@ -1,3 +1,5 @@
+<!-- FST / CenVu | (+84) 842 841 222 -->
+
 ---
 name: fst-release-gate
 description: Block unsafe or incomplete FST builds from being considered release-ready.

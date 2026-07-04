@@ -1,3 +1,5 @@
+<!-- FST / CenVu | (+84) 842 841 222 -->
+
 # FST AI Agent Start Here
 
 Version: 2026-06-30  

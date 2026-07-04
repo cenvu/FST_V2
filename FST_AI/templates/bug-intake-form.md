@@ -1,3 +1,5 @@
+<!-- FST / CenVu | (+84) 842 841 222 -->
+
 # Template: Bug Intake Form
 
 Use this template when a new FST bug appears.

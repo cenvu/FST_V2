@@ -1,3 +1,5 @@
+<!-- FST / CenVu | (+84) 842 841 222 -->
+
 # Template: Codex Implementation Handoff
 
 Use this template when Codex finishes a coding task and Mi needs to send the result to Claude for primary review.

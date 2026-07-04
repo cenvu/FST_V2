@@ -1,3 +1,5 @@
+<!-- FST / CenVu | (+84) 842 841 222 -->
+
 # FST - AI Coding Agent Guide
 
 Version: 2.2 Token-Optimized  

@@ -1,3 +1,5 @@
+// FST / CenVu | (+84) 842 841 222
+
 import Foundation
 
 /// Classifies log entries as diagnostic (verbose internal) vs. operator-facing.

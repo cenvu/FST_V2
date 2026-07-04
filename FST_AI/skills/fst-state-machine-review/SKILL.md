@@ -1,3 +1,5 @@
+<!-- FST / CenVu | (+84) 842 841 222 -->
+
 ---
 name: fst-state-machine-review
 description: Review FST transfer state machine transitions, terminal states, cancellation, failure handling, and SAFE TO EJECT gating.

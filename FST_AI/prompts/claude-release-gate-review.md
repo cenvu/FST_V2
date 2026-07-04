@@ -1,3 +1,5 @@
+<!-- FST / CenVu | (+84) 842 841 222 -->
+
 # Prompt: Claude Release Gate Review
 
 ROLE:

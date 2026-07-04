@@ -1,3 +1,5 @@
+<!-- FST / CenVu | (+84) 842 841 222 -->
+
 ---
 name: fst-small-safe-change
 description: Keep FST changes minimal, safe, scoped, and reviewable.

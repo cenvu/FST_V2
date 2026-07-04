@@ -1,3 +1,5 @@
+<!-- FST / CenVu | (+84) 842 841 222 -->
+
 # Architecture Decisions
 
 ## AD-001: Bundled rsync only

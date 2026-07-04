@@ -1,3 +1,5 @@
+// FST / CenVu | (+84) 842 841 222
+
 import Foundation
 
 private func assertTrue(_ condition: Bool, _ message: String) {

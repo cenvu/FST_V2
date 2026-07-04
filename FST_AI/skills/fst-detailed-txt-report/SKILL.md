@@ -1,3 +1,5 @@
+<!-- FST / CenVu | (+84) 842 841 222 -->
+
 ---
 name: fst-detailed-txt-report
 description: Guide implementation and review of FST Detailed TXT Report V1 with operational evidence and safety decision fields.

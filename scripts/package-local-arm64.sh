@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+
+# FST / CenVu | (+84) 842 841 222
+
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

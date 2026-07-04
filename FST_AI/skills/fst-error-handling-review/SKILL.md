@@ -1,3 +1,5 @@
+<!-- FST / CenVu | (+84) 842 841 222 -->
+
 ---
 name: fst-error-handling-review
 description: Review FST error handling, cancellation, recovery, user-visible warnings, and preservation of failure evidence.

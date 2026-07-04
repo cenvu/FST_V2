@@ -1,3 +1,5 @@
+<!-- FST / CenVu | (+84) 842 841 222 -->
+
 # Operator Clarity Checklist
 
 Use this checklist to judge whether FST UI works for real DIT/Data Wrangler operation.

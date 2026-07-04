@@ -1,3 +1,5 @@
+// FST / CenVu | (+84) 842 841 222
+
 import Foundation
 
 nonisolated public struct SourceStorageMetadata: Equatable, Sendable {
