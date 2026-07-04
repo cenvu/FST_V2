@@ -2,6 +2,7 @@
 
 # FST — FishSock Transfer
 
+![Last Update](https://img.shields.io/badge/Last%20Update-July%202026-blue)
 [![macOS 13.5+](https://img.shields.io/badge/macOS-13.5%2B-blue.svg)](https://apple.com/macos)
 [![Apple Silicon arm64](https://img.shields.io/badge/architecture-Apple_Silicon_arm64-ff69b4.svg)]()
 [![Swift 5.9+](https://img.shields.io/badge/Swift-5.9%2B-FA7343.svg)](https://swift.org)
