@@ -20,30 +20,19 @@ FST is a macOS copy/verify/report tool for DIT and Data Wrangler workflows.
 ## Disclaimer / Miễn trừ trách nhiệm
 
 FST là công cụ hỗ trợ copy/verify/report, không thay thế phán đoán chuyên môn, backup độc lập, hoặc kiểm tra thủ công.
-FST is a copy/verify/report support tool. It does not replace professional judgment, independent backups, or manual review.
-
 Không phần mềm nào đảm bảo an toàn dữ liệu tuyệt đối trước mất dữ liệu, hỏng dữ liệu, lỗi phần cứng, lỗi thao tác, lỗi filesystem, hoặc hành vi hệ thống ngoài dự kiến.
-
-No software can guarantee absolute protection from data loss, corruption, hardware failure, operator error, filesystem issues, or unexpected system behavior.
-
 Người dùng/người vận hành chịu trách nhiệm chọn đúng source, chọn đúng destination, kiểm tra dung lượng, chọn verification mode phù hợp, theo dõi warning/error, đọc report, duy trì backup độc lập.
-
-Users/operators are responsible for selecting the correct source and destination, checking available storage, choosing the appropriate verification mode, monitoring warnings/errors, reviewing reports, and maintaining independent backups.
-
 Chủ dự án, contributor, và bên phân phối không chịu trách nhiệm với mất dữ liệu do thao tác người dùng hoặc dùng sai cách: chọn sai source/destination, ghi đè, xoá thủ công, format quá sớm, rút ổ không an toàn, bỏ qua failed copy/verify, bỏ qua warning/log/report, dùng phần cứng/ổ/cáp lỗi, force quit hoặc tắt máy khi transfer.
-
-The project owner, contributors, and distributors are not responsible for data loss caused by user actions or misuse, including wrong source/destination selection, overwriting data, manual deletion, early formatting, unsafe drive removal, ignored copy/verify failures, ignored warnings/logs/reports, unstable hardware/drives/cables, force quitting, or shutting down during transfer.
-
 SAFE TO EJECT không phải phê duyệt tự động để format, xoá, hoặc tái sử dụng source media.
-
-SAFE TO EJECT is not automatic approval to format, erase, or reuse source media.
-
 Phần mềm được cung cấp theo nguyên trạng “as is”, không có bảo hành.
-
-The software is provided “as is”, without warranty of any kind.
-
 Khuyến nghị: trước khi format hoặc tái sử dụng source media, nên có ít nhất hai bản copy độc lập đã được verify và đã kiểm tra report/destination data.
 
+FST is a copy/verify/report support tool. It does not replace professional judgment, independent backups, or manual review.
+No software can guarantee absolute protection from data loss, corruption, hardware failure, operator error, filesystem issues, or unexpected system behavior.
+Users/operators are responsible for selecting the correct source and destination, checking available storage, choosing the appropriate verification mode, monitoring warnings/errors, reviewing reports, and maintaining independent backups.
+The project owner, contributors, and distributors are not responsible for data loss caused by user actions or misuse, including wrong source/destination selection, overwriting data, manual deletion, early formatting, unsafe drive removal, ignored copy/verify failures, ignored warnings/logs/reports, unstable hardware/drives/cables, force quitting, or shutting down during transfer.
+SAFE TO EJECT is not automatic approval to format, erase, or reuse source media.
+The software is provided “as is”, without warranty of any kind.
 Recommended practice: before formatting or reusing source media, maintain at least two independent verified copies and review the FST report and destination data.
 
 [docs/legal/DISCLAIMER.md](docs/legal/DISCLAIMER.md)
