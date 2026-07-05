@@ -23,7 +23,7 @@ Short. Direct. Code-first.
 
 FST is a macOS DIT offload tool.
 
-Workflow: COPY -> VERIFY -> SAFE TO FORMAT
+Workflow: COPY -> VERIFY -> SAFE TO EJECT
 
 Goal: prove source media is safe to erase.
 
@@ -45,7 +45,7 @@ Reject features that do not reduce media-loss risk.
 Do not use Apple `/usr/bin/rsync` as fallback unless a future spec explicitly allows it.
 Keep app version and rsync version separate.
 
-Current audit targets: rsync path/version, speed limiter, `.DS_Store` hang, progress accuracy, transfer pipeline, SAFE TO FORMAT gate.
+Current audit targets: rsync path/version, speed limiter, `.DS_Store` hang, progress accuracy, transfer pipeline, SAFE TO EJECT gate.
 
 ## Document Order
 
@@ -132,7 +132,7 @@ Rules:
 
 - random33 samples about 33% of transferred files
 - full verifies all transferred files
-- failure blocks SAFE TO FORMAT
+- failure blocks SAFE TO EJECT
 - no SHA256, MD5, CRC32, MHL unless spec changes
 
 ## File Law
@@ -179,7 +179,7 @@ Required logs: transfer start/end/fail, verify start/end/fail, cancel request, r
 
 Engine/parser/coordinator changes require tests.
 
-Minimum tests: state transitions, SAFE TO FORMAT gate, verification none, rsync path/version, bandwidth conversion, progress parser, cancellation, error mapping.
+Minimum tests: state transitions, SAFE TO EJECT gate, verification none, rsync path/version, bandwidth conversion, progress parser, cancellation, error mapping.
 
 ## Style Law
 
@@ -195,7 +195,7 @@ Before answer:
 - architecture valid
 - bundled rsync rule obeyed
 - state machine valid
-- SAFE TO FORMAT cannot bypass
+- SAFE TO EJECT cannot bypass
 - tests included
 - no unrelated feature
 - readable at 3 AM on set

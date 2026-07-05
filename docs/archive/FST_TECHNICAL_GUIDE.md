@@ -16,7 +16,7 @@ Can the source media be safely formatted?
 
 Workflow:
 
-SOURCE -> COPY -> VERIFY -> SAFE TO FORMAT
+SOURCE -> COPY -> VERIFY -> SAFE TO EJECT
 
 Priority order:
 
@@ -148,7 +148,7 @@ Owns:
 - start/cancel workflow
 - transfer state transitions
 - orchestration: validate -> copy -> verify -> report
-- SAFE TO FORMAT gate
+- SAFE TO EJECT gate
 
 Must not:
 
@@ -349,12 +349,12 @@ Terminal states:
 
 ---
 
-## 5. SAFE TO FORMAT Gate
+## 5. SAFE TO EJECT Gate
 
 Absolute rule:
 
 ```text
-SAFE TO FORMAT = copy success AND verification success
+SAFE TO EJECT = copy success AND verification success
 ```
 
 If verification mode is `none`:
@@ -375,7 +375,7 @@ Rsync moves data.
 
 VerifyEngine establishes trust.
 
-TransferCoordinator authorizes SAFE TO FORMAT.
+TransferCoordinator authorizes SAFE TO EJECT.
 
 ---
 
@@ -609,7 +609,7 @@ Rules:
 
 - App version and rsync version are separate fields.
 - Do not display rsync version as app version.
-- Report must never claim SAFE TO FORMAT unless state is `safeToFormat`.
+- Report must never claim SAFE TO EJECT unless state is `safeToFormat`.
 
 ---
 
@@ -669,7 +669,7 @@ Status colors:
 | error | red |
 | cancelled | yellow |
 
-UI must not show SAFE TO FORMAT before coordinator state is `safeToFormat`.
+UI must not show SAFE TO EJECT before coordinator state is `safeToFormat`.
 
 ---
 
@@ -918,7 +918,7 @@ These older assumptions are no longer source-of-truth:
 Current priority:
 
 ```text
-Rsync correctness -> speed limiter -> progress accuracy -> verification -> SAFE TO FORMAT -> report integrity -> UI polish
+Rsync correctness -> speed limiter -> progress accuracy -> verification -> SAFE TO EJECT -> report integrity -> UI polish
 ```
 
 ---

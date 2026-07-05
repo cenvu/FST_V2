@@ -20,7 +20,7 @@ FST exists to answer one field question:
 Workflow:
 
 ```text
-SOURCE -> COPY -> VERIFY -> SAFE TO FORMAT
+SOURCE -> COPY -> VERIFY -> SAFE TO EJECT
 ```
 
 Architecture must protect:
@@ -46,7 +46,7 @@ MVP supports:
 - Speed limit control
 - Verification
 - TXT report
-- SAFE TO FORMAT gate
+- SAFE TO EJECT gate
 
 MVP forbids:
 
@@ -130,7 +130,7 @@ Own:
 - State transition
 - Error mapping
 - Report trigger
-- SAFE TO FORMAT decision
+- SAFE TO EJECT decision
 
 Only Coordinator may change `TransferState`.
 
@@ -228,12 +228,12 @@ any active state -> error | cancelled
 
 ---
 
-## 7. SAFE TO FORMAT Gate
+## 7. SAFE TO EJECT Gate
 
 Absolute rule:
 
 ```text
-SAFE_TO_FORMAT = copy succeeded AND verification passed
+SAFE_TO_EJECT = copy succeeded AND verification passed
 ```
 
 If verification mode is `none`:
@@ -691,7 +691,7 @@ Unit tests required for:
 - Speed limiter conversion
 - Progress parser
 - TransferState transitions
-- SAFE TO FORMAT gate
+- SAFE TO EJECT gate
 - Verification sampling
 - Hash comparison
 - Error mapping
@@ -726,7 +726,7 @@ Codex must prioritize these before new features:
 5. Progress reporting accuracy
 6. Transfer pipeline validation
 7. Cancellation safety
-8. SAFE TO FORMAT enforcement
+8. SAFE TO EJECT enforcement
 
 No feature work may bypass these.
 
@@ -812,7 +812,7 @@ Current implementation order:
 3. Fix parser/progress
 4. Validate cancellation
 5. Add verification
-6. Enforce SAFE TO FORMAT
+6. Enforce SAFE TO EJECT
 7. Generate TXT report
 8. Polish UI only after pipeline is reliable
 

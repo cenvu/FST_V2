@@ -12,7 +12,7 @@
 * No auto-download or auto-install.
 * No Sparkle dependency.
 * No app bundle mutation.
-* No transfer, verify, rsync, report, Safe To Eject, or Telegram business logic changed.
+* No transfer, verify, rsync, report, SAFE TO EJECT, or Telegram business logic changed.
 
 ## v1.3.2 - 2026-07-06
 
@@ -29,7 +29,7 @@
 * No auto-download or auto-install.
 * No app bundle mutation.
 * No Sparkle dependency.
-* No transfer, verify, rsync, report, or Safe To Eject safety behavior changed.
+* No transfer, verify, rsync, report, or SAFE TO EJECT safety behavior changed.
 
 ## v1.3.1 - 2026-07-05
 
@@ -43,7 +43,7 @@
 * No auto-download or auto-install.
 * No app bundle mutation.
 * No Sparkle dependency.
-* No transfer, verify, rsync, report, Safe To Eject, or Telegram behavior changed.
+* No transfer, verify, rsync, report, SAFE TO EJECT, or Telegram behavior changed.
 
 ## v1.3.0 - 2026-07-05
 
@@ -60,10 +60,10 @@
 
 ### Safety note:
 * Telegram notification is best-effort only.
-* Telegram failure never affects copy, verify, report generation, transfer result, app state, or Safe To Eject safety logic.
+* Telegram failure never affects copy, verify, report generation, transfer result, app state, or SAFE TO EJECT safety logic.
 * Messages avoid full source/destination paths, manifests, checksums, private logs, and bot token exposure.
 * Bundled rsync remains 3.4.4.
-* Copy / Verify / Safe To Eject workflow unchanged.
+* Copy / Verify / SAFE TO EJECT workflow unchanged.
 
 ### Known limitations:
 * Telegram is the only notification provider in v1.3.0.
@@ -76,11 +76,11 @@
 * Refined header branding/contact presentation.
 * Updated Technical Logs metadata/footer presentation.
 * Minor UI polish for release identity and documentation consistency.
-* No changes to transfer engine, verification engine, rsync command logic, report generation, or Safe To Eject safety logic.
+* No changes to transfer engine, verification engine, rsync command logic, report generation, or SAFE TO EJECT safety logic.
 
 ### Safety note:
 * Bundled rsync remains 3.4.4.
-* Copy / Verify / Safe To Eject workflow unchanged.
+* Copy / Verify / SAFE TO EJECT workflow unchanged.
 * Data-safety behavior unchanged.
 
 ### Known limitations:

@@ -94,7 +94,7 @@ Priority:
 5. Progress accuracy
 6. Cancellation safety
 7. Verification engine
-8. SAFE TO FORMAT enforcement
+8. SAFE TO EJECT enforcement
 
 ---
 

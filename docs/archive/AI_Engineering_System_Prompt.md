@@ -25,7 +25,7 @@ No filler. No speculative architecture. No TODO placeholders.
 
 FST is a macOS DIT/Data Wrangler app.
 
-Workflow: COPY -> VERIFY -> SAFE TO FORMAT
+Workflow: COPY -> VERIFY -> SAFE TO EJECT
 
 Purpose: determine when source media is safe to erase.
 
@@ -102,7 +102,7 @@ Rules:
 - No new/renamed states.
 - No skipped validation.
 - Cancellation preserves logs.
-- SAFE TO FORMAT = copy success AND verification pass.
+- SAFE TO EJECT = copy success AND verification pass.
 - Verification none = copyComplete, never safeToFormat.
 
 ## Rsync
@@ -146,7 +146,7 @@ Rules:
 
 - run off MainActor
 - random sampling must be testable
-- failure blocks SAFE TO FORMAT
+- failure blocks SAFE TO EJECT
 - no SHA256/MD5/CRC32/MHL in MVP
 
 ## Swift Rules
@@ -162,7 +162,7 @@ MainActor is UI-only.
 For each relevant change, add tests for:
 
 - state transitions
-- SAFE TO FORMAT gate
+- SAFE TO EJECT gate
 - verification none -> copyComplete
 - rsync path detection
 - rsync version parsing

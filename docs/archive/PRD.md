@@ -12,7 +12,7 @@ Architecture: MVVM + Coordinator + Engine + Service
 
 FST is a macOS DIT/Data Wrangler media offload app.
 
-Workflow: COPY -> VERIFY -> SAFE TO FORMAT
+Workflow: COPY -> VERIFY -> SAFE TO EJECT
 
 Purpose: let the operator know when source media is safe to erase.
 
@@ -49,7 +49,7 @@ In:
 - xxHash64 verification
 - logs
 - TXT report
-- SAFE TO FORMAT gate
+- SAFE TO EJECT gate
 
 Out:
 
@@ -125,20 +125,20 @@ Parsing and calculations must not block MainActor.
 
 Cancel active transfer safely.
 
-Must terminate rsync, preserve logs, update state to cancelled, and never show SAFE TO FORMAT after cancel.
+Must terminate rsync, preserve logs, update state to cancelled, and never show SAFE TO EJECT after cancel.
 
 ### FR-009 Verification
 
 Modes: none, random33, full.  
 Algorithm: xxHash64.
 
-Rules: random33 checks about 33% of transferred files; full checks all files; failure blocks SAFE TO FORMAT; no SHA256/MD5/CRC32 in MVP.
+Rules: random33 checks about 33% of transferred files; full checks all files; failure blocks SAFE TO EJECT; no SHA256/MD5/CRC32 in MVP.
 
-### FR-010 SAFE TO FORMAT
+### FR-010 SAFE TO EJECT
 
 Allowed only when copy succeeded AND verification passed.
 
-If verification is none: final state is COPY COMPLETE; never SAFE TO FORMAT.
+If verification is none: final state is COPY COMPLETE; never SAFE TO EJECT.
 
 Absolute rule.
 
@@ -188,7 +188,7 @@ MVP is complete only when:
 - progress is operator-trustworthy
 - random33/full/none verification work
 - verification none ends COPY COMPLETE
-- SAFE TO FORMAT cannot bypass verification
+- SAFE TO EJECT cannot bypass verification
 - cancellation cannot create false success
 - logs and TXT report reflect final truth
 - production-scale transfer test passes without crash

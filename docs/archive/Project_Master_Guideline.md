@@ -9,7 +9,7 @@ Codename: FishSock Transfer / Focused Secure Transfer
 
 Build a safe macOS DIT media offload tool.
 
-Workflow: SOURCE -> COPY -> VERIFY -> SAFE TO FORMAT
+Workflow: SOURCE -> COPY -> VERIFY -> SAFE TO EJECT
 
 The app exists to prove whether source media can be erased.
 
@@ -72,7 +72,7 @@ ready, validating, copying, verifying, copyComplete, safeToFormat, error, cancel
 
 Rules: one active state; Coordinator owns transitions; no added/renamed states; no skipped validation.
 
-SAFE TO FORMAT = copy success AND verification pass.  
+SAFE TO EJECT = copy success AND verification pass.  
 Verification none = copyComplete only.
 
 ## Transfer Rules
@@ -93,7 +93,7 @@ Audit: speed limiter, `.DS_Store` hang, progress parser, rsync path/version.
 Modes: none, random33, full.  
 Algorithm: xxHash64.
 
-Rules: none ends COPY COMPLETE; random33 samples about one third; full checks all; failed verification blocks SAFE TO FORMAT; no SHA256/MD5/CRC32/MHL unless spec changes.
+Rules: none ends COPY COMPLETE; random33 samples about one third; full checks all; failed verification blocks SAFE TO EJECT; no SHA256/MD5/CRC32/MHL unless spec changes.
 
 ## UI Rules
 
@@ -141,8 +141,8 @@ Verify before claiming stable:
 - `.DS_Store` cannot hang transfer
 - progress/speed/ETA credible
 - cancellation creates no false success
-- verification none never shows SAFE TO FORMAT
-- verification pass required for SAFE TO FORMAT
+- verification none never shows SAFE TO EJECT
+- verification pass required for SAFE TO EJECT
 - logs survive failure
 - TXT report reflects final truth
 

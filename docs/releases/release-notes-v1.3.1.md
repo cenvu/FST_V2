@@ -13,7 +13,7 @@
 - No app bundle mutation.
 - No Sparkle dependency.
 - Update check is disabled while copy/verification is running.
-- No transfer, verify, rsync, report, SAFE TO FORMAT, or Telegram behavior changed.
+- No transfer, verify, rsync, report, SAFE TO EJECT, or Telegram behavior changed.
 
 ## Technical
 
