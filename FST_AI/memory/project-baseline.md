@@ -18,7 +18,7 @@ The app is inspired by professional offload tools but focused on a lightweight M
 
 ## Platform
 
-- macOS 13.5+ for the v1.3.2 local package
+- macOS 13.5+ for the v1.3.3 local package
 - Apple Silicon arm64 package
 - SwiftUI
 - MVVM / Coordinator / Service / Engine architecture
@@ -26,7 +26,7 @@ The app is inspired by professional offload tools but focused on a lightweight M
 
 ## Runtime Progress, Notification, and Update Check Model
 
-v1.3.2 includes destination activity observer metrics, optional Telegram notifications with request-construction hotfix, and a manual GitHub release update-check for operator visibility.
+v1.3.3 fixes packaged/release build outbound network permission by preserving the app’s sandbox network client entitlement. This allows manual GitHub update-check and Telegram notification workflows to use outbound HTTPS as intended. The release does not add auto-download, auto-install, Sparkle, app bundle mutation, or any transfer/verify/rsync/report/SAFE TO EJECT/Telegram business logic changes.
 
 Truth layers:
 

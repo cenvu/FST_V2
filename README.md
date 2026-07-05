@@ -6,7 +6,7 @@
 [![macOS 13.5+](https://img.shields.io/badge/macOS-13.5%2B-blue.svg)](https://apple.com/macos)
 [![Apple Silicon arm64](https://img.shields.io/badge/architecture-Apple_Silicon_arm64-ff69b4.svg)]()
 [![Swift 5.9+](https://img.shields.io/badge/Swift-5.9%2B-FA7343.svg)](https://swift.org)
-[![Version v1.3.2](https://img.shields.io/badge/version-v1.3.2-success.svg)]()
+[![Version v1.3.3](https://img.shields.io/badge/version-v1.3.3-success.svg)]()
 [![License](https://img.shields.io/badge/license-Source_Available_/_Non--Commercial-orange.svg)](LICENSE)
 
 English documentation is included below.
@@ -120,12 +120,14 @@ What FST cannot / does not do:
 ## Thông tin sử dụng và phát triển
 
 ### Trạng thái hiện tại
-- Phiên bản: v1.3.2
+- Phiên bản: v1.3.3
 - Nền tảng: macOS 13.5+, Apple Silicon arm64
 - Chữ ký: ad-hoc signed
 - Notarization: không được notarized
 - Phạm vi: một nguồn, một đích, một tác vụ chạy tại một thời điểm
 - Transfer engine: sử dụng rsync 3.4.4 đi kèm
+
+v1.3.3 sửa lỗi quyền mạng outbound của bản build release/packaged bằng cách giữ lại entitlement network client của sandbox. Điều này cho phép quy trình check update GitHub thủ công và thông báo Telegram dùng HTTPS outbound như thiết kế. Bản release không thêm tính năng tự động tải, tự động cài đặt, Sparkle, sửa đổi app bundle, hay bất kỳ thay đổi logic nào về transfer/verify/rsync/report/SAFE TO EJECT/Telegram.
 
 ### Cài đặt cơ bản
 - Tải file release zip từ GitHub Releases.
@@ -142,6 +144,10 @@ What FST cannot / does not do:
 - Theo dõi tiến trình và nhật ký.
 - Kiểm tra báo cáo cuối cùng.
 - Chỉ tiếp tục xử lý thẻ/ổ cứng nguồn khi có thông báo SAFE TO EJECT và bạn đã xác nhận lại yêu cầu workflow.
+
+### Telegram Notification
+Nếu bạn muốn dùng tính năng gửi thông báo qua Telegram, xem hướng dẫn:
+[Hướng dẫn tạo Telegram Bot cho FST](docs/guides/telegram-bot-setup.md)
 
 ### Tài liệu kỹ thuật và phát triển
 Tài liệu chi tiết về kiến trúc và quy định phát triển được lưu tại thư mục `docs`, không đặt tại README.
@@ -171,12 +177,14 @@ Xem chi tiết:
 ## Usage and development information
 
 ### Current status
-- Version: v1.3.2
+- Version: v1.3.3
 - Platform: macOS 13.5+, Apple Silicon arm64
 - Signing: ad-hoc signed
 - Notarization: not notarized
 - Scope: single source, single destination, single active job
 - Transfer engine: bundled rsync 3.4.4
+
+v1.3.3 fixes packaged/release build outbound network permission by preserving the app’s sandbox network client entitlement. This allows manual GitHub update-check and Telegram notification workflows to use outbound HTTPS as intended. The release does not add auto-download, auto-install, Sparkle, app bundle mutation, or any transfer/verify/rsync/report/SAFE TO EJECT/Telegram business logic changes.
 
 ### Basic installation
 - Download the release zip from GitHub Releases.
@@ -193,6 +201,10 @@ Xem chi tiết:
 - Monitor progress and logs.
 - Review final report.
 - Only proceed when SAFE TO EJECT is shown and operator has verified workflow requirements.
+
+### Telegram Notification
+For Telegram notification setup, see:
+[Telegram Bot Setup Guide for FST](docs/guides/telegram-bot-setup.md)
 
 ### Technical and development docs
 Detailed architecture and development rules live in `docs`, not in the README.

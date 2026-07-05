@@ -95,8 +95,8 @@ Rules:
 
 ## 4. Technical Baseline
 
-- current version v1.3.2 display 1.3.2 build 20260706
-- local package `dist/FishSockTransfer-v1.3.2-b20260706-local-macOS13_5plus-arm64.zip`
+- current version v1.3.3 display 1.3.3 build 20260706
+- local package `dist/FishSockTransfer-v1.3.3-b20260706-local-macOS13_5plus-arm64.zip`
 - macOS 13.5+
 - Apple Silicon arm64 package
 - ad-hoc signed, not notarized, not Developer ID signed
@@ -114,14 +114,7 @@ Rules:
 - logs
 - TXT report
 
-v1.3.2 release focus:
-
-- Manual GitHub release update-check in the Technical Logs footer.
-- User-triggered Check for Updates action only.
-- Semantic version comparison against the latest GitHub Release.
-- Browser-only handoff for release/download links.
-- No auto-download, auto-install, app bundle mutation, Sparkle, or background updater behavior.
-- Telegram notification request construction hotfix.
+v1.3.3 fixes packaged/release build outbound network permission by preserving the app’s sandbox network client entitlement. This allows manual GitHub update-check and Telegram notification workflows to use outbound HTTPS as intended. The release does not add auto-download, auto-install, Sparkle, app bundle mutation, or any transfer/verify/rsync/report/SAFE TO EJECT/Telegram business logic changes.
 
 Truth layers:
 

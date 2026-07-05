@@ -2,6 +2,18 @@
 
 # Changelog
 
+## v1.3.3 - 2026-07-06
+
+### Fixed
+* Fixed packaged/release app failing outbound network workflows used by GitHub update-check and Telegram notification.
+* Ensured sandboxed release builds include and preserve the outbound network client entitlement.
+
+### Safety
+* No auto-download or auto-install.
+* No Sparkle dependency.
+* No app bundle mutation.
+* No transfer, verify, rsync, report, Safe To Eject, or Telegram business logic changed.
+
 ## v1.3.2 - 2026-07-06
 
 ### Fixed
