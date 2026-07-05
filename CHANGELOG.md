@@ -2,6 +2,20 @@
 
 # Changelog
 
+## v1.3.1 - 2026-07-05
+
+### Added
+* Manual GitHub release update-check in Technical Logs footer.
+* Semantic version comparison for local vs latest GitHub Release.
+* Browser handoff for release/download links.
+* XCTest coverage for update-check backend foundation.
+
+### Safety
+* No auto-download or auto-install.
+* No app bundle mutation.
+* No Sparkle dependency.
+* No transfer, verify, rsync, report, Safe To Eject, or Telegram behavior changed.
+
 ## v1.3.0 - 2026-07-05
 
 * Added Telegram Notification MVP.

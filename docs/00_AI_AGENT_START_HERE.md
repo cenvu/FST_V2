@@ -73,8 +73,8 @@ Do not use older agent routing if it conflicts with `FST_AI/`.
 
 ## Current Release Snapshot
 
-- Version: v1.3.0 display 1.3 build 20260705
-- Package: `dist/FishSockTransfer-v1.3-b20260705-local-macOS13_5plus-arm64.zip`
+- Version: v1.3.1 display 1.3.1 build 20260705
+- Package: `dist/FishSockTransfer-v1.3.1-b20260705-local-macOS13_5plus-arm64.zip`
 - Platform: macOS 13.5+, Apple Silicon arm64 only
 - Package type: local owner-side ad-hoc build
 - Signing: ad-hoc signed, not notarized, not Developer ID signed
@@ -84,7 +84,7 @@ Do not use older agent routing if it conflicts with `FST_AI/`.
 
 FST does not format media and does not eject media.
 
-v1.3.0 is the Telegram Notification MVP release. Telegram notification is best-effort only and must never affect copy, verify, report generation, transfer state, or SAFE TO EJECT semantics.
+v1.3.1 adds a manual GitHub release update-check in the Technical Logs footer. The check is user-triggered only, disabled during copy/verification, opens release/download links in the browser, and must never auto-download, auto-install, mutate the app bundle, use Sparkle, or affect copy, verify, report generation, transfer state, Telegram, or SAFE TO EJECT semantics.
 
 Agent division:
 

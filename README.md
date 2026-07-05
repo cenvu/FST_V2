@@ -6,7 +6,7 @@
 [![macOS 13.5+](https://img.shields.io/badge/macOS-13.5%2B-blue.svg)](https://apple.com/macos)
 [![Apple Silicon arm64](https://img.shields.io/badge/architecture-Apple_Silicon_arm64-ff69b4.svg)]()
 [![Swift 5.9+](https://img.shields.io/badge/Swift-5.9%2B-FA7343.svg)](https://swift.org)
-[![Version v1.3.0](https://img.shields.io/badge/version-v1.3.0-success.svg)]()
+[![Version v1.3.1](https://img.shields.io/badge/version-v1.3.1-success.svg)]()
 [![License](https://img.shields.io/badge/license-Source_Available_/_Non--Commercial-orange.svg)](LICENSE)
 
 FST is a native macOS copy/verify/report tool for DIT and Data Wrangler workflows.
@@ -127,7 +127,7 @@ FST xuất báo cáo dạng text sau mỗi lần transfer. Nên lưu report cùn
 
 | | |
 |---|---|
-| **Version / Phiên bản** | v1.3.0 |
+| **Version / Phiên bản** | v1.3.1 |
 | **Last update / Cập nhật gần nhất** | July 2026 |
 | **Platform / Nền tảng** | macOS 13.5+ |
 | **Architecture / Kiến trúc** | Apple Silicon arm64 only |
@@ -135,9 +135,9 @@ FST xuất báo cáo dạng text sau mỗi lần transfer. Nên lưu report cùn
 | **Notarization** | Not notarized / chưa notarized |
 | **Scope / Phạm vi** | MVP — single source, single destination, single active job |
 | **Transfer engine** | Bundled rsync 3.4.4 |
-| **Release focus** | Telegram Notification MVP |
+| **Release focus** | Manual GitHub update check |
 
-v1.3.0 adds the NOTIFICATION tab between TRANSFER and TECHNICAL LOG. Telegram notification is optional and best-effort only; notification delivery failure never changes copy, verify, report generation, transfer result, app state, or SAFE TO EJECT semantics.
+v1.3.1 adds a manual GitHub release update-check in the Technical Logs footer. The operator must click Check for Updates; FST only compares the installed version with the latest GitHub Release and opens release/download links in the browser. It does not auto-download, auto-install, mutate the app bundle, use Sparkle, or change copy, verify, report generation, transfer result, app state, Telegram, or SAFE TO EJECT semantics.
 
 System requirements: macOS 13.5+, an Apple Silicon Mac, mounted source and destination storage, and enough free space on the destination. Intel Macs are not officially supported at this stage.
 

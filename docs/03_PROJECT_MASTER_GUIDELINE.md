@@ -95,8 +95,8 @@ Rules:
 
 ## 4. Technical Baseline
 
-- current version v1.3.0 display 1.3 build 20260705
-- local package `dist/FishSockTransfer-v1.3-b20260705-local-macOS13_5plus-arm64.zip`
+- current version v1.3.1 display 1.3.1 build 20260705
+- local package `dist/FishSockTransfer-v1.3.1-b20260705-local-macOS13_5plus-arm64.zip`
 - macOS 13.5+
 - Apple Silicon arm64 package
 - ad-hoc signed, not notarized, not Developer ID signed
@@ -114,12 +114,13 @@ Rules:
 - logs
 - TXT report
 
-v1.3.0 release focus:
+v1.3.1 release focus:
 
-- Telegram Notification MVP.
-- New tab order: TRANSFER / NOTIFICATION / TECHNICAL LOG.
-- Optional Telegram Bot notification support.
-- Best-effort notification events for job start, heartbeat, failure, copy complete, and verified SAFE TO EJECT.
+- Manual GitHub release update-check in the Technical Logs footer.
+- User-triggered Check for Updates action only.
+- Semantic version comparison against the latest GitHub Release.
+- Browser-only handoff for release/download links.
+- No auto-download, auto-install, app bundle mutation, Sparkle, or background updater behavior.
 
 Truth layers:
 

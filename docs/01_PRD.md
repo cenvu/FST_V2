@@ -124,8 +124,8 @@ A first-time operator can launch FST, select source, select destination, choose 
 
 Current release:
 
-- Version: v1.3.0 display 1.3 build 20260705
-- Package: `dist/FishSockTransfer-v1.3-b20260705-local-macOS13_5plus-arm64.zip`
+- Version: v1.3.1 display 1.3.1 build 20260705
+- Package: `dist/FishSockTransfer-v1.3.1-b20260705-local-macOS13_5plus-arm64.zip`
 - Package type: local owner-side ad-hoc build
 - Platform: macOS 13.5+, Apple Silicon arm64 only
 - Signing: ad-hoc signed, not notarized, not Developer ID signed
@@ -163,13 +163,13 @@ Rules:
 - Never mutate source media.
 - Never run rsync, hashing, scanning, or report generation on MainActor.
 
-v1.3.0 release focus:
+v1.3.1 release focus:
 
-- Telegram Notification MVP.
-- New tab order: TRANSFER / NOTIFICATION / TECHNICAL LOG.
-- Optional Telegram Bot notification support.
-- Test Message from the Notification tab.
-- Best-effort notification events for job start, heartbeat, failure, copy complete, and verified SAFE TO EJECT.
+- Manual GitHub release update-check in the Technical Logs footer.
+- User-triggered Check for Updates action only.
+- Semantic version comparison against the latest GitHub Release.
+- Browser-only handoff for release/download links.
+- No auto-download, auto-install, app bundle mutation, Sparkle, or background updater behavior.
 
 Truth layers:
 
