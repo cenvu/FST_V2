@@ -166,7 +166,8 @@ public struct ContentView: View {
 
             TechnicalLogsMetadataFooter(
                 rsyncVersionText: rsyncHeaderBadgeText,
-                isRsyncAvailable: viewModel.bundledRsyncInfo.isAvailable
+                isRsyncAvailable: viewModel.bundledRsyncInfo.isAvailable,
+                isTransferRunning: viewModel.transferState == .copying || viewModel.transferState == .verifying
             )
             .padding(.top, 8)
             .frame(maxWidth: .infinity, alignment: .center)
@@ -275,7 +276,10 @@ struct SocialIconLink: View {
 struct TechnicalLogsMetadataFooter: View {
     let rsyncVersionText: String
     let isRsyncAvailable: Bool
-    
+    let isTransferRunning: Bool
+
+    @StateObject private var updateVM = TechnicalLogsUpdateViewModel()
+
     var body: some View {
         HStack(spacing: 12) {
             MetadataBadge(label: "version", value: "v1.3", helpText: "App version from README.md", isError: false)
@@ -286,7 +290,84 @@ struct TechnicalLogsMetadataFooter: View {
                 isError: !isRsyncAvailable
             )
             MetadataBadge(label: "license", value: "Source Available / Non-Commercial", helpText: "Project license from README.md", isError: false)
+
+            Spacer()
+
+            updateCheckUI
         }
+    }
+
+    @ViewBuilder
+    private var updateCheckUI: some View {
+        HStack(spacing: 8) {
+            switch updateVM.state {
+            case .idle:
+                EmptyView()
+            case .checking:
+                HStack(spacing: 4) {
+                    ProgressView()
+                        .controlSize(.small)
+                        .scaleEffect(0.5)
+                    Text("Checking...")
+                        .font(.system(size: 10.5, weight: .regular))
+                        .foregroundColor(.secondary)
+                }
+            case .upToDate:
+                Text("Up to date")
+                    .font(.system(size: 10.5, weight: .regular))
+                    .foregroundColor(.secondary)
+            case .updateAvailable(_, let latestVersion, let releaseURL, let downloadURL):
+                HStack(spacing: 6) {
+                    Text("Update available: v\(latestVersion)")
+                        .font(.system(size: 10.5, weight: .medium))
+                        .foregroundColor(Color(NSColor.controlAccentColor))
+
+                    Button("View Release") {
+                        NSWorkspace.shared.open(releaseURL)
+                    }
+                    .buttonStyle(.link)
+                    .font(.system(size: 10.5, weight: .regular))
+
+                    if let downloadURL = downloadURL {
+                        Button("Download") {
+                            NSWorkspace.shared.open(downloadURL)
+                        }
+                        .buttonStyle(.link)
+                        .font(.system(size: 10.5, weight: .regular))
+                    }
+                }
+            case .failed:
+                Text("Update check failed")
+                    .font(.system(size: 10.5, weight: .regular))
+                    .foregroundColor(.orange)
+            }
+
+            Button(action: {
+                updateVM.checkForUpdates()
+            }) {
+                Text("Check for Updates")
+                    .font(.system(size: 10.5, weight: .medium))
+                    .foregroundColor(isTransferRunning || isChecking ? .secondary.opacity(0.5) : .primary)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 3)
+                    .background(Color(NSColor.controlBackgroundColor).opacity(0.5))
+                    .clipShape(RoundedRectangle(cornerRadius: 4))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 4)
+                            .stroke(Color.secondary.opacity(0.2), lineWidth: 1)
+                    )
+            }
+            .buttonStyle(.plain)
+            .disabled(isTransferRunning || isChecking)
+            .help(isTransferRunning ? "Update checks are disabled while transfer or verification is running." : "Check GitHub for the latest release")
+        }
+    }
+
+    private var isChecking: Bool {
+        if case .checking = updateVM.state {
+            return true
+        }
+        return false
     }
 }
 
