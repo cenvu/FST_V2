@@ -2,6 +2,23 @@
 
 # Changelog
 
+## v1.3.2 - 2026-07-06
+
+### Fixed
+* Fixed Telegram API request construction for reliable test and runtime notification delivery.
+* Reduced repeated Telegram warning/log noise when notification delivery fails.
+* Preserved Notification tab layout fixes and tab order: TRANSFER / NOTIFICATION / TECHNICAL LOG.
+
+### Verification
+* Confirmed manual Check for Updates compatibility with GitHub Release tag `v1.3.2`.
+
+### Safety
+* Telegram notification remains best-effort visibility only.
+* No auto-download or auto-install.
+* No app bundle mutation.
+* No Sparkle dependency.
+* No transfer, verify, rsync, report, or Safe To Eject safety behavior changed.
+
 ## v1.3.1 - 2026-07-05
 
 ### Added

@@ -18,7 +18,7 @@ The app is inspired by professional offload tools but focused on a lightweight M
 
 ## Platform
 
-- macOS 13.5+ for the v1.3.1 local package
+- macOS 13.5+ for the v1.3.2 local package
 - Apple Silicon arm64 package
 - SwiftUI
 - MVVM / Coordinator / Service / Engine architecture
@@ -26,7 +26,7 @@ The app is inspired by professional offload tools but focused on a lightweight M
 
 ## Runtime Progress, Notification, and Update Check Model
 
-v1.3.1 includes destination activity observer metrics, optional Telegram notifications, and a manual GitHub release update-check for operator visibility.
+v1.3.2 includes destination activity observer metrics, optional Telegram notifications with request-construction hotfix, and a manual GitHub release update-check for operator visibility.
 
 Truth layers:
 

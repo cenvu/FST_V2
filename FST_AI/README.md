@@ -57,9 +57,9 @@ Current locked scope:
 - No Apple/System/Homebrew rsync fallback
 - Detailed TXT Report V1 before advanced features
 
-## v1.3.1 Manual Update Check Safety Model
+## v1.3.2 Notification and Manual Update Check Safety Model
 
-v1.3.1 is the Manual GitHub Update Check release.
+v1.3.2 is the Telegram notification hotfix and Manual GitHub Update Check compatibility release.
 
 FST separates three kinds of truth:
 
