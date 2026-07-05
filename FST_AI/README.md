@@ -57,17 +57,17 @@ Current locked scope:
 - No Apple/System/Homebrew rsync fallback
 - Detailed TXT Report V1 before advanced features
 
-## v1.3.0 Notification Safety Model
+## v1.3.1 Manual Update Check Safety Model
 
-v1.3.0 is the Telegram Notification MVP release.
+v1.3.1 is the Manual GitHub Update Check release.
 
 FST separates three kinds of truth:
 
 - Safety truth: verification result, report generation, and SAFE TO EJECT.
 - Transfer truth: bundled rsync 3.4.4 lifecycle, exit status, errors, and cancellation.
-- Operator truth: destination observer metrics and optional Telegram notifications for visibility only.
+- Operator truth: destination observer metrics, optional Telegram notifications, and manual update-check status for visibility only.
 
-The destination activity observer and Telegram notification delivery are visibility-only. They must never decide copy success, verification success, final report truth, transfer state, or SAFE TO EJECT.
+The destination activity observer, Telegram notification delivery, and manual update-check are visibility-only. They must never decide copy success, verification success, final report truth, transfer state, or SAFE TO EJECT. The update-check must never auto-download, auto-install, mutate the app bundle, use Sparkle, or run as a background updater.
 
 Deferred:
 
