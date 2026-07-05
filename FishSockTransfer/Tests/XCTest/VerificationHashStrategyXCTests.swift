@@ -63,7 +63,7 @@ final class VerificationHashStrategyXCTests: XCTestCase {
             bandwidthLimit: nil
         )
         XCTAssertTrue(randomReport.contains("Verification Mode:   SHA256 Sample 33%"))
-        XCTAssertTrue(randomReport.contains("Verification Coverage: Random 33%"))
+        XCTAssertTrue(randomReport.contains("Verification Scope:  RANDOM SAMPLE"))
         XCTAssertTrue(randomReport.contains("Hash Algorithm:      SHA256"))
         XCTAssertTrue(randomReport.contains("Strong cryptographic hash verification"))
 
@@ -72,7 +72,7 @@ final class VerificationHashStrategyXCTests: XCTestCase {
             bandwidthLimit: nil
         )
         XCTAssertTrue(fullReport.contains("Verification Mode:   xxHash64 Full 100%"))
-        XCTAssertTrue(fullReport.contains("Verification Coverage: Full 100%"))
+        XCTAssertTrue(fullReport.contains("Verification Scope:  FULL 100%"))
         XCTAssertTrue(fullReport.contains("Hash Algorithm:      xxHash64"))
         XCTAssertTrue(fullReport.contains("Fast non-cryptographic hash verification"))
         XCTAssertFalse(fullReport.contains(["SAFE", "TO", "FORMAT"].joined(separator: " ")))

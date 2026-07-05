@@ -25,7 +25,8 @@ struct ReportEngineWordingTests {
             bandwidthLimit: nil
         )
         assertContains(copyOnly, "Final Status:        TRANSFER COMPLETE", "copy-only report status")
-        assertNotContains(copyOnly, "SAFE TO EJECT", "copy-only report must not imply verified eject status")
+        assertContains(copyOnly, "SAFE TO EJECT DESTINATION: NO", "copy-only report must not imply verified eject status")
+        assertNotContains(copyOnly, "Final Status:        SAFE TO EJECT", "copy-only report must not imply verified eject status")
         assertNotContains(copyOnly, formerFormatLabel, "copy-only report must not use old format wording")
 
         let verified = await engine.generateReportText(
@@ -33,6 +34,7 @@ struct ReportEngineWordingTests {
             bandwidthLimit: nil
         )
         assertContains(verified, "Final Status:        SAFE TO EJECT", "verified report status")
+        assertContains(verified, "SAFE TO EJECT DESTINATION: YES", "verified report safe destination")
         assertContains(verified, "Hash Algorithm:      xxHash64", "verified report hash algorithm")
         assertContains(verified, "Fast non-cryptographic hash verification", "verified report hash note")
         assertNotContains(verified, formerFormatLabel, "verified report must not use old format wording")
@@ -42,6 +44,7 @@ struct ReportEngineWordingTests {
             bandwidthLimit: nil
         )
         assertContains(verificationFailed, "Final Status:        MANUAL CHECK REQUIRED", "verification failure report status")
+        assertContains(verificationFailed, "SAFE TO EJECT DESTINATION: NO", "verification failure safe destination")
         assertContains(verificationFailed, "Hash Algorithm:      SHA256", "verification failure hash algorithm")
         assertNotContains(verificationFailed, formerFormatLabel, "verification failure report must not use old format wording")
 
@@ -50,6 +53,7 @@ struct ReportEngineWordingTests {
             bandwidthLimit: nil
         )
         assertContains(transferFailed, "Final Status:        TRANSFER ERROR", "transfer failure report status")
+        assertContains(transferFailed, "SAFE TO EJECT DESTINATION: NO", "transfer failure safe destination")
         assertNotContains(transferFailed, formerFormatLabel, "transfer failure report must not use old format wording")
 
         print("ReportEngineWordingTests passed")

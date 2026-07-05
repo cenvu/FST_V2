@@ -3,6 +3,7 @@
 import Foundation
 
 nonisolated public struct TransferReport: Equatable, Sendable {
+    public let jobID: String
     public let date: String
     public let time: String
     public let appName: String
@@ -32,6 +33,7 @@ nonisolated public struct TransferReport: Equatable, Sendable {
     public let finalStatus: TransferState
     
     public init(
+        jobID: String? = nil,
         date: String,
         time: String,
         appName: String = "FishSockTransfer",
@@ -60,6 +62,7 @@ nonisolated public struct TransferReport: Equatable, Sendable {
         errorCount: Int,
         finalStatus: TransferState
     ) {
+        self.jobID = jobID ?? Self.makeJobID(createdAt: createdAt)
         self.date = date
         self.time = time
         self.appName = appName
@@ -87,5 +90,14 @@ nonisolated public struct TransferReport: Equatable, Sendable {
         self.exclusionPolicySummary = exclusionPolicySummary
         self.errorCount = errorCount
         self.finalStatus = finalStatus
+    }
+
+    public static func makeJobID(createdAt: Date, uuid: UUID = UUID()) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyyMMdd-HHmmss"
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        let timestamp = formatter.string(from: createdAt)
+        let suffix = String(uuid.uuidString.replacingOccurrences(of: "-", with: "").prefix(8)).uppercased()
+        return "FST-\(timestamp)-\(suffix)"
     }
 }

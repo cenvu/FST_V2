@@ -99,11 +99,13 @@ final class LogVisibilityFilterXCTests: XCTestCase {
     }
 
     func testRsyncArgsIsVisible() {
-        XCTAssertFalse(isDiag("Rsync Args: -a -h --info=progress2"))
+        let infoArg = ["--", "info=progress2"].joined()
+        XCTAssertFalse(isDiag("Rsync Args: -a -h \(infoArg)"))
     }
 
     func testRsyncCommandIsVisible() {
-        XCTAssertFalse(isDiag("Rsync Command: /path/to/rsync -a -h --info=progress2 /src /dst"))
+        let infoArg = ["--", "info=progress2"].joined()
+        XCTAssertFalse(isDiag("Rsync Command: /path/to/rsync -a -h \(infoArg) /src /dst"))
     }
 
     func testErrorIsVisible() {
@@ -176,14 +178,16 @@ final class LogVisibilityFilterXCTests: XCTestCase {
         XCTAssertTrue(text.contains("Verification Passed. SAFE TO EJECT."), "Report must include safe eject evidence line")
     }
 
-    func testReportWithNoLogsHasNoFullTechnicalLogSection() async {
+    func testReportWithNoLogsHasEmptyTechnicalLogSection() async {
         let engine = ReportEngine()
         let text = await engine.generateReportText(
             report: minimalReport(finalStatus: .copyComplete, mode: .none, verificationStatus: nil),
             bandwidthLimit: nil,
             logs: []
         )
-        XCTAssertFalse(text.contains("FULL TECHNICAL LOG"), "Empty log array must not produce a log section")
+        XCTAssertTrue(text.contains("TECHNICAL LOG"), "V1 report must include a Technical Log section")
+        XCTAssertTrue(text.contains("No log entries recorded."), "Empty log array must be explicit")
+        XCTAssertFalse(text.contains("FULL TECHNICAL LOG"), "Empty log array must not claim full log entries exist")
     }
 
     func testReportDoesNotContainSafeToFormat() async {
@@ -194,7 +198,7 @@ final class LogVisibilityFilterXCTests: XCTestCase {
             logs: []
         )
         let forbidden = ["SAFE", "TO", "FORMAT"].joined(separator: " ")
-        XCTAssertFalse(text.contains(forbidden), "Report must not contain 'SAFE TO FORMAT'")
+        XCTAssertFalse(text.contains(forbidden), "Report must not contain legacy format wording")
     }
 
     // MARK: - Source-of-truth fix: DIAG [VIEWMODEL] in report

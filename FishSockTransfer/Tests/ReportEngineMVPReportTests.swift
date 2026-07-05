@@ -25,6 +25,9 @@ struct ReportEngineMVPReportTests {
     static func main() async throws {
         let engine = ReportEngine()
         let formerFormatLabel = ["SAFE", "TO", "FORMAT"].joined(separator: " ")
+        let infoFlag = ["--", "info"].joined()
+        let outbufFlag = ["--", "outbuf"].joined()
+        let bwlimitFlag = ["--", "bwlimit="].joined()
 
         let copyOnly = await engine.generateReportText(
             report: report(finalStatus: .copyComplete, mode: .none, verificationStatus: nil),
@@ -37,9 +40,11 @@ struct ReportEngineMVPReportTests {
         assertContains(copyOnly, "Verify Duration:     N/A", "copy-only verify duration")
         assertContains(copyOnly, "Total Duration:      00:01:40", "copy-only total duration")
         assertContains(copyOnly, copyAverageSpeedLine("50.00 MB/s"), "copy-only copy average speed")
+        assertContains(copyOnly, "SAFE TO EJECT DESTINATION: NO", "copy-only must not be safe eject")
+        assertContains(copyOnly, "Source Change Detection: NOT AVAILABLE IN V1", "source change detection v1 disclosure")
+        assertContains(copyOnly, "Skipped Count:       NOT RECORDED IN V1", "skipped count v1 disclosure")
         assertNotContains(copyOnly, oldTransferDurationLabel(), "copy-only old duration label")
         assertNotContains(copyOnly, oldAverageSpeedLabel(), "copy-only old speed label")
-        assertContains(copyOnly, "Copy completed, but this transfer was not verified by FST.", "copy-only warning")
         assertNotContains(copyOnly, "Final Status:        SAFE TO EJECT", "copy-only must not be safe eject")
         assertNotContains(copyOnly, formerFormatLabel, "copy-only must not use old format wording")
 
@@ -66,8 +71,15 @@ struct ReportEngineMVPReportTests {
         assertContains(verified, "Verified Files:      10", "verified count")
         assertContains(verified, "Passed Files:        10", "passed count")
         assertContains(verified, "Failed Files:        0", "failed count")
-        assertContains(verified, "Rsync Binary Path:   /App/Contents/Resources/rsync", "rsync path")
-        assertContains(verified, "Rsync Version:       3.4.4", "rsync version")
+        assertContains(verified, "SAFE TO EJECT DESTINATION: YES", "verified safe eject destination")
+        assertContains(verified, "Transfer Engine:     rsync 3.4.4", "minimal rsync engine detail")
+        assertContains(verified, "Bandwidth Limit:     120 MB/s", "operator bandwidth display")
+        assertNotContains(verified, "Rsync Binary Path:", "operator report must not include rsync path")
+        assertNotContains(verified, "Rsync Version:", "operator report must not include old rsync version field")
+        assertNotContains(verified, infoFlag, "operator report must not include rsync flags")
+        assertNotContains(verified, outbufFlag, "operator report must not include rsync flags")
+        assertNotContains(verified, bwlimitFlag, "operator report must not include rsync bwlimit arg")
+        assertNotContains(verified, "122880", "operator report must not include internal KiB/s value")
         assertNotContains(verified, formerFormatLabel, "verified report must not use old format wording")
 
         let timing = await engine.generateReportText(
@@ -103,9 +115,11 @@ struct ReportEngineMVPReportTests {
             bandwidthLimit: nil
         )
         assertContains(verificationFailed, "Final Status:        MANUAL CHECK REQUIRED", "verification failure final status")
+        assertContains(verificationFailed, "SAFE TO EJECT DESTINATION: NO", "verification failure must not be safe eject")
         assertContains(verificationFailed, "Verification Mode:   SHA256 Sample 33%", "verification failure mode")
+        assertContains(verificationFailed, "Verification Scope:  RANDOM SAMPLE", "verification failure scope")
         assertContains(verificationFailed, "Hash Algorithm:      SHA256", "verification failure hash algorithm")
-        assertContains(verificationFailed, "Failure Reason:      MANUAL CHECK REQUIRED: Verification failed.", "verification failure reason")
+        assertContains(verificationFailed, "- MANUAL CHECK REQUIRED: Verification failed.", "verification failure reason")
         assertContains(verificationFailed, "Failed Files:        1", "verification failure count")
         assertNotContains(verificationFailed, "Final Status:        SAFE TO EJECT", "verification failure must not be safe eject")
         assertNotContains(verificationFailed, formerFormatLabel, "verification failure must not use old format wording")
@@ -120,7 +134,8 @@ struct ReportEngineMVPReportTests {
             bandwidthLimit: nil
         )
         assertContains(transferFailed, "Final Status:        TRANSFER ERROR", "transfer failure final status")
-        assertContains(transferFailed, "Failure Reason:      TRANSFER ERROR: rsync failed.", "transfer failure reason")
+        assertContains(transferFailed, "SAFE TO EJECT DESTINATION: NO", "transfer failure must not be safe eject")
+        assertContains(transferFailed, "- TRANSFER ERROR: rsync failed.", "transfer failure reason")
         assertNotContains(transferFailed, "Final Status:        TRANSFER COMPLETE", "transfer failure must not be complete")
         assertNotContains(transferFailed, "Final Status:        SAFE TO EJECT", "transfer failure must not be safe eject")
         assertNotContains(transferFailed, formerFormatLabel, "transfer failure must not use old format wording")
@@ -130,6 +145,8 @@ struct ReportEngineMVPReportTests {
             bandwidthLimit: nil
         )
         assertNotContains(invalidSafeEjectFacts, "Final Status:        SAFE TO EJECT", "truthfulness guard must block invalid safe eject")
+        assertContains(invalidSafeEjectFacts, "Final Status:        MANUAL CHECK REQUIRED", "truthfulness guard requires manual check")
+        assertContains(invalidSafeEjectFacts, "SAFE TO EJECT DESTINATION: NO", "truthfulness guard must not be safe eject")
         assertNotContains(invalidSafeEjectFacts, formerFormatLabel, "truthfulness guard must not use old format wording")
 
         try await testFilenameAndDestination(engine: engine)
@@ -146,13 +163,16 @@ struct ReportEngineMVPReportTests {
         defer { try? FileManager.default.removeItem(at: root) }
 
         let createdAt = Date(timeIntervalSince1970: 1_782_604_800)
-        let firstURL = await engine.uniqueReportURL(sourceName: source.lastPathComponent, createdAt: createdAt, in: destination)
+        let jobID = "FST-20260622-053000-1234ABCD"
+        let firstURL = await engine.uniqueReportURL(jobID: jobID, in: destination)
         try "existing".write(to: firstURL, atomically: true, encoding: .utf8)
-        let secondURL = await engine.uniqueReportURL(sourceName: source.lastPathComponent, createdAt: createdAt, in: destination)
+        let secondURL = await engine.uniqueReportURL(jobID: jobID, in: destination)
 
         assertNotContains(firstURL.lastPathComponent, ":", "report filename should be sanitized")
         assertNotContains(firstURL.lastPathComponent, " ", "report filename should be sanitized")
         assertNotContains(firstURL.lastPathComponent, "/", "report filename should be sanitized")
+        assertContains(firstURL.lastPathComponent, jobID, "report filename should use job id")
+        assertNotContains(firstURL.lastPathComponent, source.lastPathComponent, "report filename should not use source name")
         assertNotContains(secondURL.lastPathComponent, firstURL.lastPathComponent, "report filename should be unique")
 
         let savedURL = try await engine.saveReport(
@@ -170,6 +190,8 @@ struct ReportEngineMVPReportTests {
         )
 
         assertEqual(savedURL.deletingLastPathComponent().path, destination.path, "report should be saved in destination side")
+        assertContains(savedURL.lastPathComponent, jobID, "saved report filename should use job id")
+        assertNotContains(savedURL.lastPathComponent, source.lastPathComponent, "saved report filename should not use source name")
         guard !savedURL.path.hasPrefix(source.path) else {
             fatalError("report must not be saved in source")
         }
@@ -207,6 +229,7 @@ struct ReportEngineMVPReportTests {
         let effectiveVerificationDuration = mode == .none ? verificationDuration : (verificationDuration ?? 80)
 
         return TransferReport(
+            jobID: "FST-20260622-053000-1234ABCD",
             date: "2026-06-22",
             time: "05:30:00",
             createdAt: createdAt,
