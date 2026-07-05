@@ -95,8 +95,8 @@ Rules:
 
 ## 4. Technical Baseline
 
-- current version v1.2 build 20260703
-- local package `dist/FishSockTransfer-v1.2-b20260703-local-macOS13_5plus-arm64.zip`
+- current version v1.3.0 display 1.3 build 20260705
+- local package `dist/FishSockTransfer-v1.3-b20260705-local-macOS13_5plus-arm64.zip`
 - macOS 13.5+
 - Apple Silicon arm64 package
 - ad-hoc signed, not notarized, not Developer ID signed
@@ -114,20 +114,20 @@ Rules:
 - logs
 - TXT report
 
-v1.2 release focus:
+v1.3.0 release focus:
 
-- Runtime Copy Progress / Operator Progress.
-- Destination activity observer for UI visibility when rsync output is delayed.
-- Large Copy Progress and Verify Progress surfaces for operator clarity.
-- Technical Logs retain rsync and observer diagnostics.
+- Telegram Notification MVP.
+- New tab order: TRANSFER / NOTIFICATION / TECHNICAL LOG.
+- Optional Telegram Bot notification support.
+- Best-effort notification events for job start, heartbeat, failure, copy complete, and verified SAFE TO EJECT.
 
 Truth layers:
 
 - Safety truth: verification result, report generation, and SAFE TO EJECT.
 - Transfer truth: bundled rsync 3.4.4 lifecycle, exit status, errors, and cancellation.
-- Operator truth: destination observer metrics for visibility only.
+- Operator truth: destination observer metrics and optional Telegram notifications for visibility only.
 
-The destination observer must never influence copy success, verify success, report safety, or SAFE TO EJECT.
+The destination observer and Telegram notification delivery must never influence copy success, verify success, report safety, or SAFE TO EJECT.
 
 Out of MVP:
 

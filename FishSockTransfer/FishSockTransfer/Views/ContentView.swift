@@ -278,7 +278,7 @@ struct TechnicalLogsMetadataFooter: View {
     
     var body: some View {
         HStack(spacing: 12) {
-            MetadataBadge(label: "version", value: "v1.2.2", helpText: "App version from README.md", isError: false)
+            MetadataBadge(label: "version", value: "v1.3", helpText: "App version from README.md", isError: false)
             MetadataBadge(
                 label: "bundled rsync",
                 value: rsyncVersionText.replacingOccurrences(of: "Bundled rsync ", with: ""),

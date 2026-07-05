@@ -36,8 +36,8 @@ Do not add features that do not reduce media-loss risk.
 
 ## Current Release Snapshot
 
-- Version: v1.2 build 20260703
-- Package: `dist/FishSockTransfer-v1.2-b20260703-local-macOS13_5plus-arm64.zip`
+- Version: v1.3.0 display 1.3 build 20260705
+- Package: `dist/FishSockTransfer-v1.3-b20260705-local-macOS13_5plus-arm64.zip`
 - Platform: macOS 13.5+, Apple Silicon arm64 only
 - Package type: local owner-side ad-hoc build
 - Signing: ad-hoc signed, not notarized, not Developer ID signed
@@ -47,7 +47,7 @@ Do not add features that do not reduce media-loss risk.
 
 FST does not format media and does not eject media.
 
-v1.2 is the Runtime Copy Progress / Operator Progress release. It adds UI visibility for rsync-silent windows through a destination activity observer. This observer is not part of copy success, verification success, report success, or SAFE TO EJECT.
+v1.3.0 is the Telegram Notification MVP release. Telegram is optional and best-effort only. Telegram delivery failure must never affect copy, verify, report generation, transfer state, or SAFE TO EJECT.
 
 ---
 
@@ -746,7 +746,7 @@ Core rules:
 
 Swift:
 
-- macOS 13.5+ for the v1.2 release candidate
+- macOS 13.5+ for the v1.3.0 local package
 - Swift 5.9+
 - Swift 6 compatible
 - prefer `async/await`

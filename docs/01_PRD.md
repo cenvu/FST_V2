@@ -124,8 +124,8 @@ A first-time operator can launch FST, select source, select destination, choose 
 
 Current release:
 
-- Version: v1.2 build 20260703
-- Package: `dist/FishSockTransfer-v1.2-b20260703-local-macOS13_5plus-arm64.zip`
+- Version: v1.3.0 display 1.3 build 20260705
+- Package: `dist/FishSockTransfer-v1.3-b20260705-local-macOS13_5plus-arm64.zip`
 - Package type: local owner-side ad-hoc build
 - Platform: macOS 13.5+, Apple Silicon arm64 only
 - Signing: ad-hoc signed, not notarized, not Developer ID signed
@@ -163,20 +163,21 @@ Rules:
 - Never mutate source media.
 - Never run rsync, hashing, scanning, or report generation on MainActor.
 
-v1.2 release focus:
+v1.3.0 release focus:
 
-- Runtime Copy Progress / Operator Progress.
-- Copy UI shows elapsed time, current item, copied bytes, total bytes, copied files, total files, ETA, current speed, and a large Copy Progress bar.
-- Verify UI shows current verify file and a large Verify Progress bar.
-- Technical Logs retain rsync and destination observer diagnostics.
+- Telegram Notification MVP.
+- New tab order: TRANSFER / NOTIFICATION / TECHNICAL LOG.
+- Optional Telegram Bot notification support.
+- Test Message from the Notification tab.
+- Best-effort notification events for job start, heartbeat, failure, copy complete, and verified SAFE TO EJECT.
 
 Truth layers:
 
 - Safety truth: verification result, report generation, and SAFE TO EJECT.
 - Transfer truth: bundled rsync 3.4.4 lifecycle, exit status, errors, and cancellation.
-- Operator truth: destination observer progress metrics for visibility only.
+- Operator truth: UI progress metrics and optional Telegram notifications for visibility only.
 
-Destination observer metrics are estimates for operator visibility. They must never mark copy success, verification success, or SAFE TO EJECT.
+Notification delivery and observer metrics are estimates/visibility tools. They must never mark copy success, verification success, or SAFE TO EJECT.
 
 ---
 
