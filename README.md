@@ -50,9 +50,9 @@ Không phần mềm nào có thể đảm bảo bảo vệ tuyệt đối khỏi
 - reviewing reports, logs, and warnings before acting / kiểm tra report, log và warning trước khi hành động
 - the final decision to format, erase, or reuse source media / quyết định cuối cùng về format, xoá, hoặc tái sử dụng source media
 
-Recommended practice: keep at least two independent verified copies before formatting or reusing source media. For the full disclaimer, see [DISCLAIMER.md](DISCLAIMER.md).
+Recommended practice: keep at least two independent verified copies before formatting or reusing source media. For the full disclaimer, see [docs/legal/DISCLAIMER.md](docs/legal/DISCLAIMER.md).
 
-Khuyến nghị: duy trì ít nhất hai bản copy độc lập đã verify trước khi format hoặc tái sử dụng source media. Để đọc bản miễn trừ trách nhiệm đầy đủ, xem [DISCLAIMER.md](DISCLAIMER.md).
+Khuyến nghị: duy trì ít nhất hai bản copy độc lập đã verify trước khi format hoặc tái sử dụng source media. Để đọc bản miễn trừ trách nhiệm đầy đủ, xem [docs/legal/DISCLAIMER.md](docs/legal/DISCLAIMER.md).
 
 ---
 
@@ -153,21 +153,16 @@ Tải file `.zip` từ GitHub Releases, giải nén, và chuyển `FishSockTrans
 
 ---
 
-## Development and technical docs / Phát triển và tài liệu kỹ thuật
+## Documentation / Tài liệu
 
 This repository is public for review, learning, non-commercial use, and controlled development. FST is currently an MVP focused on one source, one destination, and one active transfer job.
 
 Repo này được công khai để review, học hỏi, sử dụng phi thương mại, và phát triển có kiểm soát. FST hiện là MVP tập trung vào một source, một destination, và một transfer job đang chạy.
 
-For architecture, project rules, engineering notes, and AI-agent workflow, see:
-
-Để xem kiến trúc, quy tắc phát triển, ghi chú kỹ thuật, và workflow AI-agent, xem:
-
-- [docs/01_PRD.md](docs/01_PRD.md)
-- [docs/02_FST_TECHNICAL_GUIDE.md](docs/02_FST_TECHNICAL_GUIDE.md)
-- [docs/03_PROJECT_MASTER_GUIDELINE.md](docs/03_PROJECT_MASTER_GUIDELINE.md)
-- [AGENTS.md](AGENTS.md)
-- [FST_AI/README.md](FST_AI/README.md)
+- Product and technical docs: [docs/README.md](docs/README.md)
+- Legal, license, trademark, and disclaimer docs: [docs/legal/README.md](docs/legal/README.md)
+- Release notes: [docs/releases/README.md](docs/releases/README.md)
+- AI/agent workflow docs: [FST_AI/README.md](FST_AI/README.md)
 
 ---
 
@@ -188,12 +183,12 @@ Tên FishSock, FishSock Transfer, thương hiệu FST, logo app, icon app, và n
 See / Xem:
 
 - [LICENSE](LICENSE)
-- [COMMERCIAL_LICENSE.md](COMMERCIAL_LICENSE.md)
-- [TRADEMARKS.md](TRADEMARKS.md)
+- [docs/legal/COMMERCIAL_LICENSE.md](docs/legal/COMMERCIAL_LICENSE.md)
+- [docs/legal/TRADEMARKS.md](docs/legal/TRADEMARKS.md)
 - [NOTICE](NOTICE)
-- [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md)
-- [CONTRIBUTOR_TERMS.md](CONTRIBUTOR_TERMS.md)
-- [DISCLAIMER.md](DISCLAIMER.md)
+- [docs/legal/THIRD_PARTY_LICENSES.md](docs/legal/THIRD_PARTY_LICENSES.md)
+- [docs/legal/CONTRIBUTOR_TERMS.md](docs/legal/CONTRIBUTOR_TERMS.md)
+- [docs/legal/DISCLAIMER.md](docs/legal/DISCLAIMER.md)
 
 ---
 
