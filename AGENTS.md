@@ -111,14 +111,14 @@ Safety-critical changes:
 
 ## Current Release State
 
-- Current version: v1.3.1 display 1.3.1 build 20260705
-- Current package: `dist/FishSockTransfer-v1.3.1-b20260705-local-macOS13_5plus-arm64.zip`
+- Current version: v1.3.2 display 1.3.2 build 20260706
+- Current package: `dist/FishSockTransfer-v1.3.2-b20260706-local-macOS13_5plus-arm64.zip`
 - Platform: macOS 13.5+, Apple Silicon arm64 only
 - Package type: local owner-side ad-hoc build
 - Signing: ad-hoc signed, not notarized, not Developer ID signed
 - Scope: one source -> one destination -> one active job
 - Manual update check: GitHub release check from Technical Logs footer, user-triggered only
-- Notification MVP: Telegram best-effort notifications only
+- Notification MVP: Telegram best-effort notifications only, with v1.3.2 request-construction fix
 - Transfer engine: bundled rsync 3.4.4 only
 - Operator-facing verified success: SAFE TO EJECT
 

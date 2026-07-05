@@ -45,6 +45,7 @@ public final class TransferViewModel: ObservableObject {
     @Published public var notificationSettings: NotificationSettings = .default
     @Published public var telegramBotToken: String = ""
     @Published public var notificationStatus: NotificationRuntimeStatus = .from(settings: .default, token: "")
+    @Published public var isSendingTelegramTestMessage: Bool = false
 
     private let coordinator: TransferCoordinator
     private let driveService: DriveService
@@ -69,7 +70,10 @@ public final class TransferViewModel: ObservableObject {
     private var didLogFirstAppliedCurrentFile = false
     private var didLogUsingDestinationObserver = false
     private var didLogUsingRsyncMetrics = false
+    private var lastNotificationWarningMessage: String?
+    private var lastNotificationWarningLoggedAt: Date?
     private let observerFallbackDelay: TimeInterval = 10
+    private let notificationWarningRepeatInterval: TimeInterval = 300
 
     public init(
         coordinator: TransferCoordinator? = nil,
@@ -379,6 +383,9 @@ public final class TransferViewModel: ObservableObject {
     }
 
     public func testTelegramNotification() {
+        guard !isSendingTelegramTestMessage else { return }
+        isSendingTelegramTestMessage = true
+
         let settings = notificationSettings
         let token = telegramBotToken
         let context = makeNotificationContext(phase: "Test")
@@ -391,6 +398,7 @@ public final class TransferViewModel: ObservableObject {
             )
             await MainActor.run {
                 self?.applyNotificationStatus(status)
+                self?.isSendingTelegramTestMessage = false
             }
         }
     }
@@ -563,10 +571,22 @@ public final class TransferViewModel: ObservableObject {
     private func applyNotificationStatus(_ status: NotificationRuntimeStatus) {
         notificationStatus = status
         if status.connectionStatus == .error {
-            addLog(category: .warning, message: "Telegram notification warning: \(status.lastErrorSummary ?? status.lastMessageStatus)")
+            addNotificationWarningIfNeeded(status.lastErrorSummary ?? status.lastMessageStatus)
         } else if status.lastMessageStatus.hasPrefix("Sent ") {
             addLog(category: .info, message: "Telegram notification: \(status.lastMessageStatus)")
         }
+    }
+
+    private func addNotificationWarningIfNeeded(_ warning: String, now: Date = Date()) {
+        if lastNotificationWarningMessage == warning,
+           let lastNotificationWarningLoggedAt,
+           now.timeIntervalSince(lastNotificationWarningLoggedAt) < notificationWarningRepeatInterval {
+            return
+        }
+
+        lastNotificationWarningMessage = warning
+        lastNotificationWarningLoggedAt = now
+        addLog(category: .warning, message: "Telegram notification warning: \(warning)")
     }
 
     private func clearCopyRuntimeMetrics() {
