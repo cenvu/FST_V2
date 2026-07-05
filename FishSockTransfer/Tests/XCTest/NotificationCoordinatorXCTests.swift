@@ -57,6 +57,19 @@ final class NotificationCoordinatorXCTests: XCTestCase {
         XCTAssertEqual(service.sentMessages().count, 1)
     }
 
+    func testOneTestMessageActionSendsOnlyOneRequest() async {
+        let service = MockNotificationService()
+        let coordinator = NotificationCoordinator(service: service)
+
+        _ = await coordinator.sendTestMessage(
+            settings: enabledSettings(),
+            token: "token",
+            context: context()
+        )
+
+        XCTAssertEqual(service.sentMessages().count, 1)
+    }
+
     func testTestMessageFailurePathDoesNotThrow() async {
         let service = MockNotificationService(error: TelegramNotificationError.transport("offline"))
         let coordinator = NotificationCoordinator(service: service)
@@ -89,6 +102,105 @@ final class NotificationCoordinatorXCTests: XCTestCase {
             XCTFail("Invalid Telegram JSON must not be treated as a successful send.")
         } catch let error as TelegramNotificationError {
             XCTAssertEqual(error, .apiRejected("Invalid Telegram response."))
+        } catch {
+            XCTFail("Unexpected error type: \(error)")
+        }
+    }
+
+    func testTelegramRequestUsesFixedAPIHostSchemeAndPath() throws {
+        let request = try TelegramNotificationService.makeSendMessageRequest(
+            message: "FST terminal re-test",
+            configuration: TelegramNotificationConfiguration(botToken: "123456:ABCDEF", chatID: "987654")
+        )
+
+        XCTAssertEqual(request.url?.scheme, "https")
+        XCTAssertEqual(request.url?.host, "api.telegram.org")
+        XCTAssertEqual(request.url?.path, "/bot123456:ABCDEF/sendMessage")
+    }
+
+    func testTelegramRequestTrimsTokenAndChatID() throws {
+        let request = try TelegramNotificationService.makeSendMessageRequest(
+            message: "hello",
+            configuration: TelegramNotificationConfiguration(botToken: " \n123456:ABCDEF\n ", chatID: " \n987654\n ")
+        )
+
+        XCTAssertEqual(request.url?.host, "api.telegram.org")
+        XCTAssertEqual(request.url?.path, "/bot123456:ABCDEF/sendMessage")
+        XCTAssertEqual(Self.formBody(from: request)["chat_id"], "987654")
+    }
+
+    func testTelegramRequestRejectsEmptyTokenBeforeNetwork() async throws {
+        let session = URLSession.fstTestSession(
+            statusCode: 200,
+            body: Data(#"{"ok":true}"#.utf8)
+        )
+        let service = TelegramNotificationService(session: session)
+
+        do {
+            try await service.sendMessage(
+                "test",
+                configuration: TelegramNotificationConfiguration(botToken: " \n ", chatID: "123")
+            )
+            XCTFail("Empty token must fail before a request is sent.")
+        } catch let error as TelegramNotificationError {
+            XCTAssertEqual(error, .missingConfiguration)
+        } catch {
+            XCTFail("Unexpected error type: \(error)")
+        }
+
+        XCTAssertEqual(TelegramURLProtocolMock.requestCount, 0)
+    }
+
+    func testTelegramRequestRejectsEmptyChatIDBeforeNetwork() async throws {
+        let session = URLSession.fstTestSession(
+            statusCode: 200,
+            body: Data(#"{"ok":true}"#.utf8)
+        )
+        let service = TelegramNotificationService(session: session)
+
+        do {
+            try await service.sendMessage(
+                "test",
+                configuration: TelegramNotificationConfiguration(botToken: "123456:ABCDEF", chatID: " \n ")
+            )
+            XCTFail("Empty chat ID must fail before a request is sent.")
+        } catch let error as TelegramNotificationError {
+            XCTAssertEqual(error, .missingConfiguration)
+        } catch {
+            XCTFail("Unexpected error type: \(error)")
+        }
+
+        XCTAssertEqual(TelegramURLProtocolMock.requestCount, 0)
+    }
+
+    func testTelegramRequestUsesPostAndFormBody() throws {
+        let request = try TelegramNotificationService.makeSendMessageRequest(
+            message: "hello world & more",
+            configuration: TelegramNotificationConfiguration(botToken: "123456:ABCDEF", chatID: "987654")
+        )
+        let body = Self.formBody(from: request)
+
+        XCTAssertEqual(request.httpMethod, "POST")
+        XCTAssertEqual(request.value(forHTTPHeaderField: "Content-Type"), "application/x-www-form-urlencoded; charset=utf-8")
+        XCTAssertEqual(body["chat_id"], "987654")
+        XCTAssertEqual(body["text"], "hello world & more")
+    }
+
+    func testHostnameErrorUsesSanitizedOperatorMessageAndDoesNotExposeToken() async throws {
+        let token = "123456:SECRET"
+        let session = URLSession.fstTestSession(error: URLError(.cannotFindHost))
+        let service = TelegramNotificationService(session: session)
+
+        do {
+            try await service.sendMessage(
+                "test",
+                configuration: TelegramNotificationConfiguration(botToken: token, chatID: "123")
+            )
+            XCTFail("Host lookup failure must surface as a Telegram error.")
+        } catch let error as TelegramNotificationError {
+            XCTAssertEqual(error, .cannotReachAPIHost)
+            XCTAssertEqual(error.localizedDescription, "Cannot reach Telegram API host. Check internet/DNS/VPN/firewall.")
+            XCTAssertFalse(error.localizedDescription.contains(token))
         } catch {
             XCTFail("Unexpected error type: \(error)")
         }
@@ -274,6 +386,17 @@ final class NotificationCoordinatorXCTests: XCTestCase {
             failureSummary: failureSummary
         )
     }
+
+    private static func formBody(from request: URLRequest) -> [String: String] {
+        let data = request.httpBody ?? Data()
+        let body = String(data: data, encoding: .utf8) ?? ""
+        let components = URLComponents(string: "?\(body)")
+
+        return Dictionary(uniqueKeysWithValues: (components?.queryItems ?? []).compactMap { item in
+            guard let value = item.value else { return nil }
+            return (item.name, value)
+        })
+    }
 }
 
 private final class MockNotificationService: NotificationService, @unchecked Sendable {
@@ -305,6 +428,8 @@ private final class MockNotificationService: NotificationService, @unchecked Sen
 private final class TelegramURLProtocolMock: URLProtocol, @unchecked Sendable {
     nonisolated(unsafe) static var statusCode = 200
     nonisolated(unsafe) static var body = Data()
+    nonisolated(unsafe) static var error: Error?
+    nonisolated(unsafe) static var requestCount = 0
 
     override class func canInit(with request: URLRequest) -> Bool {
         true
@@ -315,6 +440,13 @@ private final class TelegramURLProtocolMock: URLProtocol, @unchecked Sendable {
     }
 
     override func startLoading() {
+        Self.requestCount += 1
+
+        if let error = Self.error {
+            client?.urlProtocol(self, didFailWithError: error)
+            return
+        }
+
         let response = HTTPURLResponse(
             url: request.url!,
             statusCode: Self.statusCode,
@@ -330,9 +462,11 @@ private final class TelegramURLProtocolMock: URLProtocol, @unchecked Sendable {
 }
 
 private extension URLSession {
-    static func fstTestSession(statusCode: Int, body: Data) -> URLSession {
+    static func fstTestSession(statusCode: Int = 200, body: Data = Data(), error: Error? = nil) -> URLSession {
         TelegramURLProtocolMock.statusCode = statusCode
         TelegramURLProtocolMock.body = body
+        TelegramURLProtocolMock.error = error
+        TelegramURLProtocolMock.requestCount = 0
 
         let configuration = URLSessionConfiguration.ephemeral
         configuration.protocolClasses = [TelegramURLProtocolMock.self]

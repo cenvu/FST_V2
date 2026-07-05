@@ -71,6 +71,7 @@ public struct NotificationTabView: View {
                     Button("Test Message") {
                         viewModel.testTelegramNotification()
                     }
+                    .disabled(viewModel.isSendingTelegramTestMessage)
 
                     Text("Telegram notification is optional and best-effort. It never changes transfer, verify, report, or SAFE TO EJECT results.")
                         .font(.footnote)

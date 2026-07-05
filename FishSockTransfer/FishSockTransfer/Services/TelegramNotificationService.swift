@@ -20,6 +20,7 @@ nonisolated public struct TelegramNotificationConfiguration: Equatable, Sendable
 nonisolated public enum TelegramNotificationError: LocalizedError, Equatable, Sendable {
     case missingConfiguration
     case invalidEndpoint
+    case cannotReachAPIHost
     case transport(String)
     case apiRejected(String)
 
@@ -29,6 +30,8 @@ nonisolated public enum TelegramNotificationError: LocalizedError, Equatable, Se
             return "Telegram bot token or chat ID is missing."
         case .invalidEndpoint:
             return "Telegram endpoint could not be created."
+        case .cannotReachAPIHost:
+            return "Cannot reach Telegram API host. Check internet/DNS/VPN/firewall."
         case .transport(let message):
             return "Telegram request failed: \(message)"
         case .apiRejected(let message):
@@ -54,23 +57,7 @@ public final class TelegramNotificationService: NotificationService, @unchecked 
     }
 
     public func sendMessage(_ message: String, configuration: TelegramNotificationConfiguration) async throws {
-        guard configuration.isComplete else {
-            throw TelegramNotificationError.missingConfiguration
-        }
-
-        guard let endpoint = URL(string: "https://api.telegram.org/bot\(configuration.botToken)/sendMessage") else {
-            throw TelegramNotificationError.invalidEndpoint
-        }
-
-        var request = URLRequest(url: endpoint)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.timeoutInterval = 15
-        request.httpBody = try JSONSerialization.data(withJSONObject: [
-            "chat_id": configuration.chatID,
-            "text": message,
-            "disable_web_page_preview": true
-        ])
+        let request = try Self.makeSendMessageRequest(message: message, configuration: configuration)
 
         do {
             let (data, response) = try await session.data(for: request)
@@ -94,8 +81,59 @@ public final class TelegramNotificationService: NotificationService, @unchecked 
             }
         } catch let error as TelegramNotificationError {
             throw error
+        } catch let error as URLError {
+            throw Self.sanitizedTransportError(for: error)
         } catch {
             throw TelegramNotificationError.transport(error.localizedDescription)
+        }
+    }
+
+    nonisolated static func makeSendMessageRequest(
+        message: String,
+        configuration: TelegramNotificationConfiguration
+    ) throws -> URLRequest {
+        guard configuration.isComplete else {
+            throw TelegramNotificationError.missingConfiguration
+        }
+
+        var endpointComponents = URLComponents()
+        endpointComponents.scheme = "https"
+        endpointComponents.host = "api.telegram.org"
+        endpointComponents.path = "/bot\(configuration.botToken)/sendMessage"
+
+        guard let endpoint = endpointComponents.url else {
+            throw TelegramNotificationError.invalidEndpoint
+        }
+
+        guard endpoint.scheme == "https", endpoint.host == "api.telegram.org" else {
+            throw TelegramNotificationError.invalidEndpoint
+        }
+
+        var bodyComponents = URLComponents()
+        bodyComponents.queryItems = [
+            URLQueryItem(name: "chat_id", value: configuration.chatID),
+            URLQueryItem(name: "text", value: message)
+        ]
+
+        guard let body = bodyComponents.percentEncodedQuery?.data(using: .utf8) else {
+            throw TelegramNotificationError.invalidEndpoint
+        }
+
+        var request = URLRequest(url: endpoint)
+        request.httpMethod = "POST"
+        request.setValue("application/x-www-form-urlencoded; charset=utf-8", forHTTPHeaderField: "Content-Type")
+        request.timeoutInterval = 15
+        request.httpBody = body
+
+        return request
+    }
+
+    private static func sanitizedTransportError(for error: URLError) -> TelegramNotificationError {
+        switch error.code {
+        case .cannotFindHost, .dnsLookupFailed:
+            return .cannotReachAPIHost
+        default:
+            return .transport(error.localizedDescription)
         }
     }
 }

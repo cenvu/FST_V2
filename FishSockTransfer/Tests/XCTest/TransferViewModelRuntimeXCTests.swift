@@ -334,9 +334,115 @@ final class TransferViewModelRuntimeXCTests: XCTestCase {
         XCTAssertEqual(viewModel.verifyElapsedSeconds, 0)
     }
 
-    private func makeViewModel() -> TransferViewModel {
-        TransferViewModel(
-            bundledRsyncService: BundledRsyncService(bundledExecutableURL: nil)
+    func testTelegramTestMessageIsIgnoredWhileSendIsInFlight() async throws {
+        let service = RuntimeMockNotificationService(delayNanoseconds: 150_000_000)
+        let viewModel = makeViewModel(notificationService: service)
+        viewModel.notificationSettings = NotificationSettings(isTelegramEnabled: true, chatID: "123")
+        viewModel.telegramBotToken = "token"
+
+        viewModel.testTelegramNotification()
+        viewModel.testTelegramNotification()
+
+        XCTAssertTrue(viewModel.isSendingTelegramTestMessage)
+        try await waitForSendCount(service, expectedCount: 1)
+        let sendCountDuringFirstSend = await service.sendCount()
+        XCTAssertEqual(sendCountDuringFirstSend, 1)
+
+        try await waitForTelegramTestSendToFinish(viewModel)
+        XCTAssertFalse(viewModel.isSendingTelegramTestMessage)
+        let finalSendCount = await service.sendCount()
+        XCTAssertEqual(finalSendCount, 1)
+    }
+
+    func testIdenticalTelegramWarningsAreRateLimited() async throws {
+        let service = RuntimeMockNotificationService(error: TelegramNotificationError.cannotReachAPIHost)
+        let viewModel = makeViewModel(notificationService: service)
+        viewModel.notificationSettings = NotificationSettings(isTelegramEnabled: true, chatID: "123")
+        viewModel.telegramBotToken = "token"
+
+        viewModel.testTelegramNotification()
+        try await waitForTelegramTestSendToFinish(viewModel)
+
+        viewModel.testTelegramNotification()
+        try await waitForTelegramTestSendToFinish(viewModel)
+
+        let telegramWarnings = viewModel.logs.filter {
+            $0.message == "Telegram notification warning: Cannot reach Telegram API host. Check internet/DNS/VPN/firewall."
+        }
+        let sendCount = await service.sendCount()
+        XCTAssertEqual(sendCount, 2)
+        XCTAssertEqual(telegramWarnings.count, 1)
+    }
+
+    private func makeViewModel(notificationService: NotificationService? = nil) -> TransferViewModel {
+        let notificationCoordinator = NotificationCoordinator(
+            service: notificationService ?? RuntimeMockNotificationService()
         )
+
+        return TransferViewModel(
+            bundledRsyncService: BundledRsyncService(bundledExecutableURL: nil),
+            notificationCoordinator: notificationCoordinator
+        )
+    }
+
+    private func waitForTelegramTestSendToFinish(_ viewModel: TransferViewModel) async throws {
+        for _ in 0..<30 {
+            if !viewModel.isSendingTelegramTestMessage {
+                return
+            }
+            try await Task.sleep(nanoseconds: 20_000_000)
+        }
+
+        XCTFail("Timed out waiting for Telegram test send to finish.")
+    }
+
+    private func waitForSendCount(_ service: RuntimeMockNotificationService, expectedCount: Int) async throws {
+        for _ in 0..<30 {
+            if await service.sendCount() == expectedCount {
+                return
+            }
+            try await Task.sleep(nanoseconds: 20_000_000)
+        }
+
+        XCTFail("Timed out waiting for Telegram send count \(expectedCount).")
+    }
+}
+
+private final class RuntimeMockNotificationService: NotificationService, @unchecked Sendable {
+    private let counter = RuntimeSendCounter()
+    private let delayNanoseconds: UInt64
+    private let error: Error?
+
+    init(delayNanoseconds: UInt64 = 0, error: Error? = nil) {
+        self.delayNanoseconds = delayNanoseconds
+        self.error = error
+    }
+
+    func sendMessage(_ message: String, configuration: TelegramNotificationConfiguration) async throws {
+        await counter.increment()
+
+        if delayNanoseconds > 0 {
+            try? await Task.sleep(nanoseconds: delayNanoseconds)
+        }
+
+        if let error {
+            throw error
+        }
+    }
+
+    func sendCount() async -> Int {
+        await counter.value()
+    }
+}
+
+private actor RuntimeSendCounter {
+    private var count = 0
+
+    func increment() {
+        count += 1
+    }
+
+    func value() -> Int {
+        count
     }
 }
