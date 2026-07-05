@@ -84,7 +84,7 @@ Do not use older agent routing if it conflicts with `FST_AI/`.
 
 FST does not format media and does not eject media.
 
-v1.3.3 preserves the manual GitHub release update-check in the Technical Logs footer, Telegram notification request construction, and packaged outbound network entitlement. The update check is user-triggered only, disabled during copy/verification, opens release/download links in the browser, and must never auto-download, auto-install, mutate the app bundle, use Sparkle, or affect copy, verify, report generation, transfer state, Telegram delivery, or SAFE TO EJECT semantics.
+v1.3.3 fixes packaged/release build outbound network permission by preserving the app’s sandbox network client entitlement. This allows manual GitHub update-check and Telegram notification workflows to use outbound HTTPS as intended. The release does not add auto-download, auto-install, Sparkle, app bundle mutation, or any transfer/verify/rsync/report/SAFE TO EJECT/Telegram business logic changes.
 
 Agent division:
 

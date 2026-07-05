@@ -114,15 +114,7 @@ Rules:
 - logs
 - TXT report
 
-v1.3.3 release focus:
-
-- Manual GitHub release update-check in the Technical Logs footer.
-- User-triggered Check for Updates action only.
-- Semantic version comparison against the latest GitHub Release.
-- Browser-only handoff for release/download links.
-- No auto-download, auto-install, app bundle mutation, Sparkle, or background updater behavior.
-- Telegram notification request construction hotfix.
-- Packaged sandboxed app preserves outbound network client entitlement for GitHub and Telegram HTTPS requests.
+v1.3.3 fixes packaged/release build outbound network permission by preserving the app’s sandbox network client entitlement. This allows manual GitHub update-check and Telegram notification workflows to use outbound HTTPS as intended. The release does not add auto-download, auto-install, Sparkle, app bundle mutation, or any transfer/verify/rsync/report/SAFE TO EJECT/Telegram business logic changes.
 
 Truth layers:
 

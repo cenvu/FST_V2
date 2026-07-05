@@ -59,7 +59,7 @@ Current locked scope:
 
 ## v1.3.3 Notification and Manual Update Check Safety Model
 
-v1.3.3 is the packaged outbound network permission hotfix for Telegram notification and Manual GitHub Update Check compatibility.
+v1.3.3 fixes packaged/release build outbound network permission by preserving the app’s sandbox network client entitlement. This allows manual GitHub update-check and Telegram notification workflows to use outbound HTTPS as intended. The release does not add auto-download, auto-install, Sparkle, app bundle mutation, or any transfer/verify/rsync/report/SAFE TO EJECT/Telegram business logic changes.
 
 FST separates three kinds of truth:
 

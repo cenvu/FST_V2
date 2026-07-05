@@ -127,6 +127,8 @@ What FST cannot / does not do:
 - Phạm vi: một nguồn, một đích, một tác vụ chạy tại một thời điểm
 - Transfer engine: sử dụng rsync 3.4.4 đi kèm
 
+v1.3.3 sửa lỗi quyền mạng outbound của bản build release/packaged bằng cách giữ lại entitlement network client của sandbox. Điều này cho phép quy trình check update GitHub thủ công và thông báo Telegram dùng HTTPS outbound như thiết kế. Bản release không thêm tính năng tự động tải, tự động cài đặt, Sparkle, sửa đổi app bundle, hay bất kỳ thay đổi logic nào về transfer/verify/rsync/report/SAFE TO EJECT/Telegram.
+
 ### Cài đặt cơ bản
 - Tải file release zip từ GitHub Releases.
 - Di chuyển ứng dụng vào thư mục Applications.
@@ -142,6 +144,10 @@ What FST cannot / does not do:
 - Theo dõi tiến trình và nhật ký.
 - Kiểm tra báo cáo cuối cùng.
 - Chỉ tiếp tục xử lý thẻ/ổ cứng nguồn khi có thông báo SAFE TO EJECT và bạn đã xác nhận lại yêu cầu workflow.
+
+### Telegram Notification
+Nếu bạn muốn dùng tính năng gửi thông báo qua Telegram, xem hướng dẫn:
+[Hướng dẫn tạo Telegram Bot cho FST](docs/guides/telegram-bot-setup.md)
 
 ### Tài liệu kỹ thuật và phát triển
 Tài liệu chi tiết về kiến trúc và quy định phát triển được lưu tại thư mục `docs`, không đặt tại README.
@@ -178,6 +184,8 @@ Xem chi tiết:
 - Scope: single source, single destination, single active job
 - Transfer engine: bundled rsync 3.4.4
 
+v1.3.3 fixes packaged/release build outbound network permission by preserving the app’s sandbox network client entitlement. This allows manual GitHub update-check and Telegram notification workflows to use outbound HTTPS as intended. The release does not add auto-download, auto-install, Sparkle, app bundle mutation, or any transfer/verify/rsync/report/SAFE TO EJECT/Telegram business logic changes.
+
 ### Basic installation
 - Download the release zip from GitHub Releases.
 - Move the app to the Applications folder.
@@ -193,6 +201,10 @@ Xem chi tiết:
 - Monitor progress and logs.
 - Review final report.
 - Only proceed when SAFE TO EJECT is shown and operator has verified workflow requirements.
+
+### Telegram Notification
+For Telegram notification setup, see:
+[Telegram Bot Setup Guide for FST](docs/guides/telegram-bot-setup.md)
 
 ### Technical and development docs
 Detailed architecture and development rules live in `docs`, not in the README.
