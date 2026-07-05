@@ -37,6 +37,10 @@
 		8A0001352FE1000000000001 /* FishSockTransfer/ViewModels/TransferViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A0000552FE1000000000001 /* FishSockTransfer/ViewModels/TransferViewModel.swift */; };
 		8A0001362FE1000000000001 /* LogVisibilityFilterXCTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A0000562FE1000000000001 /* LogVisibilityFilterXCTests.swift */; };
 		8A0001372FE1000000000001 /* FishSockTransfer/Models/LogVisibilityFilter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A0000572FE1000000000001 /* FishSockTransfer/Models/LogVisibilityFilter.swift */; };
+		8A0001382FE1000000000001 /* NotificationCoordinatorXCTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A0000582FE1000000000001 /* NotificationCoordinatorXCTests.swift */; };
+		8A0001392FE1000000000001 /* FishSockTransfer/Models/NotificationSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A0000592FE1000000000001 /* FishSockTransfer/Models/NotificationSettings.swift */; };
+		8A00013A2FE1000000000001 /* FishSockTransfer/Services/TelegramNotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A00005A2FE1000000000001 /* FishSockTransfer/Services/TelegramNotificationService.swift */; };
+		8A00013B2FE1000000000001 /* FishSockTransfer/Coordinators/NotificationCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A00005B2FE1000000000001 /* FishSockTransfer/Coordinators/NotificationCoordinator.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -72,6 +76,10 @@
 		8A0000552FE1000000000001 /* FishSockTransfer/ViewModels/TransferViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FishSockTransfer/ViewModels/TransferViewModel.swift; sourceTree = SOURCE_ROOT; };
 		8A0000562FE1000000000001 /* LogVisibilityFilterXCTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogVisibilityFilterXCTests.swift; sourceTree = "<group>"; };
 		8A0000572FE1000000000001 /* FishSockTransfer/Models/LogVisibilityFilter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FishSockTransfer/Models/LogVisibilityFilter.swift; sourceTree = SOURCE_ROOT; };
+		8A0000582FE1000000000001 /* NotificationCoordinatorXCTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationCoordinatorXCTests.swift; sourceTree = "<group>"; };
+		8A0000592FE1000000000001 /* FishSockTransfer/Models/NotificationSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FishSockTransfer/Models/NotificationSettings.swift; sourceTree = SOURCE_ROOT; };
+		8A00005A2FE1000000000001 /* FishSockTransfer/Services/TelegramNotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FishSockTransfer/Services/TelegramNotificationService.swift; sourceTree = SOURCE_ROOT; };
+		8A00005B2FE1000000000001 /* FishSockTransfer/Coordinators/NotificationCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FishSockTransfer/Coordinators/NotificationCoordinator.swift; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -138,6 +146,7 @@
 				8A0000262FE1000000000001 /* VerificationHashStrategyXCTests.swift */,
 				8A0000272FE1000000000001 /* TransferViewModelRuntimeXCTests.swift */,
 				8A0000562FE1000000000001 /* LogVisibilityFilterXCTests.swift */,
+				8A0000582FE1000000000001 /* NotificationCoordinatorXCTests.swift */,
 			);
 			path = XCTest;
 			sourceTree = "<group>";
@@ -167,6 +176,9 @@
 				8A0000542FE1000000000001 /* FishSockTransfer/Coordinators/TransferCoordinator.swift */,
 				8A0000552FE1000000000001 /* FishSockTransfer/ViewModels/TransferViewModel.swift */,
 				8A0000572FE1000000000001 /* FishSockTransfer/Models/LogVisibilityFilter.swift */,
+				8A0000592FE1000000000001 /* FishSockTransfer/Models/NotificationSettings.swift */,
+				8A00005A2FE1000000000001 /* FishSockTransfer/Services/TelegramNotificationService.swift */,
+				8A00005B2FE1000000000001 /* FishSockTransfer/Coordinators/NotificationCoordinator.swift */,
 			);
 			name = "Test Support Sources";
 			sourceTree = "<group>";
@@ -344,6 +356,10 @@
 				8A0001352FE1000000000001 /* FishSockTransfer/ViewModels/TransferViewModel.swift in Sources */,
 				8A0001362FE1000000000001 /* LogVisibilityFilterXCTests.swift in Sources */,
 				8A0001372FE1000000000001 /* FishSockTransfer/Models/LogVisibilityFilter.swift in Sources */,
+				8A0001382FE1000000000001 /* NotificationCoordinatorXCTests.swift in Sources */,
+				8A0001392FE1000000000001 /* FishSockTransfer/Models/NotificationSettings.swift in Sources */,
+				8A00013A2FE1000000000001 /* FishSockTransfer/Services/TelegramNotificationService.swift in Sources */,
+				8A00013B2FE1000000000001 /* FishSockTransfer/Coordinators/NotificationCoordinator.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -475,9 +491,10 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 20260704;
+				CURRENT_PROJECT_VERSION = 20260705;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_PREVIEWS = YES;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
 				ENABLE_USER_SELECTED_FILES = readwrite;
 				EXCLUDED_SOURCE_FILE_NAMES = "lib*.dylib";
 				GENERATE_INFOPLIST_FILE = YES;
@@ -491,7 +508,7 @@
 					"$(PROJECT_DIR)/FishSockTransfer",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.5;
-				MARKETING_VERSION = 1.2.2;
+				MARKETING_VERSION = 1.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.cen.FishSockTransfer;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
@@ -511,9 +528,10 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 20260704;
+				CURRENT_PROJECT_VERSION = 20260705;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_PREVIEWS = YES;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
 				ENABLE_USER_SELECTED_FILES = readwrite;
 				EXCLUDED_SOURCE_FILE_NAMES = "lib*.dylib";
 				GENERATE_INFOPLIST_FILE = YES;
@@ -527,7 +545,7 @@
 					"$(PROJECT_DIR)/FishSockTransfer",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.5;
-				MARKETING_VERSION = 1.2.2;
+				MARKETING_VERSION = 1.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.cen.FishSockTransfer;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;

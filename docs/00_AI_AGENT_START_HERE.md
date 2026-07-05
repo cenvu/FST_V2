@@ -73,8 +73,8 @@ Do not use older agent routing if it conflicts with `FST_AI/`.
 
 ## Current Release Snapshot
 
-- Version: v1.2 build 20260703
-- Package: `dist/FishSockTransfer-v1.2-b20260703-local-macOS13_5plus-arm64.zip`
+- Version: v1.3.0 display 1.3 build 20260705
+- Package: `dist/FishSockTransfer-v1.3-b20260705-local-macOS13_5plus-arm64.zip`
 - Platform: macOS 13.5+, Apple Silicon arm64 only
 - Package type: local owner-side ad-hoc build
 - Signing: ad-hoc signed, not notarized, not Developer ID signed
@@ -84,7 +84,7 @@ Do not use older agent routing if it conflicts with `FST_AI/`.
 
 FST does not format media and does not eject media.
 
-v1.2 is the Runtime Copy Progress / Operator Progress release. The destination activity observer may improve UI visibility when rsync output is delayed, but it is operator truth only. Rsync remains authoritative for transfer lifecycle and exit status. Verification, report generation, and the SAFE TO EJECT gate remain authoritative for safety.
+v1.3.0 is the Telegram Notification MVP release. Telegram notification is best-effort only and must never affect copy, verify, report generation, transfer state, or SAFE TO EJECT semantics.
 
 Agent division:
 
