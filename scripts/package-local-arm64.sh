@@ -13,8 +13,8 @@ APP_NAME="FishSockTransfer.app"
 PACKAGE_LABEL="macOS13_5plus-arm64"
 
 # Version — override from environment if needed:
-# APP_VERSION=1.3.2 BUILD_NUMBER=20260706 ./scripts/package-local-arm64.sh
-APP_VERSION="${APP_VERSION:-1.3.2}"
+# APP_VERSION=1.3.3 BUILD_NUMBER=20260706 ./scripts/package-local-arm64.sh
+APP_VERSION="${APP_VERSION:-1.3.3}"
 BUILD_NUMBER="${BUILD_NUMBER:-20260706}"
 ZIP_NAME="FishSockTransfer-v${APP_VERSION}-b${BUILD_NUMBER}-local-${PACKAGE_LABEL}.zip"
 
@@ -26,6 +26,7 @@ TEMP_ROOT="$(/usr/bin/mktemp -d "${TMPDIR:-/tmp}/fst-local-arm64.XXXXXX")"
 DERIVED_DATA="$TEMP_ROOT/DerivedData-local-arm64"
 STAGED_APP="$TEMP_ROOT/$APP_NAME"
 LOCAL_ENTITLEMENTS="$TEMP_ROOT/FishSockTransfer-local.entitlements"
+APP_ENTITLEMENTS="$REPO_ROOT/FishSockTransfer/FishSockTransfer/FishSockTransfer.entitlements"
 
 APP_BINARY="$STAGED_APP/Contents/MacOS/FishSockTransfer"
 RSYNC_BINARY="$STAGED_APP/Contents/Resources/rsync"
@@ -156,6 +157,7 @@ if [[ ! -d "$BUILT_APP" ]]; then
   BUILT_APP="$(/usr/bin/find "$DERIVED_DATA/Build/Products" -type d -name "$APP_NAME" -print -quit 2>/dev/null || true)"
 fi
 [[ -n "${BUILT_APP:-}" && -d "$BUILT_APP" ]] || fail "Built app could not be found under $DERIVED_DATA"
+[[ -f "$APP_ENTITLEMENTS" ]] || fail "App entitlements file missing: $APP_ENTITLEMENTS"
 
 echo "Copying app to external staging path $STAGED_APP"
 COPYFILE_DISABLE=1 /usr/bin/ditto --norsrc "$BUILT_APP" "$STAGED_APP"
@@ -216,18 +218,7 @@ for dylib in "${DYLIBS[@]}"; do
 done
 shopt -u nullglob
 
-cat > "$LOCAL_ENTITLEMENTS" <<'PLIST'
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-  <key>com.apple.security.app-sandbox</key>
-  <true/>
-  <key>com.apple.security.files.user-selected.read-write</key>
-  <true/>
-</dict>
-</plist>
-PLIST
+COPYFILE_DISABLE=1 /usr/bin/ditto --norsrc "$APP_ENTITLEMENTS" "$LOCAL_ENTITLEMENTS"
 
 echo "Ad-hoc signing staged app..."
 /usr/bin/codesign --force --deep --sign - --entitlements "$LOCAL_ENTITLEMENTS" --timestamp=none "$STAGED_APP"

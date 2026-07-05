@@ -36,8 +36,8 @@ Do not add features that do not reduce media-loss risk.
 
 ## Current Release Snapshot
 
-- Version: v1.3.2 display 1.3.2 build 20260706
-- Package: `dist/FishSockTransfer-v1.3.2-b20260706-local-macOS13_5plus-arm64.zip`
+- Version: v1.3.3 display 1.3.3 build 20260706
+- Package: `dist/FishSockTransfer-v1.3.3-b20260706-local-macOS13_5plus-arm64.zip`
 - Platform: macOS 13.5+, Apple Silicon arm64 only
 - Package type: local owner-side ad-hoc build
 - Signing: ad-hoc signed, not notarized, not Developer ID signed
@@ -47,7 +47,7 @@ Do not add features that do not reduce media-loss risk.
 
 FST does not format media and does not eject media.
 
-v1.3.2 preserves the manual GitHub release update-check in the Technical Logs footer and adds a Telegram notification request-construction hotfix. The check is user-triggered only, disabled during copy/verification, opens release/download links in the browser, and must never auto-download, auto-install, mutate the app bundle, use Sparkle, or affect copy, verify, report generation, transfer state, Telegram delivery, or SAFE TO EJECT.
+v1.3.3 preserves the manual GitHub release update-check in the Technical Logs footer, Telegram notification request construction, and packaged outbound network entitlement. The check is user-triggered only, disabled during copy/verification, opens release/download links in the browser, and must never auto-download, auto-install, mutate the app bundle, use Sparkle, or affect copy, verify, report generation, transfer state, Telegram delivery, or SAFE TO EJECT.
 
 ---
 
@@ -746,7 +746,7 @@ Core rules:
 
 Swift:
 
-- macOS 13.5+ for the v1.3.2 local package
+- macOS 13.5+ for the v1.3.3 local package
 - Swift 5.9+
 - Swift 6 compatible
 - prefer `async/await`

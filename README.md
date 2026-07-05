@@ -6,7 +6,7 @@
 [![macOS 13.5+](https://img.shields.io/badge/macOS-13.5%2B-blue.svg)](https://apple.com/macos)
 [![Apple Silicon arm64](https://img.shields.io/badge/architecture-Apple_Silicon_arm64-ff69b4.svg)]()
 [![Swift 5.9+](https://img.shields.io/badge/Swift-5.9%2B-FA7343.svg)](https://swift.org)
-[![Version v1.3.2](https://img.shields.io/badge/version-v1.3.2-success.svg)]()
+[![Version v1.3.3](https://img.shields.io/badge/version-v1.3.3-success.svg)]()
 [![License](https://img.shields.io/badge/license-Source_Available_/_Non--Commercial-orange.svg)](LICENSE)
 
 English documentation is included below.
@@ -120,7 +120,7 @@ What FST cannot / does not do:
 ## Thông tin sử dụng và phát triển
 
 ### Trạng thái hiện tại
-- Phiên bản: v1.3.2
+- Phiên bản: v1.3.3
 - Nền tảng: macOS 13.5+, Apple Silicon arm64
 - Chữ ký: ad-hoc signed
 - Notarization: không được notarized
@@ -171,7 +171,7 @@ Xem chi tiết:
 ## Usage and development information
 
 ### Current status
-- Version: v1.3.2
+- Version: v1.3.3
 - Platform: macOS 13.5+, Apple Silicon arm64
 - Signing: ad-hoc signed
 - Notarization: not notarized
