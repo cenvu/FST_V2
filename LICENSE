@@ -20,8 +20,8 @@ Redistribution must:
 - keep copyright notices
 - keep LICENSE
 - keep NOTICE
-- keep TRADEMARKS.md
-- keep THIRD_PARTY_LICENSES.md if present
+- keep docs/legal/TRADEMARKS.md
+- keep docs/legal/THIRD_PARTY_LICENSES.md if present
 - clearly mark modified versions as modified
 - not imply official endorsement
 - not use FishSock / FishSock Transfer / FST branding for forked or modified builds without written permission
@@ -54,7 +54,7 @@ This license does not grant rights to:
 - visual identity
 - confusingly similar names, logos, icons, or branding
 
-Please refer to TRADEMARKS.md for details.
+Please refer to docs/legal/TRADEMARKS.md for details.
 
 ## 6. Third-party components
 Third-party components remain under their own licenses.
@@ -62,12 +62,12 @@ Bundled rsync 3.4.4, if distributed with the app, remains under its own license.
 The FST license does not relicense rsync or any other third-party component.
 Users and redistributors must comply with third-party license terms.
 
-Please refer to THIRD_PARTY_LICENSES.md for details.
+Please refer to docs/legal/THIRD_PARTY_LICENSES.md for details.
 
 ## 7. Contributions
 By submitting a contribution to this repository, the contributor agrees that the project owner may use, modify, distribute, sublicense, relicense, and commercially license that contribution as part of FST, subject to contributor having the right to submit it.
 
-Please refer to CONTRIBUTOR_TERMS.md for details.
+Please refer to docs/legal/CONTRIBUTOR_TERMS.md for details.
 
 ## 8. No warranty
 The software is provided "as is", without warranty of any kind.
