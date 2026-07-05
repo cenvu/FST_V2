@@ -9,199 +9,206 @@
 [![Version v1.3.1](https://img.shields.io/badge/version-v1.3.1-success.svg)]()
 [![License](https://img.shields.io/badge/license-Source_Available_/_Non--Commercial-orange.svg)](LICENSE)
 
-FST is a native macOS copy/verify/report tool for DIT and Data Wrangler workflows.
+English documentation is included below.
 
-FST là công cụ native macOS hỗ trợ copy/verify/report cho workflow DIT và Data Wrangler.
+FST là công cụ copy/verify/report trên macOS dành cho workflow DIT và Data Wrangler.
 
-**Core workflow / Quy trình chính:** `COPY → VERIFY → SAFE TO EJECT → REPORT`
-
----
-
-## What FST is / FST là gì
-
-This is not just a copy app. It is a tool built for operators who need clear evidence before deciding whether media is safe to eject or hand over — copying, verifying, and reporting on transfers so the decision stays informed instead of assumed.
-
-Đây không chỉ là một app copy đơn thuần. FST được xây dựng cho những người vận hành cần bằng chứng rõ ràng trước khi quyết định media có an toàn để rút ra hay bàn giao hay không — copy, verify, và report cho từng lần transfer để quyết định luôn dựa trên dữ liệu thật, không phải phỏng đoán.
-
-FST does not format cards or drives, does not erase source media, and does not make the final production decision for you. It gives you copy/verify status, logs, and a report — the decision stays with the operator.
-
-FST không format thẻ hay ổ cứng, không xoá dữ liệu nguồn, và không thay bạn ra quyết định production cuối cùng. App cung cấp trạng thái copy/verify, log, và report — quyết định vẫn thuộc về người vận hành.
+FST is a macOS copy/verify/report tool for DIT and Data Wrangler workflows.
 
 ---
 
-## Important safety notice / Miễn trừ trách nhiệm quan trọng
+## Disclaimer / Miễn trừ trách nhiệm
 
-FST supports the copy/verify/report process, but it does not replace professional judgment, independent backups, or manual review.
+FST là công cụ hỗ trợ copy/verify/report, không thay thế phán đoán chuyên môn, backup độc lập, hoặc kiểm tra thủ công.
+FST is a copy/verify/report support tool. It does not replace professional judgment, independent backups, or manual review.
 
-FST hỗ trợ quy trình copy/verify/report, nhưng không thay thế phán đoán chuyên môn, backup độc lập, hoặc việc kiểm tra thủ công của người vận hành.
+Không phần mềm nào đảm bảo an toàn dữ liệu tuyệt đối trước mất dữ liệu, hỏng dữ liệu, lỗi phần cứng, lỗi thao tác, lỗi filesystem, hoặc hành vi hệ thống ngoài dự kiến.
+No software can guarantee absolute protection from data loss, corruption, hardware failure, operator error, filesystem issues, or unexpected system behavior.
 
-No software can guarantee absolute protection from data loss, corruption, hardware failure, operator error, filesystem issues, or unexpected system behavior. The software is provided "as is," without warranty of any kind, and to the maximum extent permitted by law the project owner and contributors are not liable for damages — including data loss, lost footage, or production delay — caused by user actions or misuse.
+Người dùng/người vận hành chịu trách nhiệm chọn đúng source, chọn đúng destination, kiểm tra dung lượng, chọn verification mode phù hợp, theo dõi warning/error, đọc report, duy trì backup độc lập.
+Users/operators are responsible for selecting the correct source and destination, checking available storage, choosing the appropriate verification mode, monitoring warnings/errors, reviewing reports, and maintaining independent backups.
 
-Không phần mềm nào có thể đảm bảo bảo vệ tuyệt đối khỏi mất dữ liệu, hỏng dữ liệu, lỗi phần cứng, lỗi thao tác, lỗi filesystem, hoặc hành vi hệ thống ngoài dự kiến. Phần mềm được cung cấp theo nguyên trạng "as is", không có bảo hành, và trong phạm vi pháp luật cho phép, chủ dự án và contributors không chịu trách nhiệm cho thiệt hại — bao gồm mất dữ liệu, mất footage, hoặc chậm trễ production — do thao tác hoặc sử dụng sai của người dùng.
+Chủ dự án, contributor, và bên phân phối không chịu trách nhiệm với mất dữ liệu do thao tác người dùng hoặc dùng sai cách: chọn sai source/destination, ghi đè, xoá thủ công, format quá sớm, rút ổ không an toàn, bỏ qua failed copy/verify, bỏ qua warning/log/report, dùng phần cứng/ổ/cáp lỗi, force quit hoặc tắt máy khi transfer.
+The project owner, contributors, and distributors are not responsible for data loss caused by user actions or misuse, including wrong source/destination selection, overwriting data, manual deletion, early formatting, unsafe drive removal, ignored copy/verify failures, ignored warnings/logs/reports, unstable hardware/drives/cables, force quitting, or shutting down during transfer.
 
-`SAFE TO EJECT` means FST has completed the current copy/verification workflow according to the settings you selected. It is **not** automatic legal, operational, or production approval to erase, format, or reuse source media — that decision remains with the operator.
+SAFE TO EJECT không phải phê duyệt tự động để format, xoá, hoặc tái sử dụng source media.
+SAFE TO EJECT is not automatic approval to format, erase, or reuse source media.
 
-`SAFE TO EJECT` có nghĩa là FST đã hoàn tất workflow copy/verification hiện tại theo settings đã chọn. Đây **không phải** là phê duyệt pháp lý, vận hành, hay production để xoá, format, hoặc tái sử dụng source media — quyết định đó vẫn thuộc về người vận hành.
+Phần mềm được cung cấp theo nguyên trạng “as is”, không có bảo hành.
+The software is provided “as is”, without warranty of any kind.
 
-**Operators remain responsible for / Người vận hành vẫn chịu trách nhiệm cho:**
+Khuyến nghị: trước khi format hoặc tái sử dụng source media, nên có ít nhất hai bản copy độc lập đã được verify và đã kiểm tra report/destination data.
+Recommended practice: before formatting or reusing source media, maintain at least two independent verified copies and review the FST report and destination data.
 
-- selecting the correct source and destination / chọn đúng source và destination
-- maintaining independent backups / duy trì backup độc lập
-- reviewing reports, logs, and warnings before acting / kiểm tra report, log và warning trước khi hành động
-- the final decision to format, erase, or reuse source media / quyết định cuối cùng về format, xoá, hoặc tái sử dụng source media
-
-Recommended practice: keep at least two independent verified copies before formatting or reusing source media. For the full disclaimer, see [docs/legal/DISCLAIMER.md](docs/legal/DISCLAIMER.md).
-
-Khuyến nghị: duy trì ít nhất hai bản copy độc lập đã verify trước khi format hoặc tái sử dụng source media. Để đọc bản miễn trừ trách nhiệm đầy đủ, xem [docs/legal/DISCLAIMER.md](docs/legal/DISCLAIMER.md).
-
----
-
-## Workflow Preview / Xem trước workflow
-
-The screenshots below show the intended operator flow: start, transfer, verification, safe-to-eject confirmation, and technical logs.
-
-Các hình bên dưới minh hoạ luồng thao tác chính: bắt đầu, chuyển dữ liệu, xác minh, xác nhận an toàn để rút thiết bị, và log kỹ thuật.
-
-### 1. Start / Bắt đầu
-
-![FST Start screen](ui/1.START.png)
-
-### 2. Transferring / Đang chuyển dữ liệu
-
-![FST transferring screen](ui/2.TRANSFERING.png)
-
-### 3. Verifying / Đang xác minh
-
-![FST verifying screen](ui/3.VERIFYING.png)
-
-### 4. Safe To Eject / An toàn để rút thiết bị
-
-![FST safe to eject screen](ui/4.SAFE_TO_EJECT.png)
-
-### 5. Technical Logs / Log kỹ thuật
-
-![FST technical logs screen](ui/5.TECH_LOG.png)
+[docs/legal/DISCLAIMER.md](docs/legal/DISCLAIMER.md)
 
 ---
 
-## What FST does / FST làm gì
+## FST là gì? / What is FST?
 
-- Copies from source to destination / Copy từ source sang destination
-- Verifies according to the selected mode / Verify theo chế độ đã chọn
-- Produces a report of the result / Tạo report cho kết quả
-- Gives a clear final status / Hiển thị trạng thái cuối rõ ràng
-- Supports — but doesn't replace — the operator's decision / Hỗ trợ, chứ không thay thế, quyết định của người vận hành
+FST có thể làm gì:
+- chọn một source và một destination
+- copy dữ liệu từ source sang destination
+- verify theo mode đã chọn
+- hiển thị trạng thái tiến trình và log
+- tạo/report kết quả cuối
+- giúp operator có bằng chứng rõ ràng trước khi quyết định rút hoặc bàn giao source media
+- hỗ trợ Telegram notification
+- dùng bundled rsync 3.4.4 cho transfer engine
 
-## What FST does not do / FST không làm gì
+What FST can currently do:
+- select a single source and single destination
+- copy data from source to destination
+- verify using the selected mode
+- display progress status and logs
+- generate a final result report
+- provide operators with clear evidence before deciding to eject or hand over source media
+- support Telegram notifications
+- use bundled rsync 3.4.4 for the transfer engine
 
-- Does not format source media / Không format source media
-- Does not erase source media / Không xoá source media
-- Does not replace DIT/Data Wrangler judgment / Không thay thế phán đoán của DIT/Data Wrangler
-- Does not remove the need for independent backups / Không loại bỏ nhu cầu backup độc lập
-- Does not guarantee protection from hardware, user, or filesystem failure / Không đảm bảo an toàn trước lỗi phần cứng, lỗi thao tác, hoặc lỗi filesystem
-- Does not automatically approve media for reuse / Không tự động phê duyệt media để tái sử dụng
+FST không làm gì:
+- không format source media
+- không xoá source media
+- không tự động eject ổ
+- không thay thế quyết định của DIT/Data Wrangler
+- không loại bỏ nhu cầu backup độc lập
+- không đảm bảo an toàn tuyệt đối trước lỗi phần cứng, lỗi người dùng, lỗi filesystem, hoặc lỗi hệ thống
+- phạm vi hiện tại: single source, single destination, single active job
+- chưa phải công cụ multi-destination, queue, LTO, MHL, proxy, DAM, hay MAM
 
----
-
-## Basic workflow / Cách sử dụng cơ bản
-
-1. Select source / Chọn source
-2. Select destination / Chọn destination
-3. Choose verification mode / Chọn chế độ verification
-4. Start transfer / Bắt đầu transfer
-5. Monitor status and logs / Theo dõi status và log
-6. Review the final report / Kiểm tra report cuối cùng
-7. Only proceed once `SAFE TO EJECT` is shown and you've verified the workflow requirements / Chỉ tiếp tục khi `SAFE TO EJECT` hiển thị và bạn đã kiểm tra đủ yêu cầu workflow
-
-Verification modes are `none` (no post-copy check), `random33` (roughly 33% of files verified via SHA256), and `full` (all files verified via xxHash64). `random33` is not equivalent to full verification — use `full` when maximum confidence is required.
-
-Các chế độ verification gồm `none` (không kiểm tra sau copy), `random33` (verify ngẫu nhiên khoảng 33% file bằng SHA256), và `full` (verify toàn bộ file bằng xxHash64). `random33` không tương đương full verification — dùng `full` khi cần độ tin cậy cao nhất.
-
-FST exports a text report after each transfer. Keep it with the copied media for later checking, handover, or production records.
-
-FST xuất báo cáo dạng text sau mỗi lần transfer. Nên lưu report cùng dữ liệu đã copy để kiểm tra, bàn giao, hoặc lưu hồ sơ production.
-
----
-
-## Current status / Trạng thái hiện tại
-
-| | |
-|---|---|
-| **Version / Phiên bản** | v1.3.1 |
-| **Last update / Cập nhật gần nhất** | July 2026 |
-| **Platform / Nền tảng** | macOS 13.5+ |
-| **Architecture / Kiến trúc** | Apple Silicon arm64 only |
-| **Signing / Ký ứng dụng** | Ad-hoc signed |
-| **Notarization** | Not notarized / chưa notarized |
-| **Scope / Phạm vi** | MVP — single source, single destination, single active job |
-| **Transfer engine** | Bundled rsync 3.4.4 |
-| **Release focus** | Manual GitHub update check |
-
-v1.3.1 adds a manual GitHub release update-check in the Technical Logs footer. The operator must click Check for Updates; FST only compares the installed version with the latest GitHub Release and opens release/download links in the browser. It does not auto-download, auto-install, mutate the app bundle, use Sparkle, or change copy, verify, report generation, transfer result, app state, Telegram, or SAFE TO EJECT semantics.
-
-System requirements: macOS 13.5+, an Apple Silicon Mac, mounted source and destination storage, and enough free space on the destination. Intel Macs are not officially supported at this stage.
-
-Yêu cầu hệ thống: macOS 13.5 trở lên, máy Mac Apple Silicon, ổ source và destination đã mount, và destination còn đủ dung lượng trống. Hiện tại Mac Intel chưa được hỗ trợ chính thức.
+What FST cannot / does not do:
+- does not format source media
+- does not erase source media
+- does not automatically eject drives
+- does not replace the DIT/Data Wrangler's decision
+- does not remove the need for independent backups
+- does not guarantee absolute safety against hardware, user, filesystem, or system errors
+- current MVP scope: single source, single destination, single active job
+- is not a multi-destination, queue, LTO, MHL, proxy, DAM, or MAM tool
 
 ---
 
-## Download and installation / Tải và cài đặt
+## Xem trước giao diện workflow / UI Workflow Preview
 
-Download the release `.zip` from GitHub Releases, extract it, and move `FishSockTransfer.app` to `Applications` or another trusted test location. Because current builds are ad-hoc signed and not notarized, macOS may warn on first launch — use **Right-click → Open**, or follow the Sentinel / Gatekeeper instructions in the release notes if provided.
+### 1. Bắt đầu / Start
+![FST Start screen](ui/1_START.png)
 
-Tải file `.zip` từ GitHub Releases, giải nén, và chuyển `FishSockTransfer.app` vào `Applications` hoặc vị trí test đáng tin cậy. Vì bản build hiện tại ad-hoc signed và chưa notarized, macOS có thể cảnh báo khi mở lần đầu — dùng **Right-click → Open**, hoặc làm theo hướng dẫn Sentinel / Gatekeeper trong release notes nếu có.
+### 2. Đang chuyển dữ liệu / Transferring
+![FST transferring screen](ui/2_TRANSFERING.png)
+
+### 3. Đang xác minh / Verifying
+![FST verifying screen](ui/3_VERIFYING.png)
+
+### 4. An toàn để rút thiết bị / Safe To Eject
+![FST safe to eject screen](ui/4_SAFE_TO_EJECT.png)
+
+### 5. Log kỹ thuật / Technical Log
+![FST technical log screen](ui/5_LOG.png)
+
+### 6. Thông báo Telegram / Telegram Notification
+![FST Telegram notification screen](ui/6_TELEGRAM.png)
 
 ---
 
-## Documentation / Tài liệu
+## Thông tin sử dụng và phát triển
 
-This repository is public for review, learning, non-commercial use, and controlled development. FST is currently an MVP focused on one source, one destination, and one active transfer job.
+### Trạng thái hiện tại
+- Phiên bản: v1.3.1
+- Nền tảng: macOS 13.5+, Apple Silicon arm64
+- Chữ ký: ad-hoc signed
+- Notarization: không được notarized
+- Phạm vi: một nguồn, một đích, một tác vụ chạy tại một thời điểm
+- Transfer engine: sử dụng rsync 3.4.4 đi kèm
 
-Repo này được công khai để review, học hỏi, sử dụng phi thương mại, và phát triển có kiểm soát. FST hiện là MVP tập trung vào một source, một destination, và một transfer job đang chạy.
+### Cài đặt cơ bản
+- Tải file release zip từ GitHub Releases.
+- Di chuyển ứng dụng vào thư mục Applications.
+- Do ứng dụng chưa được notarized, macOS có thể hiện cảnh báo.
+- Sử dụng Chuột phải (Right-click) -> Open để mở ứng dụng.
 
-- Product and technical docs: [docs/README.md](docs/README.md)
-- Legal, license, trademark, and disclaimer docs: [docs/legal/README.md](docs/legal/README.md)
-- Release notes: [docs/releases/README.md](docs/releases/README.md)
-- AI/agent workflow docs: [FST_AI/README.md](FST_AI/README.md)
+### Workflow sử dụng cơ bản
+- Mở ứng dụng FST.
+- Chọn thư mục nguồn.
+- Chọn thư mục đích.
+- Chọn chế độ xác minh: none, random33, hoặc full.
+- Bắt đầu sao chép.
+- Theo dõi tiến trình và nhật ký.
+- Kiểm tra báo cáo cuối cùng.
+- Chỉ tiếp tục xử lý thẻ/ổ cứng nguồn khi có thông báo SAFE TO EJECT và bạn đã xác nhận lại yêu cầu workflow.
 
----
+### Tài liệu kỹ thuật và phát triển
+Tài liệu chi tiết về kiến trúc và quy định phát triển được lưu tại thư mục `docs`, không đặt tại README.
+Xem chi tiết tại:
+- [docs/README.md](docs/README.md)
+- [docs/releases/README.md](docs/releases/README.md)
+- [FST_AI/README.md](FST_AI/README.md)
+- [AGENTS.md](AGENTS.md)
 
-## License, commercial use, and branding / Giấy phép, sử dụng thương mại và thương hiệu
-
-FST is source-available for review, learning, and non-commercial use. It is not offered as OSI-approved open-source software.
-
-FST là source-available để review, học hỏi, và sử dụng phi thương mại. Đây không phải phần mềm nguồn mở chuẩn OSI.
-
-Commercial use, paid redistribution, resale, white-labeling, paid hosting, or use as a material part of a paid product or service requires prior written permission from the project owner.
-
-Việc sử dụng thương mại, phân phối có thu phí, bán lại, white-labeling, paid hosting, hoặc dùng FST như một phần quan trọng của sản phẩm/dịch vụ có thu phí cần có sự cho phép bằng văn bản từ chủ dự án.
-
-The FishSock name, FishSock Transfer name, FST branding, app logo, app icon, and visual identity are not licensed with the source code. Third-party components, including bundled rsync 3.4.4, remain under their own licenses.
-
-Tên FishSock, FishSock Transfer, thương hiệu FST, logo app, icon app, và nhận diện hình ảnh không được cấp phép kèm theo source code. Các thành phần third-party, bao gồm bundled rsync 3.4.4, vẫn giữ nguyên giấy phép riêng của chúng.
-
-See / Xem:
-
+### Giấy phép, thương mại, thương hiệu
+- FST công khai mã nguồn để kiểm tra, học tập, và sử dụng phi thương mại.
+- Đây không phải phần mềm open-source chuẩn OSI.
+- Mọi hoạt động sử dụng thương mại cần có sự cho phép bằng văn bản từ dự án.
+- Tên FishSock, FishSock Transfer, thương hiệu, logo, biểu tượng, và nhận diện thiết kế không được cấp quyền cùng source code.
+- Các phần mềm third-party giữ nguyên giấy phép của chúng.
+Xem chi tiết:
 - [LICENSE](LICENSE)
-- [docs/legal/COMMERCIAL_LICENSE.md](docs/legal/COMMERCIAL_LICENSE.md)
-- [docs/legal/TRADEMARKS.md](docs/legal/TRADEMARKS.md)
 - [NOTICE](NOTICE)
-- [docs/legal/THIRD_PARTY_LICENSES.md](docs/legal/THIRD_PARTY_LICENSES.md)
-- [docs/legal/CONTRIBUTOR_TERMS.md](docs/legal/CONTRIBUTOR_TERMS.md)
-- [docs/legal/DISCLAIMER.md](docs/legal/DISCLAIMER.md)
+- [docs/legal/README.md](docs/legal/README.md)
+
+### Ghi nhận đóng góp
+- Vũ Huy Hùng / Cen — chủ dự án, định hướng sản phẩm, thiết kế workflow DIT.
+- Hà Minh Quang — đóng góp logo và biểu tượng ứng dụng.
 
 ---
 
-## Credits / Ghi nhận đóng góp
+## Usage and development information
 
-**Vũ Huy Hùng / Cen** — project owner, product direction, and DIT workflow design.
-**Vũ Huy Hùng / Cen** — chủ dự án, định hướng sản phẩm, và thiết kế workflow DIT.
+### Current status
+- Version: v1.3.1
+- Platform: macOS 13.5+, Apple Silicon arm64
+- Signing: ad-hoc signed
+- Notarization: not notarized
+- Scope: single source, single destination, single active job
+- Transfer engine: bundled rsync 3.4.4
 
-**Hà Minh Quang** — logo and app icon contribution.
-**Hà Minh Quang** — đóng góp thiết kế logo và icon ứng dụng.
+### Basic installation
+- Download the release zip from GitHub Releases.
+- Move the app to the Applications folder.
+- Because the app is not notarized, macOS may show a warning.
+- Use Right-click -> Open to run the app.
+
+### Basic operator workflow
+- Open FST.
+- Select source.
+- Select destination.
+- Choose verification mode: none, random33, full.
+- Start transfer.
+- Monitor progress and logs.
+- Review final report.
+- Only proceed when SAFE TO EJECT is shown and operator has verified workflow requirements.
+
+### Technical and development docs
+Detailed architecture and development rules live in `docs`, not in the README.
+See:
+- [docs/README.md](docs/README.md)
+- [docs/releases/README.md](docs/releases/README.md)
+- [FST_AI/README.md](FST_AI/README.md)
+- [AGENTS.md](AGENTS.md)
+
+### License, commercial use, and branding
+- FST is source-available for review, learning, and non-commercial use.
+- FST is not OSI-approved open-source software.
+- Commercial use requires written permission.
+- FishSock/FST branding, logo, icon, and visual identity are not licensed with the source code.
+- Third-party components remain under their own licenses.
+See:
+- [LICENSE](LICENSE)
+- [NOTICE](NOTICE)
+- [docs/legal/README.md](docs/legal/README.md)
+
+### Credits
+- Vũ Huy Hùng / Cen — project owner, product direction, DIT workflow design.
+- Hà Minh Quang — logo and app icon contribution.
 
 ---
-
-*Built for operators who cannot afford ambiguous copy results.*
-
-*Được xây dựng cho những người vận hành không thể chấp nhận kết quả copy mơ hồ.*
+From Cen Vũ with love!
