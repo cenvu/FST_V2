@@ -72,8 +72,10 @@ final class ReportEngineXCTests: XCTestCase {
         XCTAssertTrue(text.contains("Verify Duration:     N/A"))
         XCTAssertTrue(text.contains("Total Duration:      00:01:40"))
         XCTAssertTrue(text.contains("Copy Average Speed:  50.00 MB/s"))
-        XCTAssertTrue(text.contains("Source Change Detection: NOT AVAILABLE IN V1"))
-        XCTAssertFalse(text.contains("Final Status:        SAFE TO EJECT"))
+        XCTAssertTrue(text.contains("Source Change Detection: NOT AVAILABLE IN V1 - FST does not authorize erase, format, or reuse decisions."))
+        XCTAssertTrue(text.contains("Decision Reason:     Copy completed; verification was OFF and this transfer was not verified by FST."))
+        XCTAssertFalse(text.contains("Safety Decision:     "))
+        XCTAssertFalse(text.contains("Final Status:        SAFE TO EJECT DESTINATION"))
     }
 
     func testRandom33PassUsesSHA256SampleAndRandomSampleScope() async {
@@ -89,7 +91,7 @@ final class ReportEngineXCTests: XCTestCase {
             bandwidthLimit: nil
         )
 
-        XCTAssertTrue(text.contains("Final Status:        SAFE TO EJECT"))
+        XCTAssertTrue(text.contains("Final Status:        SAFE TO EJECT DESTINATION"))
         XCTAssertTrue(text.contains("SAFE TO EJECT DESTINATION: YES"))
         XCTAssertTrue(text.contains("Verification Mode:   SHA256 Sample 33%"))
         XCTAssertTrue(text.contains("Verification Scope:  RANDOM SAMPLE"))
@@ -112,7 +114,7 @@ final class ReportEngineXCTests: XCTestCase {
             bandwidthLimit: nil
         )
 
-        XCTAssertTrue(text.contains("Final Status:        SAFE TO EJECT"))
+        XCTAssertTrue(text.contains("Final Status:        SAFE TO EJECT DESTINATION"))
         XCTAssertTrue(text.contains("SAFE TO EJECT DESTINATION: YES"))
         XCTAssertTrue(text.contains("Verification Mode:   xxHash64 Full 100%"))
         XCTAssertTrue(text.contains("Verification Scope:  FULL 100%"))
@@ -143,7 +145,7 @@ final class ReportEngineXCTests: XCTestCase {
         XCTAssertTrue(text.contains("Verification Result: FAILED"))
         XCTAssertTrue(text.contains("- MANUAL CHECK REQUIRED: Verification failed."))
         XCTAssertTrue(text.contains("Failed Files:        1"))
-        XCTAssertFalse(text.contains("Final Status:        SAFE TO EJECT"))
+        XCTAssertFalse(text.contains("Final Status:        SAFE TO EJECT DESTINATION"))
     }
 
     func testTransferFailureReportIsTransferError() async {
@@ -161,7 +163,7 @@ final class ReportEngineXCTests: XCTestCase {
         XCTAssertTrue(text.contains("SAFE TO EJECT DESTINATION: NO"))
         XCTAssertTrue(text.contains("- TRANSFER ERROR: rsync failed."))
         XCTAssertFalse(text.contains("Final Status:        TRANSFER COMPLETE"))
-        XCTAssertFalse(text.contains("Final Status:        SAFE TO EJECT"))
+        XCTAssertFalse(text.contains("Final Status:        SAFE TO EJECT DESTINATION"))
     }
 
     func testCancelledReportIsCancelledAndNotSafeToEject() async {
@@ -179,7 +181,7 @@ final class ReportEngineXCTests: XCTestCase {
         XCTAssertTrue(text.contains("SAFE TO EJECT DESTINATION: NO"))
         XCTAssertTrue(text.contains("Copy Result:         CANCELLED"))
         XCTAssertTrue(text.contains("Verification Result: CANCELLED"))
-        XCTAssertFalse(text.contains("Final Status:        SAFE TO EJECT"))
+        XCTAssertFalse(text.contains("Final Status:        SAFE TO EJECT DESTINATION"))
     }
 
     func testTruthfulnessGuardBlocksInvalidSafeToEjectFacts() async {
@@ -188,7 +190,7 @@ final class ReportEngineXCTests: XCTestCase {
             bandwidthLimit: nil
         )
 
-        XCTAssertFalse(text.contains("Final Status:        SAFE TO EJECT"))
+        XCTAssertFalse(text.contains("Final Status:        SAFE TO EJECT DESTINATION"))
         XCTAssertTrue(text.contains("Final Status:        MANUAL CHECK REQUIRED"))
         XCTAssertTrue(text.contains("SAFE TO EJECT DESTINATION: NO"))
     }
@@ -203,6 +205,7 @@ final class ReportEngineXCTests: XCTestCase {
         XCTAssertTrue(text.contains("Warnings\n- None"))
         XCTAssertTrue(text.contains("Errors\nError Count:         0\n- None"))
         XCTAssertTrue(text.contains("TECHNICAL LOG"))
+        XCTAssertTrue(text.contains("Technical Log Note:\nThis section may include internal diagnostics and full local file paths. Review before sharing externally."))
         XCTAssertTrue(text.contains("No log entries recorded."))
     }
 
@@ -237,8 +240,12 @@ final class ReportEngineXCTests: XCTestCase {
         )
 
         XCTAssertTrue(text.contains("FULL TECHNICAL LOG"))
+        XCTAssertTrue(text.contains("Technical Log Note:"))
         XCTAssertTrue(text.contains("Starting transfer workflow"))
         XCTAssertTrue(text.contains("DIAG [COORDINATOR]"))
+        let noteRange = text.range(of: "Technical Log Note:")!
+        let logRange = text.range(of: "Starting transfer workflow")!
+        XCTAssertTrue(noteRange.lowerBound < logRange.lowerBound)
     }
 
     func testFilenameIsSafeUniqueDestinationSideAndUsesJobID() async throws {

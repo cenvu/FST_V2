@@ -41,11 +41,12 @@ struct ReportEngineMVPReportTests {
         assertContains(copyOnly, "Total Duration:      00:01:40", "copy-only total duration")
         assertContains(copyOnly, copyAverageSpeedLine("50.00 MB/s"), "copy-only copy average speed")
         assertContains(copyOnly, "SAFE TO EJECT DESTINATION: NO", "copy-only must not be safe eject")
-        assertContains(copyOnly, "Source Change Detection: NOT AVAILABLE IN V1", "source change detection v1 disclosure")
+        assertContains(copyOnly, "Source Change Detection: NOT AVAILABLE IN V1 - FST does not authorize erase, format, or reuse decisions.", "source change detection v1 disclosure")
+        assertContains(copyOnly, "Decision Reason:     Copy completed; verification was OFF and this transfer was not verified by FST.", "copy-only decision reason")
         assertContains(copyOnly, "Skipped Count:       NOT RECORDED IN V1", "skipped count v1 disclosure")
         assertNotContains(copyOnly, oldTransferDurationLabel(), "copy-only old duration label")
         assertNotContains(copyOnly, oldAverageSpeedLabel(), "copy-only old speed label")
-        assertNotContains(copyOnly, "Final Status:        SAFE TO EJECT", "copy-only must not be safe eject")
+        assertNotContains(copyOnly, "Final Status:        SAFE TO EJECT DESTINATION", "copy-only must not be safe eject")
         assertNotContains(copyOnly, formerFormatLabel, "copy-only must not use old format wording")
 
         let verified = await engine.generateReportText(
@@ -59,7 +60,7 @@ struct ReportEngineMVPReportTests {
             ),
             bandwidthLimit: RsyncBandwidthLimit.kibPerSecond(for: 120)
         )
-        assertContains(verified, "Final Status:        SAFE TO EJECT", "verified final status")
+        assertContains(verified, "Final Status:        SAFE TO EJECT DESTINATION", "verified final status")
         assertContains(verified, "Copy Duration:       00:00:20", "verified copy duration")
         assertContains(verified, "Verify Duration:     00:01:20", "verified verify duration")
         assertContains(verified, "Total Duration:      00:01:40", "verified total duration")
@@ -121,7 +122,7 @@ struct ReportEngineMVPReportTests {
         assertContains(verificationFailed, "Hash Algorithm:      SHA256", "verification failure hash algorithm")
         assertContains(verificationFailed, "- MANUAL CHECK REQUIRED: Verification failed.", "verification failure reason")
         assertContains(verificationFailed, "Failed Files:        1", "verification failure count")
-        assertNotContains(verificationFailed, "Final Status:        SAFE TO EJECT", "verification failure must not be safe eject")
+        assertNotContains(verificationFailed, "Final Status:        SAFE TO EJECT DESTINATION", "verification failure must not be safe eject")
         assertNotContains(verificationFailed, formerFormatLabel, "verification failure must not use old format wording")
 
         let transferFailed = await engine.generateReportText(
@@ -137,14 +138,14 @@ struct ReportEngineMVPReportTests {
         assertContains(transferFailed, "SAFE TO EJECT DESTINATION: NO", "transfer failure must not be safe eject")
         assertContains(transferFailed, "- TRANSFER ERROR: rsync failed.", "transfer failure reason")
         assertNotContains(transferFailed, "Final Status:        TRANSFER COMPLETE", "transfer failure must not be complete")
-        assertNotContains(transferFailed, "Final Status:        SAFE TO EJECT", "transfer failure must not be safe eject")
+        assertNotContains(transferFailed, "Final Status:        SAFE TO EJECT DESTINATION", "transfer failure must not be safe eject")
         assertNotContains(transferFailed, formerFormatLabel, "transfer failure must not use old format wording")
 
         let invalidSafeEjectFacts = await engine.generateReportText(
             report: report(finalStatus: .safeToFormat, mode: .none, verificationStatus: nil),
             bandwidthLimit: nil
         )
-        assertNotContains(invalidSafeEjectFacts, "Final Status:        SAFE TO EJECT", "truthfulness guard must block invalid safe eject")
+        assertNotContains(invalidSafeEjectFacts, "Final Status:        SAFE TO EJECT DESTINATION", "truthfulness guard must block invalid safe eject")
         assertContains(invalidSafeEjectFacts, "Final Status:        MANUAL CHECK REQUIRED", "truthfulness guard requires manual check")
         assertContains(invalidSafeEjectFacts, "SAFE TO EJECT DESTINATION: NO", "truthfulness guard must not be safe eject")
         assertNotContains(invalidSafeEjectFacts, formerFormatLabel, "truthfulness guard must not use old format wording")

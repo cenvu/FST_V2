@@ -26,14 +26,15 @@ struct ReportEngineWordingTests {
         )
         assertContains(copyOnly, "Final Status:        TRANSFER COMPLETE", "copy-only report status")
         assertContains(copyOnly, "SAFE TO EJECT DESTINATION: NO", "copy-only report must not imply verified eject status")
-        assertNotContains(copyOnly, "Final Status:        SAFE TO EJECT", "copy-only report must not imply verified eject status")
+        assertContains(copyOnly, "verification was OFF and this transfer was not verified by FST", "copy-only report reason")
+        assertNotContains(copyOnly, "Final Status:        SAFE TO EJECT DESTINATION", "copy-only report must not imply verified eject status")
         assertNotContains(copyOnly, formerFormatLabel, "copy-only report must not use old format wording")
 
         let verified = await engine.generateReportText(
             report: report(finalStatus: .safeToFormat, verificationResult: .passed, verificationMode: .full),
             bandwidthLimit: nil
         )
-        assertContains(verified, "Final Status:        SAFE TO EJECT", "verified report status")
+        assertContains(verified, "Final Status:        SAFE TO EJECT DESTINATION", "verified report status")
         assertContains(verified, "SAFE TO EJECT DESTINATION: YES", "verified report safe destination")
         assertContains(verified, "Hash Algorithm:      xxHash64", "verified report hash algorithm")
         assertContains(verified, "Fast non-cryptographic hash verification", "verified report hash note")

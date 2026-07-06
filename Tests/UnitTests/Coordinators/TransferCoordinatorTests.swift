@@ -104,7 +104,7 @@ final class TransferCoordinatorTests: XCTestCase {
         XCTAssertTrue(states.contains(.validating))
         XCTAssertTrue(states.contains(.copying))
         XCTAssertTrue(states.contains(.verifying))
-        // Confirm SAFE_TO_FORMAT is strictly reached
+        // Confirm the verified-safe terminal state is strictly reached
         XCTAssertTrue(states.contains(.safeToFormat))
         XCTAssertEqual(coordinator.state, .safeToFormat)
     }

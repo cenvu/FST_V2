@@ -38,13 +38,13 @@ public actor ReportEngine {
         text += "Job ID:              \(report.jobID)\n"
         text += "Final Status:        \(finalStatusText)\n"
         text += "SAFE TO EJECT DESTINATION: \(safeToEjectDestination)\n"
-        text += "Safety Decision:     \(decisionReason)\n"
+        text += "Decision Reason:     \(decisionReason)\n"
         text += "Transfer Engine:     \(transferEngineDescription(for: report))\n"
         text += "----------------------------------------------------\n"
         text += "Source\n"
         text += "Source Path:         \(report.sourcePath)\n"
         text += "Source Name:         \(report.sourceName)\n"
-        text += "Source Change Detection: NOT AVAILABLE IN V1\n"
+        text += "Source Change Detection: NOT AVAILABLE IN V1 - FST does not authorize erase, format, or reuse decisions.\n"
         text += "----------------------------------------------------\n"
         text += "Destination\n"
         text += "Destination Path:    \(report.destinationPath)\n"
@@ -151,7 +151,7 @@ public actor ReportEngine {
     }
 
     private func safeToEjectDestinationDescription(for report: TransferReport) -> String {
-        finalStatusDescription(for: report) == "SAFE TO EJECT" ? "YES" : "NO"
+        finalStatusDescription(for: report) == "SAFE TO EJECT DESTINATION" ? "YES" : "NO"
     }
 
     private func transferEngineDescription(for report: TransferReport) -> String {
@@ -173,7 +173,7 @@ public actor ReportEngine {
             return "TRANSFER COMPLETE"
         case .safeToFormat:
             if report.verificationMode != .none, report.verificationResult == .passed {
-                return "SAFE TO EJECT"
+                return "SAFE TO EJECT DESTINATION"
             }
 
             return "MANUAL CHECK REQUIRED"
@@ -193,8 +193,8 @@ public actor ReportEngine {
     private func safetyDecisionReason(for report: TransferReport, finalStatusText: String) -> String {
         switch finalStatusText {
         case "TRANSFER COMPLETE":
-            return "Copy completed; verification was off or not passed by FST."
-        case "SAFE TO EJECT":
+            return "Copy completed; verification was OFF and this transfer was not verified by FST."
+        case "SAFE TO EJECT DESTINATION":
             return "Copy completed and verification passed for the selected mode."
         case "MANUAL CHECK REQUIRED":
             return "Verification failed, mismatch was detected, or job facts are uncertain."
@@ -331,6 +331,8 @@ public actor ReportEngine {
         var section = "\n====================================================\n"
         section += logs.isEmpty ? "             TECHNICAL LOG\n" : "             FULL TECHNICAL LOG\n"
         section += "====================================================\n"
+        section += "Technical Log Note:\n"
+        section += "This section may include internal diagnostics and full local file paths. Review before sharing externally.\n"
 
         guard !logs.isEmpty else {
             section += "No log entries recorded.\n"
