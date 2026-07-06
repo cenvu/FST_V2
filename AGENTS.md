@@ -111,8 +111,8 @@ Safety-critical changes:
 
 ## Current Release State
 
-- Current version: v1.3.3 display 1.3.3 build 20260706
-- Current package: `dist/FishSockTransfer-v1.3.3-b20260706-local-macOS13_5plus-arm64.zip`
+- Current version: v1.3.4 display 1.3.4 build 20260706
+- Current package: `dist/FishSockTransfer-v1.3.4-b20260706-local-macOS13_5plus-arm64.zip`
 - Platform: macOS 13.5+, Apple Silicon arm64 only
 - Package type: local owner-side ad-hoc build
 - Signing: ad-hoc signed, not notarized, not Developer ID signed
@@ -121,6 +121,7 @@ Safety-critical changes:
 - Notification MVP: Telegram best-effort notifications only, with v1.3.3 packaged-network entitlement fix
 - Transfer engine: bundled rsync 3.4.4 only
 - Operator-facing verified success: SAFE TO EJECT
+- Release theme: Detailed TXT Report V1 hardening and safety wording cleanup
 
 FST does not format media and does not eject media.
 

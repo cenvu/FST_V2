@@ -57,6 +57,12 @@ Current locked scope:
 - No Apple/System/Homebrew rsync fallback
 - Detailed TXT Report V1 before advanced features
 
+## v1.3.4 Report Hardening Safety Model
+
+v1.3.4 hardens Detailed TXT Report V1 and safety wording. Generated report output must describe verified success as SAFE TO EJECT DESTINATION, disclose that FST reports copy and verification results only, and avoid implying permission to erase, format, or reuse source media.
+
+This release does not change transfer, verify, rsync, Telegram, update-check, or UI layout behavior.
+
 ## v1.3.3 Notification and Manual Update Check Safety Model
 
 v1.3.3 fixes packaged/release build outbound network permission by preserving the app’s sandbox network client entitlement. This allows manual GitHub update-check and Telegram notification workflows to use outbound HTTPS as intended. The release does not add auto-download, auto-install, Sparkle, app bundle mutation, or any transfer/verify/rsync/report/SAFE TO EJECT/Telegram business logic changes.

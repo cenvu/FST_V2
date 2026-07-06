@@ -18,11 +18,17 @@ The app is inspired by professional offload tools but focused on a lightweight M
 
 ## Platform
 
-- macOS 13.5+ for the v1.3.3 local package
+- macOS 13.5+ for the v1.3.4 local package
 - Apple Silicon arm64 package
 - SwiftUI
 - MVVM / Coordinator / Service / Engine architecture
 - Bundled rsync 3.4.4 only
+
+## Detailed TXT Report V1 Safety Model
+
+v1.3.4 hardens Detailed TXT Report V1 and safety wording. Generated report output must describe verified success as SAFE TO EJECT DESTINATION, disclose that FST reports copy and verification results only, and avoid implying permission to erase, format, or reuse source media.
+
+This release does not change transfer, verify, rsync, Telegram, update-check, or UI layout behavior.
 
 ## Runtime Progress, Notification, and Update Check Model
 

@@ -2,6 +2,24 @@
 
 # Changelog
 
+## v1.3.4 - 2026-07-06
+
+### Changed
+* Hardened Detailed TXT Report V1 sections for clearer operator review.
+* Added a bilingual disclaimer near the top of generated reports.
+* Removed obsolete safety wording from active report output.
+* Clarified final verified success wording as SAFE TO EJECT DESTINATION.
+* Updated report filenames and job IDs so they no longer use the source name.
+* Reduced operator-facing rsync detail to rsync 3.4.4.
+* Added a technical log sharing note to report output.
+* Updated tests for report wording safety.
+
+### Safety
+* FST reports copy and verification results only. Decisions to erase, format, or reuse source media remain the user's responsibility.
+* SAFE TO EJECT applies to destination eject safety evidence only.
+* No transfer, verify/hash, rsync, Telegram, update-check, or UI layout behavior changed.
+* v1.3.3 remains the packaged network permission / entitlement hotfix release.
+
 ## v1.3.3 - 2026-07-06
 
 ### Fixed

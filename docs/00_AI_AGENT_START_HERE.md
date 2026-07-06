@@ -73,8 +73,8 @@ Do not use older agent routing if it conflicts with `FST_AI/`.
 
 ## Current Release Snapshot
 
-- Version: v1.3.3 display 1.3.3 build 20260706
-- Package: `dist/FishSockTransfer-v1.3.3-b20260706-local-macOS13_5plus-arm64.zip`
+- Version: v1.3.4 display 1.3.4 build 20260706
+- Package: `dist/FishSockTransfer-v1.3.4-b20260706-local-macOS13_5plus-arm64.zip`
 - Platform: macOS 13.5+, Apple Silicon arm64 only
 - Package type: local owner-side ad-hoc build
 - Signing: ad-hoc signed, not notarized, not Developer ID signed
@@ -84,7 +84,9 @@ Do not use older agent routing if it conflicts with `FST_AI/`.
 
 FST does not format media and does not eject media.
 
-v1.3.3 fixes packaged/release build outbound network permission by preserving the app’s sandbox network client entitlement. This allows manual GitHub update-check and Telegram notification workflows to use outbound HTTPS as intended. The release does not add auto-download, auto-install, Sparkle, app bundle mutation, or any transfer/verify/rsync/report/SAFE TO EJECT/Telegram business logic changes.
+v1.3.4 hardens Detailed TXT Report V1 and safety wording. It does not change transfer, verify, rsync, Telegram, update-check, or UI layout behavior.
+
+v1.3.3 remains the packaged/release build outbound network permission hotfix. It preserves the app's sandbox network client entitlement so manual GitHub update-check and Telegram notification workflows can use outbound HTTPS as intended.
 
 Agent division:
 

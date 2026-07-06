@@ -18,7 +18,7 @@
 - Confirmed no incoming network/server entitlement is added unless already required by the project.
 
 ## Documentation & Repository Hygiene Audit
-- **Wording Alignment:** Standardized "SAFE TO EJECT" globally. Completely removed obsolete "SAFE TO FORMAT" wording from active documentation.
+- **Wording Alignment:** Standardized "SAFE TO EJECT" globally and removed obsolete formatting-safety wording from active documentation.
 - **Workflow Standardization:** Confirmed wording `Copy -> Verify -> Safe To Eject -> Report` globally.
 - **Archive Cleanup:** Moved deprecated and duplicate release notes into `docs/archive/`.
 - **MVP Scope Clarified:** Ensured all active docs clearly reflect single source, single destination, single active job, bundled rsync 3.4.4, and no Apple system rsync fallback.
