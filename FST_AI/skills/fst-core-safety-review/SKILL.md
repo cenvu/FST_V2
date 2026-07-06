@@ -2,54 +2,83 @@
 
 ---
 name: fst-core-safety-review
-description: Review safety-critical FST changes affecting copy, verify, state, reports, or SAFE TO EJECT.
+description: Review safety-critical FST changes affecting copy, verify, state, reports, rsync, or SAFE TO EJECT.
 ---
 
-# SKILL: fst-core-safety-review
+# Skill: fst-core-safety-review
 
-## Role
+## Purpose
 
-Use this skill to review any change touching FST core safety behavior.
+Review safety-critical FST changes for false SAFE TO EJECT, source mutation, hidden failure, or report-truth risk.
 
-## Safety-Critical Areas
+## When to Use
 
-Treat these as safety-critical:
+Use for changes touching transfer, verify, state machine, cancellation, error handling, source identity, report safety decision, rsync path/flags, or terminal UI state.
 
-- SAFE TO EJECT gate
-- Verify result
-- Copy result
-- Rsync exit handling
-- State machine transition
-- Cancellation handling
-- Failure handling
-- Source identity check
-- Destination check
-- Report safety decision
-- fileCountMismatch handling
+## Owner Agent
 
-## Required Review
+Claude reviews. Codex implements. Mi gates.
 
-Confirm:
+## Required Startup Docs
 
-- Failure state cannot become safe.
-- Cancelled state cannot become safe.
-- Verify failed state cannot become safe.
-- Copy failed state cannot become safe.
-- Report records final decision accurately.
-- UI does not imply safety before verification.
-- No fallback to Apple/System/Homebrew rsync is introduced.
-- No skipped warning is hidden.
+- `AGENTS.md`
+- `FST_AI/memory/COMMAND_CENTER_HANDOVER.md`
+- `docs/02_FST_TECHNICAL_GUIDE.md`
+
+## Inputs
+
+- Diff.
+- Changed files.
+- Test/build results.
+- Runtime evidence if available.
+- Report samples if report behavior changed.
+
+## Safety Boundaries
+
+- Source media must never be mutated.
+- Bundled rsync 3.4.4 only.
+- No Apple/System/Homebrew rsync fallback.
+- SAFE TO EJECT requires copy success and verification pass.
+- UI estimates never decide safety truth.
+
+## Procedure
+
+1. Identify affected safety truths.
+2. Check failure, cancel, incomplete, uncertain, and verify-fail paths.
+3. Check source write/delete/rename/chmod/chown/format risks.
+4. Check report and UI terminal state consistency.
+5. Require runtime QA when evidence is insufficient.
+
+## Required Checks
+
+- Failed copy cannot become safe.
+- Cancelled job cannot become safe.
+- Verify failure cannot become safe.
+- Copy-only `none` verification does not become verified SAFE TO EJECT.
+- Report final decision matches canonical state.
+- No destructive rsync flags or fallback.
 
 ## Output Format
 
-Safety verdict:
-Pass / Pass with concern / Fail
+Verdict:
 
-False SAFE TO EJECT risk:
-none / possible / confirmed
+Safety impact:
 
 Blocking issues:
 
-Required tests:
+Evidence checked:
 
-Release impact:
+Required revision:
+
+Runtime QA:
+
+## Stop / Escalate If
+
+- Any safety truth is inferred from UI progress.
+- Source mutation is possible.
+- Final state/report mismatch exists.
+
+## Do Not
+
+- Approve risky changes without independent review.
+- Accept missing evidence for release-sensitive work.

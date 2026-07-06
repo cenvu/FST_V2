@@ -5,54 +5,53 @@ name: fst-small-safe-change
 description: Keep FST changes minimal, safe, scoped, and reviewable.
 ---
 
-# SKILL: fst-small-safe-change
+# Skill: fst-small-safe-change
 
-Inspired by minimal-change and anti-overengineering agent practices.
+## Purpose
 
-## Role
+Keep FST changes small, safe, scoped, and easy to review.
 
-Use this skill to keep FST changes small, safe, and reviewable.
+## When to Use
 
-## Use When
+Use for bug fixes, safety-critical changes, progress/ETA changes, verify logic, report logic, docs cleanup, or UI changes that could affect operator confidence.
 
-Use this skill for:
+## Owner Agent
 
-- Bug fixes
-- Safety-critical changes
-- Progress/ETA changes
-- Verify logic changes
-- Report logic changes
-- UI changes that could affect operator confidence
+Codex applies for core/docs. Antigravity applies for UI. Claude reviews risk. Mi gates scope.
 
-## Rule
+## Required Startup Docs
 
-Prefer the smallest safe change that solves the real problem.
+- `AGENTS.md`
+- `FST_AI/memory/COMMAND_CENTER_HANDOVER.md`
+- `FST_AI/memory/TASK_REGISTRY.md`
 
-## Do Not Add
+## Inputs
 
-Do not add unless explicitly approved:
+- Task.
+- Affected files.
+- Risk classification.
+- Required behavior.
 
-- Dependency
-- Database
-- Cloud service
-- Multi-job architecture
-- Multi-destination support
-- Background scheduler
-- Telemetry
-- Analytics
-- New report format
-- Large refactor
+## Safety Boundaries
 
-## Required Questions
+- Do not weaken data safety for convenience.
+- Do not add broad architecture unless explicitly approved.
+- Do not let UI polish affect safety truth.
 
-Before changing code, answer:
+## Procedure
 
-1. What is the smallest surface area to change?
-2. Can this be fixed without new architecture?
-3. Can this be fixed without new dependency?
-4. What safety behavior could regress?
-5. How can Claude review this efficiently?
-6. What runtime scenario proves the fix?
+1. Identify the smallest surface area.
+2. Confirm no new dependency or architecture is needed.
+3. Patch only the relevant files.
+4. Preserve existing layer boundaries.
+5. List checks and remaining risks.
+
+## Required Checks
+
+- What safety behavior could regress?
+- Can Claude review this efficiently?
+- What runtime or doc check proves the fix?
+- Are unrelated files untouched?
 
 ## Output Format
 
@@ -62,8 +61,16 @@ Files changed:
 
 Files intentionally not changed:
 
-Why no larger refactor is needed:
-
 Safety risk:
 
-Review notes for Claude:
+Review notes:
+
+## Stop / Escalate If
+
+- The fix requires new policy.
+- Scope expands to deferred features.
+- Source safety, SAFE TO EJECT, or report truth is uncertain.
+
+## Do Not
+
+- Add dependency, database, cloud, multi-job, multi-destination, telemetry, analytics, new report format, or large refactor without explicit approval.

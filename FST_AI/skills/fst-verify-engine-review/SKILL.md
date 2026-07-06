@@ -2,150 +2,83 @@
 
 ---
 name: fst-verify-engine-review
-description: Review FST verify engine behavior, copy verification correctness, mismatch handling, source identity checks, and false-pass risks.
+description: Review FST verify engine behavior, mismatch handling, source identity checks, and false-pass risks.
 ---
 
-# SKILL: fst-verify-engine-review
+# Skill: fst-verify-engine-review
 
-## Role
+## Purpose
 
-Use this skill to review any FST change touching verify behavior, verification result classification, mismatch handling, source/destination comparison, or verify-related SAFE TO EJECT decisions.
+Review verification behavior so FST never false-passes verification or SAFE TO EJECT.
 
-Primary reviewer: Claude.
-Primary implementer: Codex.
-Final safety gate: Mi.
+## When to Use
 
-## Use When
+Use when VerifyEngine, verification modes, inventory, file count, file size, hashing, source-changed detection, skipped item handling, verify report fields, or SAFE TO EJECT inputs change.
 
-Use this skill when a change touches:
+## Owner Agent
 
-- VerifyEngine
-- verification service
-- file count checks
-- file size checks
-- hash/checksum checks if present
-- source changed detection
-- destination missing detection
-- skipped item handling
-- verify pass/fail classification
-- verify report fields
-- SAFE TO EJECT decision inputs
+Claude reviews. Codex implements. Mi gates.
 
-## Core Principle
+## Required Startup Docs
 
-Verify must never false-pass.
+- `AGENTS.md`
+- `FST_AI/memory/COMMAND_CENTER_HANDOVER.md`
+- `docs/02_FST_TECHNICAL_GUIDE.md`
 
-A false verify pass can lead to unsafe media handling.
+## Inputs
 
-If verification is uncertain, incomplete, interrupted, cancelled, or inconsistent, the result must not be treated as verified.
+- Diff.
+- Verification mode.
+- Source/destination inventory behavior.
+- Hash behavior.
+- Verification result samples.
 
-## Review Priority
+## Safety Boundaries
 
-Review in this order:
+- Verify must never false-pass.
+- `none` is copy-only, not verified SAFE TO EJECT.
+- `random33` uses SHA256 sample verification.
+- `full` uses xxHash64 full verification.
+- Verify ETA is UI-only and never decides verify truth.
 
-1. False-pass prevention
-2. Source identity correctness
-3. Destination completeness
-4. File count correctness
-5. File size/hash correctness according to current policy
-6. Mismatch classification
-7. Skipped item handling
-8. Cancel/failure behavior
-9. Report accuracy
-10. UI state clarity
+## Procedure
 
-## Hard Blocks
-
-Reject the change if it allows:
-
-- Verify failure to become verify pass.
-- Cancelled verify to become verify pass.
-- Incomplete verify to become verify pass.
-- Source changed case to become verify pass.
-- Missing destination to become verify pass.
-- fileCountMismatch to become SAFE TO EJECT without explicit approved policy.
-- Skipped files to be hidden from report.
-- Verify error to be swallowed.
-- Unknown state to be treated as success.
+1. Check inventory and relative path comparison.
+2. Check file size comparison before hashing.
+3. Check sample/full file selection.
+4. Check hash mismatch and missing file handling.
+5. Check cancellation/source-changed behavior.
+6. Check report/state mapping.
 
 ## Required Checks
 
-Check:
-
-- How is the source enumerated?
-- How is the destination enumerated?
-- Are package directories handled consistently?
-- Are hidden files handled consistently?
-- Are skipped files recorded?
-- Are file counts compared correctly?
-- Are byte sizes compared correctly?
-- Are checksums/hashes used or explicitly not used?
-- Is source identity captured before and after copy/verify?
-- Is source changed detection implemented?
-- Are verify errors surfaced?
-- Is cancellation supported?
-- Is verify work off the MainActor/UI thread?
-- Is verify result recorded in report?
-- Does SAFE TO EJECT depend on verify pass?
-
-## fileCountMismatch Checks
-
-When fileCountMismatch appears, verify:
-
-- The mismatch source is identified.
-- Hidden/system files are considered.
-- macOS package/directory behavior is considered.
-- Excluded/skipped items are considered.
-- rsync itemization behavior is considered.
-- The mismatch is not ignored silently.
-- The report includes mismatch evidence.
-- SAFE TO EJECT is blocked unless policy explicitly allows otherwise.
-
-## Source Changed Checks
-
-Confirm:
-
-- Source identity is captured.
-- Source is not mutated by FST.
-- Source change after copy is detected.
-- Source change blocks verify pass or marks verify uncertain according to policy.
-- Report records source-changed condition.
+- Minimum one sampled file when files exist for random33.
+- All eligible files checked for full verification.
+- Missing/extra/size mismatch blocks verified success.
+- Hash mismatch blocks verified success.
+- Cancelled/uncertain verification blocks SAFE TO EJECT.
 
 ## Output Format
 
 Verdict:
-Accept / Accept with risk / Reject
-
-Verify safety impact:
-none / low / medium / high
 
 False-pass risk:
-none / possible / confirmed
 
 Mismatch handling:
-pass / concern / fail
 
-Source changed handling:
-pass / concern / fail
+Mode behavior:
 
-MainActor/UI blocking risk:
-none / possible / confirmed
+Report/state mapping:
 
-Must fix before merge:
+Required fix:
 
-Recommended Codex revision prompt:
+## Stop / Escalate If
 
-Runtime QA required:
+- Verification result can be inferred from progress.
+- Mismatch is downgraded without approved policy.
+- `none` verification is presented as verified safe.
 
-Notes for Mi:
+## Do Not
 
-## Self-Check
-
-Before finishing, confirm:
-
-- No uncertain verify path is accepted as pass.
-- No verify failure can produce SAFE TO EJECT.
-- fileCountMismatch is not hidden.
-- Source changed behavior is explicit.
-- Verify does not freeze UI.
-
+- Add new verification algorithms or manifests without spec approval.
+- Let performance concerns weaken verification truth.

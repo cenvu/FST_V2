@@ -271,6 +271,7 @@ Package validation includes:
 
 Read first:
 - `AGENTS.md`: root agent rules, current release state, architecture/safety law
+- `FST_AI/memory/TASK_REGISTRY.md`: task repetition guard
 - `FST_AI/memory/COMMAND_CENTER_HANDOVER.md`: current Command Center baseline
 - `FST_AI/memory/WORK_HISTORY.md`: append-only compact work history
 - `docs/00_AI_AGENT_START_HERE.md`: active entry point
@@ -283,9 +284,8 @@ Read first:
 - `docs/releases/release-notes-v1.3.4.md`: latest release note
 - `FST_AI/README.md`: AI engineering system
 
-Historical docs:
-- `docs/archive/` is historical only.
-- Do not treat old React/Vite/web prototype files as production SwiftUI app code.
+Historical material:
+- Do not treat deleted, archived, old React/Vite, or web prototype files as production SwiftUI app code.
 
 ## AI Agent Workflow
 
@@ -297,6 +297,10 @@ Roles:
 - Claude: QA/safety review and second opinion
 
 Roo/RooCode is dropped unless explicitly reintroduced.
+
+Role source of truth:
+- `FST_AI/roles/` is the only active role-doc home.
+- Do not create `FST_AI/agents/` unless Mi explicitly changes the structure.
 
 Routing:
 - Core logic: Codex implements, Claude reviews, Mi gates.
@@ -381,6 +385,7 @@ Deferred:
 ## Required Agent Startup
 
 Before making changes, every AI agent must read:
+- `FST_AI/memory/TASK_REGISTRY.md`
 - `FST_AI/memory/COMMAND_CENTER_HANDOVER.md`
 - `FST_AI/memory/WORK_HISTORY.md`
 - `AGENTS.md`
@@ -390,11 +395,18 @@ If docs conflict, use this priority:
 1. `AGENTS.md`
 2. `FST_AI/memory/COMMAND_CENTER_HANDOVER.md`
 3. `docs/00_AI_AGENT_START_HERE.md`
-4. `FST_AI/memory/WORK_HISTORY.md`
-5. older archived docs
+4. `FST_AI/memory/TASK_REGISTRY.md`
+5. `FST_AI/memory/WORK_HISTORY.md`
+
+Before executing a task, check:
+- `FST_AI/memory/TASK_REGISTRY.md`
+- `FST_AI/memory/WORK_HISTORY.md`
+
+If a substantially similar task already exists, ask whether to rerun it, continue it, or review previous output.
 
 After meaningful work, agents must propose an update to:
 - `FST_AI/memory/WORK_HISTORY.md`
+- `FST_AI/memory/TASK_REGISTRY.md`
 
 If baseline changes, agents must also propose an update to:
 - `FST_AI/memory/COMMAND_CENTER_HANDOVER.md`
@@ -418,4 +430,4 @@ Architecture: SwiftUI Views -> TransferViewModel -> TransferCoordinator -> Engin
 
 Safety model: safety truth is copy success + verification result + report/final state. Transfer truth is bundled rsync lifecycle, exit status, stderr, cancellation/failure. Operator truth is UI progress, destination observer metrics, speed, ETA, current item, verify ETA, logs, Telegram/update-check visibility. Destination observer and verify ETA are UI-only and must never decide copy success, verify success, report result, or SAFE TO EJECT. Verification modes: `none` copy-only; `random33` sample SHA256; `full` xxHash64 full verification.
 
-AI roles: Mi/Command Center is technical lead/safety gate/prompt architect. Codex handles core engineering, release engineering, repo audits. Antigravity handles SwiftUI/UI. Gemini Pro can do small UI/ViewModel experiments if routed. Claude reviews QA/safety. Roo/RooCode is dropped unless reintroduced. Standard checks: `git diff --check`; Xcode Debug build; full `xcodebuild test`; `bash scripts/package-local-arm64.sh`. Next priorities: second-Mac package QA, failure/cancel QA, destination existing-folder policy, report evidence review, permission UX, release automation, docs cleanup, UI clarity, signing/notarization decision.
+AI roles: Mi/Command Center is technical lead/safety gate/prompt architect. Codex handles core engineering, release engineering, repo audits. Antigravity handles SwiftUI/UI. Gemini Pro can do small UI/ViewModel experiments if routed. Claude reviews QA/safety. Roo/RooCode is dropped unless reintroduced. `FST_AI/roles/` is the only active role-doc home. Agents check `TASK_REGISTRY.md` and `WORK_HISTORY.md` before repeated tasks. Standard checks: `git diff --check`; Xcode Debug build; full `xcodebuild test`; `bash scripts/package-local-arm64.sh`. Next priorities: second-Mac package QA, failure/cancel QA, destination existing-folder policy, report evidence review, permission UX, release automation, docs cleanup, UI clarity, signing/notarization decision.

@@ -26,6 +26,7 @@ This folder standardizes:
 
 Before starting any task, read:
 
+- `FST_AI/memory/TASK_REGISTRY.md`
 - `FST_AI/memory/COMMAND_CENTER_HANDOVER.md`
 - `FST_AI/memory/WORK_HISTORY.md`
 - `AGENTS.md`
@@ -35,15 +36,18 @@ If docs conflict, use this priority:
 1. `AGENTS.md`
 2. `FST_AI/memory/COMMAND_CENTER_HANDOVER.md`
 3. `docs/00_AI_AGENT_START_HERE.md`
-4. `FST_AI/memory/WORK_HISTORY.md`
-5. older archived docs
+4. `FST_AI/memory/TASK_REGISTRY.md`
+5. `FST_AI/memory/WORK_HISTORY.md`
 
-After meaningful work, propose a new `WORK_HISTORY.md` entry. If the baseline changes, also propose a `COMMAND_CENTER_HANDOVER.md` update. Meaningful work includes source, safety policy, report wording/schema, release/package/tag/GitHub Release, architecture, routing, or source-of-truth docs changes.
+Before executing a task, check `TASK_REGISTRY.md` and `WORK_HISTORY.md`. If the same or substantially similar task already exists, ask whether to rerun it, continue it, or review prior output.
+
+After meaningful work, propose new `WORK_HISTORY.md` and `TASK_REGISTRY.md` entries. If the baseline changes, also propose a `COMMAND_CENTER_HANDOVER.md` update. Meaningful work includes source, safety policy, report wording/schema, release/package/tag/GitHub Release, architecture, routing, or source-of-truth docs changes.
 
 Reusable Codex prompt starter:
 
 ```text
 Before doing anything, read:
+- FST_AI/memory/TASK_REGISTRY.md
 - FST_AI/memory/COMMAND_CENTER_HANDOVER.md
 - FST_AI/memory/WORK_HISTORY.md
 - AGENTS.md
@@ -53,6 +57,7 @@ Then confirm:
 - current branch
 - git status
 - latest commit
+- whether a similar task already appears in TASK_REGISTRY.md or WORK_HISTORY.md
 - whether the task changes safety truth, transfer truth, operator truth, or docs only
 
 Do not proceed if the task conflicts with Command Center safety rules.
@@ -63,7 +68,9 @@ Do not proceed if the task conflicts with Command Center safety rules.
 - Mi / Command Center: Technical Lead, Safety Gate, Prompt Architect, Workflow Router.
 - Codex: Main Core Coding Agent, Secondary Reviewer.
 - Claude: Main QA, Main Code Reviewer, Main Safety Reviewer, Secondary Coding Agent when explicitly routed.
-- Antigravity / Gemini Pro: Main UI Coding Agent for SwiftUI/UI/UX.
+- Antigravity: Main SwiftUI/UI implementation environment.
+- Gemini Pro: Routed UI/ViewModel experiment and polish agent, usually inside Antigravity.
+- Roo/RooCode: Dropped workflow unless Mi explicitly reintroduces it.
 
 ## Core Principle
 
@@ -229,6 +236,15 @@ Primary files:
 - `FST_AI/skills/fst-progress-dashboard-design/`
 
 Do not install or run external UI skill CLI tools inside FST unless Mi explicitly approves it.
+
+Additional focused skills:
+
+- `FST_AI/skills/fst-docs-cleanup/`
+- `FST_AI/skills/fst-network-security-review/`
+
+## Role Docs
+
+Use `FST_AI/roles/` as the only role home. Do not create `FST_AI/agents/` for this project unless Mi explicitly changes the structure.
 
 ## What Not To Do
 

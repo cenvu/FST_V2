@@ -1,36 +1,24 @@
 <!-- FST / CenVu | (+84) 842 841 222 -->
 
-# Agent Roles
+# Agent Roles Index
 
-## Mi / Command Center
+## Purpose
 
-Technical Lead, Safety Gate, Prompt Architect, Workflow Router.
+Short index only. Role rules live in `FST_AI/roles/`.
 
-## Codex
+## Current Role Docs
 
-Main Core Coding Agent.
+- `FST_AI/roles/mi-technical-lead.md`
+- `FST_AI/roles/codex-core-engineer.md`
+- `FST_AI/roles/claude-primary-reviewer.md`
+- `FST_AI/roles/antigravity-gemini-ui-engineer.md`
+- `FST_AI/roles/gemini-pro.md`
+- `FST_AI/roles/roo-roocode-dropped.md`
 
-Secondary Reviewer.
-
-## Claude
-
-Main QA, Main Code Reviewer, Main Safety Reviewer.
-
-Secondary Coding Agent when explicitly routed.
-
-## Antigravity / Gemini Pro
-
-Main UI Coding Agent for SwiftUI/UI/UX.
+Release readiness is not an agent role. Use `FST_AI/skills/fst-release-gate/SKILL.md`.
 
 ## Rule
 
-The agent that codes a risky change should not be the only reviewer of that change.
+The agent that codes a risky change must not be the only reviewer of that change.
 
-Codex codes core.
-
-Claude reviews core.
-
-Antigravity codes UI.
-
-Mi approves final direction.
-
+Mi routes and gates. Codex codes core. Claude reviews core. Antigravity handles UI. Gemini Pro assists with small routed UI/ViewModel work. Roo/RooCode is inactive unless Mi explicitly reintroduces it with a new approved role doc.

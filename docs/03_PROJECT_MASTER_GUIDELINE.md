@@ -63,7 +63,6 @@ FST_V2/
     01_PRD.md
     02_FST_TECHNICAL_GUIDE.md
     03_PROJECT_MASTER_GUIDELINE.md
-    archive/
 
   FishSockTransfer/
     FishSockTransfer.xcodeproj
@@ -86,10 +85,10 @@ FST_V2/
 Rules:
 
 - `docs/` contains active project documentation.
-- `docs/archive/` contains old docs only.
 - `FishSockTransfer/FishSockTransfer/` contains app source code only.
 - Do not place guide docs inside the app source folder.
 - Old React/Vite prototype files must not be treated as production SwiftUI app code.
+- Deleted or historical docs must not be treated as active authority.
 
 ---
 
@@ -97,6 +96,7 @@ Rules:
 
 Before making changes, every AI agent must read:
 
+- `FST_AI/memory/TASK_REGISTRY.md`
 - `FST_AI/memory/COMMAND_CENTER_HANDOVER.md`
 - `FST_AI/memory/WORK_HISTORY.md`
 - `AGENTS.md`
@@ -106,10 +106,12 @@ If docs conflict, use this priority:
 1. `AGENTS.md`
 2. `FST_AI/memory/COMMAND_CENTER_HANDOVER.md`
 3. `docs/00_AI_AGENT_START_HERE.md`
-4. `FST_AI/memory/WORK_HISTORY.md`
-5. older archived docs
+4. `FST_AI/memory/TASK_REGISTRY.md`
+5. `FST_AI/memory/WORK_HISTORY.md`
 
-After meaningful work, propose a `FST_AI/memory/WORK_HISTORY.md` update. If the baseline changes, also propose a `FST_AI/memory/COMMAND_CENTER_HANDOVER.md` update.
+Before executing a task, check `FST_AI/memory/TASK_REGISTRY.md` and `FST_AI/memory/WORK_HISTORY.md`. If the task appears already completed, ask whether to rerun it, continue it, or review previous output.
+
+After meaningful work, propose `FST_AI/memory/WORK_HISTORY.md` and `FST_AI/memory/TASK_REGISTRY.md` updates. If the baseline changes, also propose a `FST_AI/memory/COMMAND_CENTER_HANDOVER.md` update.
 
 Meaningful work includes:
 - source code changes

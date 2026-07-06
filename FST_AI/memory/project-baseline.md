@@ -2,6 +2,10 @@
 
 # FST Project Baseline
 
+Current detailed baseline lives in `FST_AI/memory/COMMAND_CENTER_HANDOVER.md`.
+
+This file keeps only stable product invariants. If the release baseline, package, version, agent hierarchy, or safety policy changes, update the handover first and keep this file short.
+
 FST is a professional macOS application for DIT/Data Wrangler workflows.
 
 Primary workflow:
@@ -18,7 +22,7 @@ The app is inspired by professional offload tools but focused on a lightweight M
 
 ## Platform
 
-- macOS 13.5+ for the v1.3.4 local package
+- macOS 13.5+ for the current local Apple Silicon package baseline
 - Apple Silicon arm64 package
 - SwiftUI
 - MVVM / Coordinator / Service / Engine architecture

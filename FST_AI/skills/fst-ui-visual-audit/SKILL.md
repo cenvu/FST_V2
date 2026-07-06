@@ -5,69 +5,76 @@ name: fst-ui-visual-audit
 description: Audit FST UI changes for visual hierarchy, operator readability, warning/error visibility, and anti-patterns.
 ---
 
-# SKILL: fst-ui-visual-audit
+# Skill: fst-ui-visual-audit
 
-## Role
+## Purpose
 
-Use this skill to audit completed UI work from Antigravity/Gemini Pro.
+Audit completed or proposed FST UI for operator clarity and safety-readable visual hierarchy.
 
-Primary reviewer: Claude or Mi.
-Primary implementer: Antigravity/Gemini Pro.
+## When to Use
 
-## Use When
+Use for main window, progress view, source/destination panels, safety status, report summary, warning/error banners, button states, or UI polish.
 
-Use when reviewing:
+## Owner Agent
 
-- Main window layout
-- Progress view
-- Source/destination panels
-- Safety status display
-- Report summary
-- Warning/error banners
-- Button states
-- UI polish changes
+Claude or Mi reviews. Antigravity/Gemini implements.
+
+## Required Startup Docs
+
+- `AGENTS.md`
+- `FST_AI/design-system/MASTER.md`
+- Relevant page override.
+- UI audit checklists.
+
+## Inputs
+
+- Screenshot or UI notes.
+- Changed files.
+- State list tested.
+- Known backend state.
+
+## Safety Boundaries
+
+- UI must match backend truth.
+- No failed/cancelled/uncertain state may look successful.
+- UI estimates must not affect safety gates.
+
+## Procedure
+
+1. Inspect phase/status hierarchy.
+2. Check safety state readability.
+3. Check warnings/errors.
+4. Check source/destination readability.
+5. Check accessibility and density.
 
 ## Required Checks
 
-Check:
-
-- Is current phase immediately visible?
-- Is Project ETA / Whole Job ETA visible?
+- Can operator understand state within three seconds?
+- Is whole-job status primary?
 - Is current file secondary?
-- Is SAFE TO EJECT explicit?
-- Are warnings/errors hard to miss?
-- Are source/destination visible?
-- Is report status visible?
-- Can operator understand state within 3 seconds?
-- Does UI match backend state?
-- Did Antigravity avoid core logic changes?
-
-## Anti-Patterns
-
-Reject or revise if:
-
-- UI is decorative but less readable.
-- Error/warning state is too subtle.
-- Failed/cancelled state looks successful.
-- Copy complete looks verified.
-- Per-file ETA appears as project ETA.
-- Critical path/source text is hidden.
-- UI uses vague status wording.
-- Motion distracts from state.
-- Color is the only state indicator.
+- Are warnings/errors impossible to miss?
+- Is SAFE TO EJECT explicit only when valid?
+- Does UI avoid decorative noise?
 
 ## Output Format
 
-Visual audit verdict:
-Pass / Pass with concerns / Fail
+Verdict:
 
-Major visual issues:
+Blocking UI issues:
 
-Safety visibility issues:
+Operator clarity issues:
 
 Accessibility issues:
 
-Recommended Antigravity revision prompt:
+Recommended revision:
 
-Notes for Mi:
+## Stop / Escalate If
 
+- UI contradicts backend state.
+- UI requires core data changes.
+- Safety status is ambiguous.
+
+## Do Not
+
+- Approve UI that hides risk.
+- Request decorative work that reduces readability.

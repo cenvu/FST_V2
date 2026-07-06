@@ -5,60 +5,60 @@ name: fst-ui-accessibility-review
 description: Review FST UI accessibility as an operational safety feature, including contrast, text clarity, focus, reduced motion, and non-color state communication.
 ---
 
-# SKILL: fst-ui-accessibility-review
+# Skill: fst-ui-accessibility-review
 
-## Role
+## Purpose
 
-Use this skill to review FST UI accessibility.
+Review UI accessibility as safety-critical operator readability.
 
-Accessibility is treated as a safety feature because operators need to read copy, verify, error, and SAFE TO EJECT state accurately.
+## When to Use
 
-## Use When
+Use when colors, warnings/errors, button states, progress UI, safety status, typography, spacing, focus, or motion changes.
 
-Use when:
+## Owner Agent
 
-- UI colors change.
-- Warning/error design changes.
-- Button states change.
-- Progress UI changes.
-- Safety status UI changes.
-- Typography/spacing changes.
-- Motion/animation changes.
+Claude or Mi reviews. Antigravity/Gemini implements UI fixes.
+
+## Required Startup Docs
+
+- `AGENTS.md`
+- `FST_AI/design-system/MASTER.md`
+- `FST_AI/design-system/audits/accessibility-checklist.md`
+
+## Inputs
+
+- Screenshot or UI notes.
+- Changed UI files.
+- States reviewed.
+- Any accessibility concerns.
+
+## Safety Boundaries
+
+- SAFE TO EJECT, warning, error, failed, and cancelled states must not rely on color alone.
+- Accessibility polish must not change safety truth.
+
+## Procedure
+
+1. Check critical text contrast and size.
+2. Check non-color state cues.
+3. Check focus and button states.
+4. Check reduced motion and readable paths.
+5. Check whether failed state can be mistaken for success.
 
 ## Required Checks
 
-Check:
-
-- Critical text contrast.
-- Warning/error contrast.
 - SAFE TO EJECT readability.
-- State labels not color-only.
-- Focus states visible.
-- Reduced motion respected.
-- Buttons clearly labeled.
+- Warning/error contrast.
 - Disabled states understandable.
-- Critical text not too small.
+- ETA labels precise.
 - Long paths readable or inspectable.
-- ETA labels are precise.
-
-## Hard Blocks
-
-Reject if:
-
-- SAFE TO EJECT status relies on color alone.
-- Error state is low contrast.
-- Warning state is hidden.
-- Motion hides state transition.
-- Critical text is too small to read.
-- Button state is ambiguous.
-- Failed state looks like success.
+- Critical text not too small.
 
 ## Output Format
 
 Accessibility verdict:
-Pass / Pass with concerns / Fail
 
-Blocking accessibility issues:
+Blocking issues:
 
 Non-blocking issues:
 
@@ -66,3 +66,13 @@ Recommended fix:
 
 Notes for Mi:
 
+## Stop / Escalate If
+
+- Safety status relies on color alone.
+- Error/warning visibility is weak.
+- UI state can be misread under accessibility constraints.
+
+## Do Not
+
+- Approve low-contrast safety states.
+- Use motion or styling that hides state transitions.

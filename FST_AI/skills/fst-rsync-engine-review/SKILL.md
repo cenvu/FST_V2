@@ -5,155 +5,78 @@ name: fst-rsync-engine-review
 description: Review FST rsync engine behavior, bundled rsync usage, source safety, destructive flag risks, and progress output handling.
 ---
 
-# SKILL: fst-rsync-engine-review
+# Skill: fst-rsync-engine-review
 
-## Role
+## Purpose
 
-Use this skill to review any FST change touching rsync execution, rsync arguments, process handling, progress output, transfer completion detection, or rsync-related error handling.
+Review rsync execution and copy truth for bundled-rsync-only safety.
 
-Primary reviewer: Claude.
-Primary implementer: Codex.
-Final safety gate: Mi.
+## When to Use
 
-## Use When
+Use when rsync path/version validation, arguments, process launch, stdout/stderr, cancellation, progress parsing, copy completion, or rsync-related error/report fields change.
 
-Use this skill when a change touches:
+## Owner Agent
 
-- RsyncEngine
-- TransferEngine rsync integration
-- rsync binary path
-- bundled rsync validation
-- rsync arguments
-- process launch
-- process termination
-- stdout/stderr parsing
-- progress output
-- rsync exit code handling
-- copy completion detection
-- transfer cancellation
-- source/destination path handling
-- rsync-related report fields
+Claude reviews. Codex implements. Mi gates.
 
-## Project Context
+## Required Startup Docs
 
-FST must use bundled rsync 3.4.4 only.
+- `AGENTS.md`
+- `FST_AI/memory/COMMAND_CENTER_HANDOVER.md`
+- `docs/02_FST_TECHNICAL_GUIDE.md`
 
-Apple system rsync fallback is not allowed.
+## Inputs
 
-FST treats source media as read-only operational media.
+- Diff.
+- Rsync command construction.
+- Process lifecycle/error mapping.
+- Logs.
+- Tests/build results.
 
-The source volume must never be mutated, deleted, formatted, renamed, chmodded, chowned, or cleaned up by FST.
+## Safety Boundaries
 
-## Review Priority
+- Bundled rsync 3.4.4 only.
+- No Apple `/usr/bin/rsync`, Homebrew, MacPorts, or non-bundled fallback.
+- Source volume must never be mutated, deleted, formatted, renamed, chmodded, chowned, or cleaned up.
+- No destructive flags.
 
-Review in this order:
+## Procedure
 
-1. Source safety
-2. Bundled rsync 3.4.4 enforcement
-3. No Apple rsync fallback
-4. No destructive rsync flags
-5. Correct path handling
-6. Correct process lifecycle handling
-7. Correct exit-code interpretation
-8. Correct progress parsing handoff
-9. Correct cancellation behavior
-10. Correct report evidence
-
-## Hard Blocks
-
-Reject the change if it introduces:
-
-- Apple system rsync fallback
-- `--delete`
-- `--delete-before`
-- `--delete-after`
-- `--delete-during`
-- `--remove-source-files`
-- `--inplace` without explicit approved design
-- Any source-mutating option
-- Any source-deleting option
-- Any hidden cleanup behavior
-- Any behavior that treats rsync partial success as full success
-- Any path construction that can target the wrong source or destination
-- Any copy success path without exit status validation
+1. Confirm bundled path resolution and version validation.
+2. Inspect rsync flags.
+3. Inspect stdout/stderr draining and exit-code handling.
+4. Inspect cancellation/error mapping.
+5. Confirm observer/progress metrics remain UI-only.
 
 ## Required Checks
 
-Check:
-
-- Is the bundled rsync path validated?
-- Is rsync version expected to be 3.4.4?
-- Is Apple `/usr/bin/rsync` impossible to use accidentally?
-- Are source and destination paths correctly quoted/escaped/passed as arguments?
-- Are source paths treated read-only?
-- Are destination writes expected and scoped?
-- Is rsync launched without shell injection risk?
-- Are stdout/stderr handled without blocking?
-- Is process termination handled?
-- Is cancellation handled?
-- Are non-zero exit codes mapped correctly?
-- Are partial transfers distinguished from complete transfers?
-- Does report output record rsync failure accurately?
-- Does UI have enough state to avoid appearing stuck?
-
-## Progress Output Checks
-
-Check whether:
-
-- rsync output is parsed consistently.
-- progress parser receives enough data.
-- large-file and many-small-file cases are supported.
-- stale progress can be detected.
-- per-file progress is not confused with whole-job progress.
-- rsync completion transitions the job state correctly.
-
-## Cancellation Checks
-
-Verify:
-
-- Cancel sends the intended process termination signal.
-- Cancelled jobs do not become complete.
-- Cancelled jobs do not become SAFE TO EJECT.
-- Cancelled reports are marked cancelled.
-- Partial destination data is not misrepresented as verified.
+- `-a`, `-h`, `--info=progress2` retained.
+- No `--delete`, `--remove-source-files`, `--inplace`, or source mutation flags.
+- Wrong/missing/non-executable bundled rsync fails fast.
+- Exit status, stderr, and cancellation decide copy truth.
+- Logs separate app version and rsync version.
 
 ## Output Format
 
 Verdict:
-Accept / Accept with risk / Reject
 
-Rsync safety impact:
-none / low / medium / high
+Rsync path/version risk:
 
-Bundled rsync status:
-pass / concern / fail
+Flag risk:
 
-Destructive flag risk:
-none / possible / confirmed
+Copy truth risk:
 
-Source safety risk:
-none / possible / confirmed
+Cancellation/error risk:
 
-Process lifecycle concerns:
+Required fix:
 
-Progress/parser concerns:
+## Stop / Escalate If
 
-Cancellation concerns:
+- Any fallback can execute.
+- Any destructive/source-mutating flag appears.
+- Copy success can be inferred from progress/UI.
 
-Must fix before merge:
+## Do Not
 
-Recommended Codex revision prompt:
-
-Runtime QA required:
-
-Notes for Mi:
-
-## Self-Check
-
-Before finishing, confirm:
-
-- No destructive source behavior was accepted.
-- No Apple rsync fallback was accepted.
-- No false copy success path was accepted.
-- No SAFE TO EJECT path can result from rsync failure or cancellation.
-
+- Accept convenience fallback.
+- Treat observer destination changes as copy completion.

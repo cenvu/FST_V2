@@ -5,38 +5,61 @@ name: fst-release-gate
 description: Block unsafe or incomplete FST builds from being considered release-ready.
 ---
 
-# SKILL: fst-release-gate
+# Skill: fst-release-gate
 
-## Role
+## Purpose
 
-Use this skill before declaring a build release-ready.
+Review whether an FST build can be called release-ready.
 
-## Must Block Release If
+## When to Use
 
-Block if:
+Use before tagging, packaging, publishing, or saying a build is releasable.
 
-- Build fails.
-- Runtime QA is incomplete.
-- Bundled rsync validation is missing.
-- Apple/System/Homebrew rsync fallback exists.
-- Verify can false-pass.
-- SAFE TO EJECT can false-pass.
-- Report omits safety decision.
-- UI can mislead operator.
-- Known safety-critical bug remains unresolved.
+## Owner Agent
 
-## Required Evidence
+Claude reviews. Codex collects evidence. Mi makes the final release decision.
 
-Require:
+## Required Startup Docs
 
-- Xcode build result
-- Runtime QA result
-- rsync validation
-- Success report sample
-- Failure report sample
-- Cancel report sample
-- Source-changed result when applicable
-- Known issues list
+- `AGENTS.md`
+- `FST_AI/memory/COMMAND_CENTER_HANDOVER.md`
+- `FST_AI/memory/WORK_HISTORY.md`
+- `FST_AI/memory/TASK_REGISTRY.md`
+- `docs/00_AI_AGENT_START_HERE.md`
+
+## Inputs
+
+- Diff/commit.
+- Build/test results.
+- Package validation.
+- Runtime QA evidence.
+- Report samples.
+- Release asset/checksum evidence.
+
+## Safety Boundaries
+
+- Git tag alone is not a downloadable release.
+- Local package alone is not release completion.
+- Release is complete only after GitHub Release has zip + checksum assets uploaded and verified.
+- Do not claim Developer ID signing or notarization without evidence.
+
+## Procedure
+
+1. Confirm version/build/package metadata.
+2. Confirm bundled rsync 3.4.4 validation.
+3. Confirm build/test/package validation.
+4. Review runtime QA for success, fail, cancel, verify fail, and report cases.
+5. Confirm GitHub Release zip + checksum assets exist and match.
+
+## Required Checks
+
+- Build passes.
+- Required tests or Mi-approved waiver.
+- Package validates app version, arm64, macOS minimum, rsync executable/version, dylibs, codesign, zip contents.
+- SAFE TO EJECT cannot false-pass.
+- Reports include final safety decision.
+- UI cannot mislead operator.
+- Known safety-critical bugs are resolved or explicitly blocked.
 
 ## Output Format
 
@@ -45,8 +68,21 @@ Ready / Not ready / Ready with known limitations
 
 Blocking issues:
 
+Evidence reviewed:
+
 Required before release:
 
-Known limitations:
-
 Mi final decision:
+
+## Stop / Escalate If
+
+- Any failure/cancel/verify-fail path can show SAFE TO EJECT.
+- GitHub Release assets are missing.
+- Package validation is incomplete.
+- Signing/notarization claims are unsupported.
+
+## Do Not
+
+- Treat tag-only or package-only state as release complete.
+- Skip runtime QA for release-sensitive changes.
+- Hide known safety limitations.

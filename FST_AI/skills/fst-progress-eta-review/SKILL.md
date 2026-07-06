@@ -2,57 +2,60 @@
 
 ---
 name: fst-progress-eta-review
-description: Review FST progress, parser, and ETA behavior with whole-job ETA as the primary operator signal.
+description: Review FST progress, parser, observer, and ETA behavior while preserving safety truth.
 ---
 
-# SKILL: fst-progress-eta-review
+# Skill: fst-progress-eta-review
 
-## Role
+## Purpose
 
-Use this skill to review FST progress and ETA behavior.
+Review progress and ETA behavior so operators see useful status without confusing UI estimates with safety truth.
 
-## Use When
+## When to Use
 
-Use when:
+Use when progress appears stuck, ETA is wrong, ETA appears per-file, observer metrics changed, Verify ETA changed, or progress UI is confusing.
 
-- Progress appears stuck.
-- ETA is wrong.
-- ETA appears per-file.
-- Operator cannot estimate remaining job time.
-- UI shows confusing copy/verify progress.
-- Producer-facing timing is unreliable.
+## Owner Agent
 
-## Core Rule
+Codex implements core progress fixes. Claude reviews. Antigravity handles UI display when routed.
 
-Primary ETA must be Project ETA / Whole Job ETA.
+## Required Startup Docs
 
-Current file progress is secondary.
+- `AGENTS.md`
+- `FST_AI/memory/COMMAND_CENTER_HANDOVER.md`
+- `docs/02_FST_TECHNICAL_GUIDE.md`
+
+## Inputs
+
+- Logs.
+- Rsync output.
+- Parser output.
+- Observer metrics.
+- UI state/screenshot.
+- Source/destination size and file count.
+
+## Safety Boundaries
+
+- Destination observer and Verify ETA are UI-only.
+- They must never decide copy success, verify success, report truth, or SAFE TO EJECT.
+- Rsync lifecycle decides copy truth. Verify result decides verification truth.
+
+## Procedure
+
+1. Identify whether issue is rsync output, parser, observer, model, or UI binding.
+2. Separate whole-job progress from current-file progress.
+3. Confirm stale/slow progress does not become false failure or false success.
+4. Recommend smallest safe fix or route UI-only display work to Antigravity.
 
 ## Required Checks
 
-Check:
-
-- Total bytes expected
-- Total bytes copied
-- Total files expected
-- Files completed
-- Current file name
-- Current phase
-- Rsync output
-- Parser output
-- UI binding
-- Stale progress detection
-- State transition after rsync completion
-
-## Must Not
-
-Do not:
-
-- Fake ETA in UI.
-- Present per-file ETA as project ETA.
-- Hide stalled progress.
-- Treat slow transfer as failure without evidence.
-- Change verify/safety logic unless explicitly needed.
+- Total bytes/files expected.
+- Bytes/files completed.
+- Current phase.
+- Current file is secondary.
+- Project/whole-job ETA is clearly labeled.
+- Verify ETA is approximate and UI-only.
+- State transition after rsync completion remains authoritative.
 
 ## Output Format
 
@@ -60,12 +63,22 @@ Progress diagnosis:
 
 ETA source:
 
-Is ETA whole-job or per-file?
+Safety impact:
 
 Parser risk:
 
 UI binding risk:
 
-Smallest safe fix:
-
 Runtime QA:
+
+## Stop / Escalate If
+
+- Progress data is used to infer copy/verify success.
+- UI can make stalled/cancelled/failed work look safe.
+- Core data is missing for a UI request.
+
+## Do Not
+
+- Fake ETA.
+- Present per-file ETA as project ETA.
+- Change safety/report logic as part of UI polish.

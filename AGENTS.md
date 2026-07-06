@@ -50,6 +50,7 @@ Before doing non-trivial work, agents must read the relevant files in `FST_AI/`.
 
 Required handover startup:
 
+- `FST_AI/memory/TASK_REGISTRY.md`
 - `FST_AI/memory/COMMAND_CENTER_HANDOVER.md`
 - `FST_AI/memory/WORK_HISTORY.md`
 - `AGENTS.md`
@@ -59,15 +60,18 @@ If docs conflict, use this priority:
 1. `AGENTS.md`
 2. `FST_AI/memory/COMMAND_CENTER_HANDOVER.md`
 3. `docs/00_AI_AGENT_START_HERE.md`
-4. `FST_AI/memory/WORK_HISTORY.md`
-5. older archived docs
+4. `FST_AI/memory/TASK_REGISTRY.md`
+5. `FST_AI/memory/WORK_HISTORY.md`
 
-After meaningful work, propose a `FST_AI/memory/WORK_HISTORY.md` update. If the baseline changes, also propose a `FST_AI/memory/COMMAND_CENTER_HANDOVER.md` update. Meaningful work includes source, safety policy, report wording/schema, release/package/tag/GitHub Release, architecture, routing, or source-of-truth docs changes.
+Before executing a task, check `FST_AI/memory/TASK_REGISTRY.md` and `FST_AI/memory/WORK_HISTORY.md`. If the task appears already completed, ask whether to rerun it, continue it, or review previous output.
+
+After meaningful work, propose updates to `FST_AI/memory/WORK_HISTORY.md` and `FST_AI/memory/TASK_REGISTRY.md`. If the baseline changes, also propose a `FST_AI/memory/COMMAND_CENTER_HANDOVER.md` update. Meaningful work includes source, safety policy, report wording/schema, release/package/tag/GitHub Release, architecture, routing, or source-of-truth docs changes.
 
 Minimum reading:
 
 - `FST_AI/memory/COMMAND_CENTER_HANDOVER.md`
 - `FST_AI/memory/WORK_HISTORY.md`
+- `FST_AI/memory/TASK_REGISTRY.md`
 - `FST_AI/README.md`
 - `FST_AI/memory/current-priority.md`
 - `FST_AI/memory/agent-roles.md`
@@ -93,7 +97,11 @@ For UI work, also read:
 - Mi / Command Center: Technical Lead, Safety Gate, Prompt Architect, Workflow Router.
 - Codex: Main Core Coding Agent, Secondary Reviewer.
 - Claude: Main QA, Main Code Reviewer, Main Safety Reviewer, Secondary Coding Agent.
-- Antigravity / Gemini Pro: Main UI Coding Agent for SwiftUI/UI/UX.
+- Antigravity: Main SwiftUI/UI implementation agent for layout, components, and operator clarity.
+- Gemini Pro: Routed small UI/ViewModel experiment and low-risk polish agent.
+- Roo/RooCode: Dropped/inactive unless explicitly reintroduced by Mi.
+
+Full role boundaries live in `FST_AI/roles/`.
 
 ## Routing Rules
 
@@ -105,7 +113,7 @@ Core logic:
 
 UI:
 
-- Antigravity / Gemini Pro implements.
+- Antigravity implements UI work. Gemini Pro may assist only when routed for small UI/ViewModel experiments or low-risk polish.
 - Claude or Mi reviews UI state/safety risk.
 - Mi performs final safety gate.
 
@@ -148,7 +156,9 @@ Agent division:
 - Mi / Command Center: technical lead and safety gate
 - Codex: core engineer
 - Claude: primary QA/code/safety reviewer
-- Antigravity / Gemini Pro: UI implementation
+- Antigravity: SwiftUI/UI implementation
+- Gemini Pro: routed small UI/ViewModel experiments and low-risk polish
+- Roo/RooCode: dropped/inactive unless explicitly reintroduced
 
 Do not reintroduce dropped or deprecated agent workflows unless the user explicitly asks.
 
@@ -166,7 +176,7 @@ Before editing code, read these active docs in order:
 5. Existing Swift code relevant to the task
 ```
 
-Ignore `docs/archive/` unless the user explicitly asks for historical context.
+Ignore historical/prototype material unless the user explicitly asks for historical context. Archive Markdown has been removed; if `docs/archive/` exists, it is historical/prototype-only and never authoritative.
 
 ---
 
@@ -183,7 +193,6 @@ FST_V2/
     01_PRD.md
     02_FST_TECHNICAL_GUIDE.md
     03_PROJECT_MASTER_GUIDELINE.md
-    archive/
 
   FishSockTransfer/
     FishSockTransfer.xcodeproj
@@ -208,6 +217,7 @@ Rules:
 - Swift app code lives in `FishSockTransfer/FishSockTransfer/`.
 - Do not put project guides inside the app source folder.
 - Do not treat old React, Vite, AI Studio, or prototype files as production app code.
+- Historical material must not be treated as current authority unless the user explicitly asks for historical context.
 - Do not invent new folders unless the task explicitly requests file-structure cleanup.
 
 ---

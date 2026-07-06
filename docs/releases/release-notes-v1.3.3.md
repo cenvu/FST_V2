@@ -20,7 +20,7 @@
 ## Documentation & Repository Hygiene Audit
 - **Wording Alignment:** Standardized "SAFE TO EJECT" globally and removed obsolete formatting-safety wording from active documentation.
 - **Workflow Standardization:** Confirmed wording `Copy -> Verify -> Safe To Eject -> Report` globally.
-- **Archive Cleanup:** Moved deprecated and duplicate release notes into `docs/archive/`.
+- **Archive Cleanup:** Deprecated duplicate docs were removed from the active authority path.
 - **MVP Scope Clarified:** Ensured all active docs clearly reflect single source, single destination, single active job, bundled rsync 3.4.4, and no Apple system rsync fallback.
 - **AI Agent Docs:** Confirmed active alignment of Agent roles (Codex for core, Antigravity for UI, Claude for QA/Review, Mi for safety/lead). Verified Roo/RooCode is completely out of scope.
 - **Safety Guarantee:** Verified no Swift logic, verification engine, transfer engine, tests, scripts, release assets, or UI images were changed during this documentation-only audit.

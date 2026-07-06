@@ -5,73 +5,63 @@ name: fst-diagnose-bug
 description: Diagnose FST bugs using evidence-first debugging before implementation.
 ---
 
-# SKILL: fst-diagnose-bug
+# Skill: fst-diagnose-bug
 
-Inspired by disciplined debugging workflows and small-step engineering practices.
+## Purpose
 
-## Role
+Diagnose FST bugs before implementing fixes.
 
-Use this skill to diagnose FST bugs before implementing fixes.
+## When to Use
 
-## Use When
+Use when copy, verify, progress, ETA, report, SAFE TO EJECT, UI state, permission, or file-system behavior appears wrong.
 
-Use this skill when:
+## Owner Agent
 
-- App appears stuck.
-- Progress is not updating.
-- ETA is wrong.
-- Copy does not complete.
-- Verify fails unexpectedly.
-- fileCountMismatch appears.
-- Report output is incorrect.
-- SAFE TO EJECT state is wrong.
-- UI state does not match core state.
+Codex diagnoses. Claude reviews safety-sensitive diagnosis. Mi routes if scope is unclear.
 
-## Do Not
+## Required Startup Docs
 
-Do not:
+- `AGENTS.md`
+- `FST_AI/memory/COMMAND_CENTER_HANDOVER.md`
+- `FST_AI/memory/TASK_REGISTRY.md`
+- `FST_AI/memory/known-issues.md`
 
-- Implement immediately without diagnosis.
-- Rewrite a subsystem without evidence.
-- Add dependencies.
-- Change UI to hide a core bug.
-- Treat symptoms as root cause.
-- Change SAFE TO EJECT logic without explicit review.
+## Inputs
 
-## Diagnosis Categories
+- Observed behavior.
+- Expected behavior.
+- Logs/screenshots if available.
+- Source/destination size and file count if relevant.
+- Current branch/commit.
 
-Classify the bug as one or more:
+## Safety Boundaries
 
-- Rsync process issue
-- Progress parser issue
-- ETA aggregation issue
-- Transfer state issue
-- Verify engine issue
-- State machine issue
-- Report generation issue
-- UI presentation issue
-- Threading/main-thread issue
-- File system/permissions issue
+- Do not change SAFE TO EJECT logic without explicit task scope.
+- Do not hide core bugs with UI wording.
+- Do not mutate source media during diagnosis.
 
-## Required Process
+## Procedure
 
-1. Restate the observed behavior.
-2. Identify expected behavior.
-3. List affected phase: Copy / Verify / Report / UI / Safety.
-4. Identify likely root causes.
-5. Identify evidence needed.
-6. Locate likely files.
-7. Propose smallest safe fix.
-8. List tests or runtime checks.
-9. State safety impact.
+1. Restate observed and expected behavior.
+2. Classify phase: Copy / Verify / Report / UI / Safety / Permission.
+3. Identify likely subsystem.
+4. List evidence needed.
+5. Locate likely files.
+6. Propose smallest safe fix and required checks.
+
+## Required Checks
+
+- Could this affect SAFE TO EJECT?
+- Could this hide failure/cancel state?
+- Could this mutate source media?
+- Could this be progress/observer UI only?
+- What runtime scenario proves the diagnosis?
 
 ## Output Format
 
 Diagnosis:
 
-Expected behavior:
-
-Likely root cause:
+Likely subsystem:
 
 Evidence needed:
 
@@ -82,3 +72,15 @@ Smallest safe fix:
 Safety impact:
 
 Runtime QA:
+
+## Stop / Escalate If
+
+- Evidence is insufficient.
+- The bug may affect source safety or false SAFE TO EJECT.
+- The task needs UI and core changes.
+
+## Do Not
+
+- Implement immediately without diagnosis.
+- Add dependencies.
+- Rewrite subsystems without evidence.

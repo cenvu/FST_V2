@@ -5,44 +5,61 @@ name: fst-runtime-qa
 description: Prepare and review runtime QA scenarios for FST copy, verify, cancel, failure, report, and safety behavior.
 ---
 
-# SKILL: fst-runtime-qa
+# Skill: fst-runtime-qa
 
-## Role
+## Purpose
 
-Use this skill to prepare and review runtime QA for FST.
+Prepare and review runtime evidence for FST safety, progress, report, and operator feedback.
 
-## Required Scenarios
+## When to Use
 
-Test:
+Use after core engine, verify, state, progress/ETA, report, permission, package, or release-sensitive changes.
 
-1. Successful copy + verify
-2. Copy failure
-3. Verify failure
-4. User cancel during copy
-5. User cancel during verify
-6. Source changed after copy when applicable
-7. Destination disconnected
-8. App progress during large file
-9. App progress during many small files
-10. Report generation after success
-11. Report generation after failure
-12. SAFE TO EJECT blocked cases
+## Owner Agent
 
-## Required Evidence
+Claude reviews QA completeness. Codex prepares matrices/evidence. Mi decides sufficiency.
 
-For each scenario, record:
+## Required Startup Docs
 
-- Source
-- Destination
-- File count
-- Total size
-- Copy result
-- Verify result
-- Final state
-- Safety decision
-- Report generated: yes/no
-- UI state
-- Any warning/error
+- `AGENTS.md`
+- `FST_AI/memory/COMMAND_CENTER_HANDOVER.md`
+- `FST_AI/memory/TASK_REGISTRY.md`
+- `FST_AI/templates/runtime-qa-matrix.md`
+
+## Inputs
+
+- Change summary.
+- Build/package identity.
+- Test media description.
+- Runtime logs.
+- Generated report samples.
+- Screenshots or operator observations when available.
+
+## Safety Boundaries
+
+- Destination observer and Verify ETA are UI-only.
+- They must never affect copy success, verify success, report truth, or SAFE TO EJECT.
+- Failure, cancellation, uncertainty, or verify failure must block SAFE TO EJECT.
+
+## Procedure
+
+1. Select scenarios based on changed subsystem.
+2. Record source/destination size, file count, and filesystem context.
+3. Run success, copy failure, verify failure, cancel during copy, cancel during verify, destination disconnect, large file, many-small-files, and report cases when applicable.
+4. Compare UI terminal state, report, and logs.
+5. Mark blocking issues before release.
+
+## Required Checks
+
+- Successful copy + verify.
+- Copy failure.
+- Verify failure.
+- Cancel during copy.
+- Cancel during verify.
+- Destination disconnected.
+- Source changed when policy applies.
+- Report after success/failure/cancel.
+- SAFE TO EJECT blocked cases.
 
 ## Output Format
 
@@ -52,6 +69,18 @@ Pass/fail summary:
 
 Blocking issues:
 
-Non-blocking issues:
+Evidence gaps:
 
 Release recommendation:
+
+## Stop / Escalate If
+
+- UI freezes during long work.
+- SAFE TO EJECT is shown after failure/cancel/uncertainty.
+- Report contradicts final state.
+- Runtime evidence is too incomplete for release.
+
+## Do Not
+
+- Treat UI progress, observer metrics, or ETA as safety evidence.
+- Skip failure/cancel cases for release-sensitive work.

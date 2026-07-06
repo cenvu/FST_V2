@@ -48,6 +48,7 @@ Do not add features that do not reduce media-loss risk.
 
 For current AI-assisted development workflow, use:
 
+- `FST_AI/memory/TASK_REGISTRY.md`
 - `FST_AI/memory/COMMAND_CENTER_HANDOVER.md`
 - `FST_AI/memory/WORK_HISTORY.md`
 - `FST_AI/README.md`
@@ -65,16 +66,19 @@ For current AI-assisted development workflow, use:
 - Mi / Command Center: Technical Lead, Safety Gate, Prompt Architect, Workflow Router.
 - Codex: Main Core Coding Agent, Secondary Reviewer.
 - Claude: Main QA, Main Code Reviewer, Main Safety Reviewer, Secondary Coding Agent.
-- Antigravity / Gemini Pro: Main UI Coding Agent for SwiftUI/UI/UX.
+- Antigravity: Main SwiftUI/UI implementation environment.
+- Gemini Pro: Routed UI/ViewModel experiment and polish agent, usually inside Antigravity.
+- Roo/RooCode: dropped unless explicitly reintroduced by Mi.
 
 Use `FST_AI/` for current routing, prompt templates, skill playbooks, QA templates, and UI design guidance.
 
 Do not use older agent routing if it conflicts with `FST_AI/`.
 
 Required handover startup:
-- Read `FST_AI/memory/COMMAND_CENTER_HANDOVER.md`, `FST_AI/memory/WORK_HISTORY.md`, `AGENTS.md`, and this file before making changes.
-- If docs conflict, follow: `AGENTS.md`, then `COMMAND_CENTER_HANDOVER.md`, then this file, then `WORK_HISTORY.md`, then older archived docs.
-- After meaningful work, propose a new `FST_AI/memory/WORK_HISTORY.md` entry. If the baseline changes, also propose a `FST_AI/memory/COMMAND_CENTER_HANDOVER.md` update.
+- Read `FST_AI/memory/TASK_REGISTRY.md`, `FST_AI/memory/COMMAND_CENTER_HANDOVER.md`, `FST_AI/memory/WORK_HISTORY.md`, `AGENTS.md`, and this file before making changes.
+- If docs conflict, follow: `AGENTS.md`, then `COMMAND_CENTER_HANDOVER.md`, then this file, then `TASK_REGISTRY.md`, then `WORK_HISTORY.md`.
+- If `TASK_REGISTRY.md` or `WORK_HISTORY.md` shows the task was already completed, ask whether to rerun, continue, or review previous output.
+- After meaningful work, propose new `FST_AI/memory/WORK_HISTORY.md` and `FST_AI/memory/TASK_REGISTRY.md` entries. If the baseline changes, also propose a `FST_AI/memory/COMMAND_CENTER_HANDOVER.md` update.
 - Meaningful work includes source, safety policy, report wording/schema, release/package/tag/GitHub Release, architecture, routing, or source-of-truth docs changes.
 
 ---
@@ -101,7 +105,8 @@ Agent division:
 - Mi / Command Center: technical lead and safety gate
 - Codex: core engineer
 - Claude: primary QA/code/safety reviewer
-- Antigravity / Gemini Pro: UI implementation
+- Antigravity: SwiftUI/UI implementation
+- Gemini Pro: routed small UI/ViewModel experiments and low-risk polish
 
 Do not include dropped or deprecated agent workflows unless the user explicitly asks.
 
@@ -119,13 +124,7 @@ Read only active docs first:
 5. Existing Swift code
 ```
 
-Ignore:
-
-```text
-docs/archive/
-```
-
-unless the user explicitly asks for historical context.
+Ignore historical material unless the user explicitly asks for historical context.
 
 ---
 
@@ -140,7 +139,6 @@ FST_V2/
     01_PRD.md
     02_FST_TECHNICAL_GUIDE.md
     03_PROJECT_MASTER_GUIDELINE.md
-    archive/
 
   FishSockTransfer/
     FishSockTransfer.xcodeproj
@@ -157,7 +155,6 @@ FST_V2/
     Tests/
 
   assets/
-  prototype/ or archive/react-prototype/ optional
   README.md
 ```
 
@@ -167,6 +164,7 @@ Rules:
 - Swift app code lives in `FST_V2/FishSockTransfer/FishSockTransfer/`.
 - Do not put docs inside the app source folder.
 - Do not treat old React/Vite prototype files as production app code.
+- Do not treat deleted or archived docs as current authority.
 
 ---
 

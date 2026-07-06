@@ -2,87 +2,77 @@
 
 ---
 name: fst-progress-dashboard-design
-description: Guide FST progress dashboard design so Project ETA, phase, progress, warnings, and SAFE TO EJECT state are clear for operators.
+description: Guide FST progress dashboard design so phase, whole-job progress, warnings, and SAFE TO EJECT state are clear.
 ---
 
-# SKILL: fst-progress-dashboard-design
+# Skill: fst-progress-dashboard-design
 
-## Role
+## Purpose
 
-Use this skill when designing or reviewing FST progress/dashboard UI.
+Design or review progress/dashboard UI for field-readable copy and verify work.
 
-Primary implementer: Antigravity/Gemini Pro.
-Primary core data provider: Codex.
-Primary reviewer: Claude or Mi.
+## When to Use
 
-## Use When
+Use when progress UI, ETA, current item, warning display, or dashboard hierarchy changes.
 
-Use when:
+## Owner Agent
 
-- Progress UI is confusing.
-- ETA needs redesign.
-- Copy/verify status needs clearer display.
-- Job appears stuck.
-- Current file detail overwhelms project progress.
-- Producer-facing timing needs to be visible.
+Antigravity/Gemini implements UI. Codex provides core data when needed. Claude or Mi reviews.
 
-## Required Hierarchy
+## Required Startup Docs
 
-Progress dashboard must prioritize:
+- `FST_AI/design-system/MASTER.md`
+- `FST_AI/design-system/pages/progress-view.md`
+- `FST_AI/design-system/pages/safety-status.md`
 
-1. Current phase
-2. Overall job progress
-3. Project ETA / Whole Job ETA
-4. SAFE TO EJECT status or pending safety state
-5. Warning/error state
-6. Source/destination identity
-7. Current file detail
-8. Technical metadata
+## Inputs
 
-## Data Rules
+- Progress data available.
+- Copy/verify phase behavior.
+- UI screenshot or layout.
+- Any stale/slow progress symptoms.
 
-UI must not fake backend state.
+## Safety Boundaries
 
-Required data should come from core model:
+- Destination observer and Verify ETA are UI-only.
+- Dashboard cannot decide copy success, verify success, report truth, or SAFE TO EJECT.
 
-- current phase
-- total bytes expected
-- bytes copied
-- total files expected
-- files completed
-- current file
-- transfer speed if reliable
-- whole-job ETA if reliable
-- stale progress state
-- final safety decision
+## Procedure
 
-If missing, Antigravity must request Codex model support instead of inventing UI state.
+1. Put current phase first.
+2. Put whole-job progress and safety state before current-file detail.
+3. Keep ETA clearly approximate.
+4. Make warnings/errors visible.
+5. Route missing data to Codex.
 
-## Anti-Patterns
+## Required Checks
 
-Do not:
-
-- Present per-file ETA as project ETA.
-- Show 100% copy as final success before verify.
-- Hide verify phase.
-- Hide stalled progress.
-- Use vague "almost done" wording.
-- Make progress look complete when report/safety is not final.
+- Phase visible.
+- Whole-job ETA/progress visible when available.
+- Copy and verify distinction clear.
+- Stalled/slow state not hidden.
+- Failure/cancel state cannot look safe.
 
 ## Output Format
 
-Progress dashboard verdict:
-Accept / Accept with revisions / Reject
+Dashboard hierarchy:
 
-Information hierarchy:
+Data dependencies:
 
-Missing backend data:
+Safety state display:
 
-Misleading UI risks:
+Risks:
 
-Recommended Antigravity revision prompt:
+Revision recommendation:
 
-Recommended Codex data request if needed:
+## Stop / Escalate If
 
-Notes for Mi:
+- UI needs core progress model changes.
+- ETA source is unclear.
+- Dashboard implies safety before verification.
 
+## Do Not
+
+- Make current-file progress the primary job signal.
+- Treat ETA as a promise.
+- Hide error/cancel states.

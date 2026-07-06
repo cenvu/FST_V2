@@ -5,178 +5,80 @@ name: fst-detailed-txt-report
 description: Guide implementation and review of FST Detailed TXT Report V1 with operational evidence and safety decision fields.
 ---
 
-# SKILL: fst-detailed-txt-report
+# Skill: fst-detailed-txt-report
 
-## Role
+## Purpose
 
-Use this skill to implement or review FST Detailed TXT Report V1.
+Implement or review Detailed TXT Report V1 as operator evidence, not permission to erase, format, or reuse source media.
 
-Primary implementer: Codex.
-Primary reviewer: Claude.
-Final safety gate: Mi.
+## When to Use
 
-## Use When
+Use when report generation, schema, wording, fields, filenames, storage, terminal status, warnings, errors, skipped items, or SAFE TO EJECT decision output changes.
 
-Use this skill when a change touches:
+## Owner Agent
 
-- TXT report generation
-- report schema
-- report output fields
-- copy result reporting
-- verify result reporting
-- warning/error reporting
-- skipped item reporting
-- SAFE TO EJECT decision reporting
-- report file naming
-- report storage location
-- report generation timing
+Codex implements. Claude reviews. Mi gates.
 
-## Core Principle
+## Required Startup Docs
 
-The report is operational evidence.
+- `AGENTS.md`
+- `FST_AI/memory/COMMAND_CENTER_HANDOVER.md`
+- `docs/02_FST_TECHNICAL_GUIDE.md`
 
-It must accurately record what happened, what passed, what failed, what was skipped, and whether the media is SAFE TO EJECT.
+## Inputs
 
-The report must never make an unsafe or uncertain job look successful.
+- Report code diff.
+- Expected success/failure/cancel outputs.
+- Transfer/verify result mapping.
+- Wording requirements.
 
-## Required Sections
+## Safety Boundaries
 
-Detailed TXT Report V1 should include:
+- Report must match canonical job state.
+- Report must not imply permission to erase, format, or reuse source media.
+- Verified success wording is SAFE TO EJECT / SAFE TO EJECT DESTINATION.
+- Failed/cancelled/uncertain states must record SAFE TO EJECT NO.
 
-1. Operator Summary
-2. Job Identity
-3. Source
-4. Destination
-5. Copy Result
-6. Verify Result
-7. Progress/Transfer Summary if available
-8. Safety Decision
-9. Warnings
-10. Errors
-11. Skipped Items
-12. Timing
-13. Tooling / rsync version
-14. Final Status
+## Procedure
 
-## Required Safety Decision Fields
+1. Identify report source data.
+2. Confirm required sections and final safety decision.
+3. Compare success, failure, cancel, verify-fail, and copy-only cases.
+4. Confirm wording avoids obsolete format-safety language.
+5. Recommend report correctness review.
 
-Report must explicitly include:
+## Required Checks
 
-- SAFE TO EJECT: YES / NO
-- Reason
-- Copy result
-- Verify result
-- Source changed status
-- Mismatch status
-- Cancellation status
-- Failure status
-- Warnings count
-- Errors count
-
-## Success Report Requirements
-
-A success report must show:
-
-- Copy completed successfully.
-- Verify completed successfully.
-- No blocking mismatch.
-- No cancellation.
-- No failure.
-- Source identity is unchanged or policy-compliant.
-- SAFE TO EJECT is YES.
-- rsync/tooling info is recorded.
-
-## Failure Report Requirements
-
-A failure report must show:
-
-- Which phase failed.
-- Why it failed if known.
-- Whether copy was partial.
-- Whether verify was skipped, failed, or incomplete.
-- SAFE TO EJECT is NO.
-- Error details are preserved.
-- Warnings are visible.
-
-## Cancel Report Requirements
-
-A cancelled report must show:
-
-- Operator cancellation occurred.
-- Phase where cancellation occurred.
-- Copy/verify did not complete.
-- SAFE TO EJECT is NO.
-- Partial destination data may exist.
-- Operator should not treat destination as verified.
-
-## Source Changed Report Requirements
-
-A source-changed report must show:
-
-- Source changed or source identity mismatch.
-- When it was detected.
-- What result was affected.
-- SAFE TO EJECT is NO unless a future explicit approved policy says otherwise.
-
-## Review Priority
-
-Review in this order:
-
-1. Safety Decision correctness
-2. Copy/verify accuracy
-3. Failure/cancel accuracy
-4. Warning/error visibility
-5. Skipped item visibility
-6. Source/destination identity
-7. Tooling evidence
-8. Timing evidence
-9. Human readability
-10. Maintainability
-
-## Hard Blocks
-
-Reject the change if:
-
-- Report can say SAFE TO EJECT YES after failure.
-- Report can say SAFE TO EJECT YES after cancellation.
-- Report can hide verify failure.
-- Report can hide fileCountMismatch.
-- Report can omit Safety Decision.
-- Report contradicts canonical state.
-- Report uses vague success language for uncertain state.
-- Report is generated before final state is settled.
-- Report omits errors/warnings that affected safety.
+- Operator summary.
+- Job/source/destination identity.
+- Copy result.
+- Verify result or copy-only status.
+- SAFE TO EJECT decision and reason.
+- Warnings/errors/skipped items.
+- Timing/tooling.
+- Technical log sharing note when applicable.
 
 ## Output Format
 
-Verdict:
-Accept / Accept with risk / Reject
+Files changed:
 
-Report safety impact:
-none / low / medium / high
+Report behavior changed:
 
-Safety Decision correctness:
-pass / concern / fail
+Safety wording:
 
-Missing required fields:
+Required fields covered:
 
-Contradictions:
+Sample scenarios:
 
-Must fix before merge:
+Review needed:
 
-Recommended Codex revision prompt:
+## Stop / Escalate If
 
-Runtime QA/report samples required:
+- Report can contradict final state.
+- Report omits cancellation/failure/verify failure.
+- Report uses obsolete format authorization wording.
 
-Notes for Mi:
+## Do Not
 
-## Self-Check
-
-Before finishing, confirm:
-
-- The report can be used as operator evidence.
-- Failed/cancelled/incomplete jobs are clearly unsafe.
-- SAFE TO EJECT is explicit.
-- Warnings/errors/skipped items are visible.
-- Report state matches canonical final state.
-
+- Add PDF/database/report viewer features.
+- Generate optimistic report output before final canonical state.

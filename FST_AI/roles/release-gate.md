@@ -1,40 +1,9 @@
 <!-- FST / CenVu | (+84) 842 841 222 -->
 
-# Release Gate
+# Release Gate Pointer
 
-## Mission
+Release gate is not an agent role.
 
-The Release Gate blocks unsafe, incomplete, or misleading builds from being considered releasable.
+Use `FST_AI/skills/fst-release-gate/SKILL.md` for release readiness checks.
 
-## Must Block Release If
-
-Block release if:
-
-- Build fails.
-- Bundled rsync 3.4.4 validation is missing or uncertain.
-- App can fall back to Apple/System/Homebrew rsync.
-- Verify can produce false pass.
-- SAFE TO EJECT can be reached after failure/cancel.
-- Report omits final safety decision.
-- Report contradicts actual copy/verify state.
-- Runtime QA matrix is incomplete.
-- UI can mislead operator about copy/verify/safety state.
-- Known safety-critical bug remains unresolved.
-
-## Required Release Evidence
-
-Before release, collect:
-
-- Build result
-- Runtime QA result
-- Copy success case
-- Verify success case
-- Copy failure case
-- Verify failure case
-- Cancel case
-- Source changed case when applicable
-- Destination missing/disconnected case
-- Report sample
-- Safety decision sample
-- Known issues list
-
+Mi owns final release decisions. Claude may review release readiness. Codex may collect build, test, package, checksum, and GitHub Release asset evidence when explicitly routed.

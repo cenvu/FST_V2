@@ -5,47 +5,57 @@ name: fst-code-review
 description: Review FST code changes with data safety, verify correctness, and SAFE TO EJECT priority.
 ---
 
-# SKILL: fst-code-review
+# Skill: fst-code-review
 
-Primary reviewer: Claude.
+## Purpose
 
-Secondary reviewer: Codex.
+Review FST changes for safety, correctness, maintainability, and operator truth.
 
-## Role
+## When to Use
 
-Use this skill to review FST code changes with safety-first priority.
+Use for general code or docs review when no narrower review skill is enough.
 
-## Review Priority
+## Owner Agent
 
-Review in this order:
+Claude is primary reviewer. Codex may perform secondary review. Mi gates safety-sensitive decisions.
 
-1. Data safety
-2. SAFE TO EJECT correctness
-3. Verify correctness
-4. State machine correctness
-5. Error/cancel handling
-6. Report accuracy
-7. Progress/ETA correctness
-8. Maintainability
-9. Performance
-10. UI clarity
+## Required Startup Docs
 
-## Must Check
+- `AGENTS.md`
+- `FST_AI/memory/COMMAND_CENTER_HANDOVER.md`
+- `FST_AI/memory/TASK_REGISTRY.md`
+- `docs/00_AI_AGENT_START_HERE.md`
 
-Check for:
+## Inputs
 
-- False SAFE TO EJECT path
-- Verify false positive
-- Copy failure incorrectly marked completed
-- Cancelled job incorrectly marked safe
-- Source-changed case missed when required by policy
-- Destination missing/disconnected case missed
-- Report contradicts actual state
-- UI hides warnings/errors
-- Per-file ETA shown as whole-job ETA
-- Scope creep
-- Unnecessary dependency
-- Large unrequested refactor
+- Diff or changed files.
+- Implementation summary.
+- Tests/checks run.
+- Known risks.
+
+## Safety Boundaries
+
+- No false SAFE TO EJECT path.
+- No source media mutation.
+- No Apple/System/Homebrew/MacPorts rsync fallback.
+- UI estimates must not become safety truth.
+
+## Procedure
+
+1. Identify affected layer and safety surface.
+2. Check data safety before maintainability.
+3. Check failure/cancel/verify/report truth.
+4. Check scope creep and unnecessary dependencies.
+5. Recommend specific revision or approval.
+
+## Required Checks
+
+- Copy failure cannot become complete.
+- Cancelled job cannot become safe.
+- Verify false positive is not introduced.
+- Report does not contradict actual state.
+- UI does not hide warnings/errors.
+- Per-file ETA is not shown as whole-job ETA.
 
 ## Output Format
 
@@ -58,10 +68,19 @@ none / low / medium / high
 Must fix before merge:
 
 Should Codex revise:
-yes/no
-
-Recommended revision prompt:
 
 Runtime QA required:
 
 Notes for Mi:
+
+## Stop / Escalate If
+
+- Safety behavior is uncertain.
+- Review lacks enough evidence.
+- Change touches SAFE TO EJECT, verify, rsync, cancellation, or report truth.
+
+## Do Not
+
+- Approve broad refactors without need.
+- Treat passing UI progress as copy/verify evidence.
+- Review a risky change only by the agent that implemented it.

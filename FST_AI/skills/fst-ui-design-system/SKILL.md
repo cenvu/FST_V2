@@ -5,95 +5,76 @@ name: fst-ui-design-system
 description: Guide FST UI design system decisions using operational clarity, accessibility, SwiftUI constraints, and safety-first visual hierarchy.
 ---
 
-# SKILL: fst-ui-design-system
+# Skill: fst-ui-design-system
 
-## Role
+## Purpose
 
-Use this skill when creating or revising FST UI design direction.
+Apply FST-specific UI design rules for a professional macOS offload utility.
 
-Primary implementer: Antigravity/Gemini Pro.
-Primary reviewer: Claude or Mi.
-Final gate: Mi.
+## When to Use
 
-## Source Inspiration
+Use when creating or revising UI direction, progress views, safety status, report summary, page-specific guidance, or visual consistency.
 
-Inspired by UI/UX design-system skill patterns, including design system generation, style selection, anti-pattern filtering, accessibility checklists, and master/page override documentation.
+## Owner Agent
 
-For FST, use these ideas only as controlled internal guidance.
+Antigravity/Gemini implements. Claude or Mi reviews. Mi gates.
 
-Do not install external UI skill packages without Mi approval.
+## Required Startup Docs
 
-## Use When
+- `AGENTS.md`
+- `FST_AI/design-system/MASTER.md`
+- Relevant `FST_AI/design-system/pages/`
+- Relevant `FST_AI/design-system/audits/`
 
-Use when:
+## Inputs
 
-- Creating UI design system rules.
-- Reviewing SwiftUI layout direction.
-- Revising progress UI.
-- Revising safety status UI.
-- Revising report summary UI.
-- Creating page-specific UI guidance.
-- Checking visual consistency.
+- UI area.
+- Operator state requirements.
+- Screenshots or design notes.
+- Backend state available to UI.
 
-## Required Context
+## Safety Boundaries
 
-Read first:
+- Status-first design.
+- Safety state must be impossible to misread.
+- UI cannot change copy, verify, report, or SAFE TO EJECT truth.
 
-- FST_AI/design-system/MASTER.md
-- Relevant file under FST_AI/design-system/pages/
-- FST_AI/standards/safety-first.md
-- FST_AI/standards/shared-language.md
-- FST_AI/roles/antigravity-gemini-ui-engineer.md
+## Procedure
 
-## Design Priority
+1. Identify target user workflow and phase.
+2. Prioritize state, warnings, and evidence before visual polish.
+3. Use calm, compact, dark-mode-first macOS utility styling.
+4. Apply accessibility and operator clarity checks.
+5. Reject decorative consumer/playful patterns.
 
-Review UI in this order:
+## Required Checks
 
-1. Data safety clarity
-2. SAFE TO EJECT clarity
-3. Current phase clarity
-4. Source/destination clarity
-5. Progress/ETA clarity
-6. Warning/error visibility
-7. Report evidence visibility
-8. Accessibility
-9. macOS/SwiftUI fit
-10. Visual polish
-
-## Style Direction
-
-Prefer:
-
-- Minimalism / Swiss Style
-- Accessible & Ethical
-- Data-Dense Dashboard
-- Real-Time Monitoring
-- Calm professional desktop utility
-
-Avoid:
-
-- Decorative trend-first UI
-- Heavy glassmorphism
-- Neumorphism
-- Cyberpunk
-- AI purple/pink gradients
-- Marketing landing-page layout
-- Excessive motion
+- Critical state visible in three seconds.
+- SAFE TO EJECT / blocked state unambiguous.
+- Text contrast and non-color state cues.
+- Motion restrained and optional.
+- No decorative branding that competes with status.
 
 ## Output Format
 
-Design system verdict:
-Accept / Accept with revisions / Reject
+Design direction:
 
-Style fit:
+Page/audit docs used:
 
-Operational clarity:
+Operator clarity risks:
 
-Accessibility concerns:
+Accessibility checks:
 
-Safety visibility concerns:
+Implementation notes:
 
-Recommended changes:
+## Stop / Escalate If
 
-Notes for Mi:
+- UI needs new safety data.
+- Proposed design hides errors or safety state.
+- A design choice conflicts with FST safety doctrine.
 
+## Do Not
+
+- Import external design systems.
+- Use consumer/playful UI.
+- Use visual polish to soften failure/cancel states.

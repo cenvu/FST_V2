@@ -56,6 +56,8 @@ Use the most specific prompt possible.
 
 Do not use broad prompts for safety-critical work.
 
+Before rerunning a prompt, check `FST_AI/memory/TASK_REGISTRY.md` and `FST_AI/memory/WORK_HISTORY.md`.
+
 Core coding should be handed to Codex.
 
 Primary QA/code/safety review should be handed to Claude.

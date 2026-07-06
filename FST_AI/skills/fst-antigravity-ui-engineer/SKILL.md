@@ -5,84 +5,79 @@ name: fst-antigravity-ui-engineer
 description: Guide Antigravity/Gemini Pro to implement FST SwiftUI UI with operator clarity and strict core-logic boundaries.
 ---
 
-# SKILL: fst-antigravity-ui-engineer
+# Skill: fst-antigravity-ui-engineer
 
-## Role
+## Purpose
 
-Use this skill when Antigravity/Gemini Pro works on FST UI.
+Guide FST UI implementation so a DIT/Data Wrangler can immediately read copy, verify, failure, and SAFE TO EJECT state.
 
-## Mission
+## When to Use
 
-Improve FST UI for DIT/Data Wrangler operational clarity.
+Use for SwiftUI views, components, layout, operator wording, progress panels, safety status, warning/error display, and presentation-only ViewModel changes.
 
-The goal is not decorative UI. The goal is confidence during Copy -> Verify -> SAFE TO EJECT.
+## Owner Agent
 
-## May Edit
+Antigravity is UI owner. Gemini Pro may assist when routed. Claude or Mi reviews.
 
-May edit:
+## Required Startup Docs
 
-- SwiftUI views
-- UI components
-- Layout
-- Visual hierarchy
-- Wording
-- Presentation-only ViewModels
+- `AGENTS.md`
+- `FST_AI/memory/COMMAND_CENTER_HANDOVER.md`
+- `FST_AI/memory/TASK_REGISTRY.md`
+- `FST_AI/roles/antigravity-gemini-ui-engineer.md`
+- `FST_AI/design-system/MASTER.md`
 
-## Must Not Edit
+## Inputs
 
-Must not edit:
+- UI task.
+- Screenshots or current UI notes.
+- Relevant SwiftUI files.
+- Backend data available to UI.
 
-- TransferCoordinator
-- RsyncEngine
-- VerifyEngine
-- TransferState
-- SAFE TO EJECT gate logic
-- Report generation logic
-- Core progress parser
-- Core ETA model
+## Safety Boundaries
 
-## UI Requirements
+- UI cannot alter safety truth.
+- UI estimates, destination observer, speed, ETA, current item, and Verify ETA cannot affect copy success, verify success, report truth, or SAFE TO EJECT.
+- Unsafe, failed, cancelled, or uncertain states must not look successful.
 
-Always make visible:
+## Procedure
 
-- Source
-- Destination
-- Current phase
-- Whole Job ETA
-- Copy progress
-- Verify progress
-- Warning/error state
-- Safety decision
+1. Confirm UI-only scope.
+2. Read relevant page/audit docs.
+3. Implement status-first, compact, serious macOS utility UI.
+4. Keep safety state impossible to misread.
+5. Report any missing core data instead of inventing state.
 
-## Progress UI Rules
+## Required Checks
 
-Primary:
-
-- Project ETA / Whole Job ETA
-- Overall job progress
-- Current phase
-
-Secondary:
-
-- Current file
-- Current file progress
-- Transfer speed
-
-Never:
-
-- Show per-file ETA as project ETA
-- Hide stalled state
-- Make failed/blocked state visually similar to success
+- Current phase visible.
+- SAFE TO EJECT state visible and unambiguous.
+- Errors/warnings hard to miss.
+- Current file secondary to whole-job state.
+- Dark-mode-first professional utility style.
+- No decorative branding, playful UI, or trend-first visuals.
 
 ## Output Format
 
 UI files changed:
 
-Before/after UX:
+Before/after operator impact:
 
 States checked:
 
 Core logic changed:
-yes/no
 
 Data dependency needed from Codex:
+
+## Stop / Escalate If
+
+- Core safety data is missing.
+- UI work requires TransferCoordinator, engines, report generation, or safety gate changes.
+- Terminal state wording is ambiguous.
+
+## Do Not
+
+- Fake backend state.
+- Hide failure/cancel state.
+- Add external UI packages.
+- Prioritize visual polish over safety clarity.
