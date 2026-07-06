@@ -21,6 +21,17 @@ Each entry must include:
 
 ## Recent History
 
+### 2026-07-06 - Runtime QA-2 failure/cancel truthfulness QA template prepared
+
+- Agent/model: Codex
+- Branch/commit/tag: main at 52e0ecf; not committed
+- Files changed: `FST_AI/templates/failure-cancel-truthfulness-qa-v1.3.4.md`, `FST_AI/memory/WORK_HISTORY.md`, `FST_AI/memory/TASK_REGISTRY.md`
+- What changed: created a failure/cancel truthfulness QA checklist/evidence template for cancel during copy, cancel during verify, copy failure, verify mismatch, verification none, destination observer false confidence, optional Telegram notification truthfulness, and report/log evidence
+- Safety boundary confirmation: documentation/template/memory only; no Swift source, transfer, verify, report runtime, rsync, package, tag, push, or GitHub Release changes
+- Build/test/package result: not run by instruction; `git diff --check` planned
+- Whether committed/tagged/released: not committed, not tagged, not released
+- Next recommended action: Cen runs failure/cancel QA with the template and returns evidence block before any release readiness claim
+
 ### 2026-07-06 - Runtime QA-1 second-Mac package QA template prepared
 
 - Agent/model: Codex

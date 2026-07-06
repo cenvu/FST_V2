@@ -29,6 +29,19 @@ This appears to have been run before as <entry>. Do you want to rerun it, contin
 
 ## Recent Tasks
 
+### 2026-07-06 - Runtime QA-2 failure/cancel truthfulness QA template
+
+- Date: 2026-07-06
+- Task ID: Runtime QA-2
+- Task name: Failure / Cancel Truthfulness QA Plan
+- Agent: Codex
+- Status: planned/template prepared
+- Files changed: `FST_AI/templates/failure-cancel-truthfulness-qa-v1.3.4.md`, `FST_AI/memory/WORK_HISTORY.md`, `FST_AI/memory/TASK_REGISTRY.md`
+- Commit/tag/release: not committed, not tagged, not released
+- Safety impact: QA planning only; no Swift/runtime/package behavior changed
+- Checks: `git diff --check`, `git status --short`, `git diff --stat`
+- Notes: does not mark failure/cancel QA as passed; user must provide cancel/failure/mismatch/copy-only/observer/report evidence
+
 ### 2026-07-06 - Runtime QA-1 second-Mac package QA template
 
 - Date: 2026-07-06
