@@ -29,6 +29,19 @@ This appears to have been run before as <entry>. Do you want to rerun it, contin
 
 ## Recent Tasks
 
+### 2026-07-06 - Safety Policy-2 destination existing job path hardening
+
+- Date: 2026-07-06
+- Task ID: Safety Policy-2
+- Task name: Destination Existing Job Path Hardening
+- Agent: Codex
+- Status: implemented
+- Files changed: `FishSockTransfer/FishSockTransfer/Services/DriveService.swift`, `FishSockTransfer/Tests/XCTest/MetadataOnlySourceSafetyXCTests.swift`, `FST_AI/memory/WORK_HISTORY.md`, `FST_AI/memory/TASK_REGISTRY.md`
+- Commit/tag/release: pending; not committed, not tagged, not released
+- Safety impact: blocks ambiguous existing destination job path before rsync; prevents report pollution into existing job path; no source mutation or overwrite/merge/reuse mode
+- Checks: `git diff --check` passed; targeted `MetadataOnlySourceSafetyXCTests` passed; full `xcodebuild test` passed
+- Notes: auto suffix, merge/reuse, overwrite, package, tag, and push not added
+
 ### 2026-07-06 - Runtime QA-2 failure/cancel truthfulness QA template
 
 - Date: 2026-07-06

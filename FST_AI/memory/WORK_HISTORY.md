@@ -21,6 +21,17 @@ Each entry must include:
 
 ## Recent History
 
+### 2026-07-06 - Safety Policy-2 destination existing job path hardening
+
+- Agent/model: Codex
+- Branch/commit/tag: main at 045bd85; not committed
+- Files changed: `FishSockTransfer/FishSockTransfer/Services/DriveService.swift`, `FishSockTransfer/Tests/XCTest/MetadataOnlySourceSafetyXCTests.swift`, `FST_AI/memory/WORK_HISTORY.md`, `FST_AI/memory/TASK_REGISTRY.md`
+- What changed: preflight now blocks when the intended destination job path already exists as any filesystem item; report fallback avoids writing into the existing job path; added regression coverage for absent path, existing directory/file/symlink, and coordinator no-rsync/report safety
+- Safety boundary confirmation: no source mutation; no transfer/verify/hash/rsync fallback changes; no merge, overwrite, reuse, or auto-suffix behavior added
+- Build/test/package result: `git diff --check` passed; targeted `MetadataOnlySourceSafetyXCTests` passed; full `xcodebuild test` passed
+- Whether committed/tagged/released: not committed, not tagged, not released
+- Next recommended action: review/commit, then run runtime QA for blocked existing destination path using a real external destination
+
 ### 2026-07-06 - Runtime QA-2 failure/cancel truthfulness QA template prepared
 
 - Agent/model: Codex

@@ -212,12 +212,67 @@ final class MetadataOnlySourceSafetyXCTests: XCTestCase {
         }
     }
 
-    func testPreflightBlocksExistingDestinationJobFolder() throws {
+    func testPreflightAllowsAbsentDestinationJobPath() throws {
+        let sourceURL = try folder(named: "absent-job-path-source", in: temporaryRoot)
+        let destinationURL = try folder(named: "absent-job-path-destination", in: temporaryRoot)
+        let metadata = sourceMetadata(for: sourceURL, bytes: 1024, fileCount: 1)
+
+        let plan = try TransferPreflightValidator.validate(
+            source: sourceURL,
+            destination: destinationURL,
+            sourceMetadata: metadata,
+            destinationFreeSpaceBytes: 2048
+        )
+
+        XCTAssertEqual(plan.destinationJobFolderURL.path, destinationURL.appendingPathComponent(sourceURL.lastPathComponent).path)
+    }
+
+    func testPreflightBlocksExistingEmptyDestinationJobDirectory() throws {
         let sourceURL = try folder(named: "A001", in: temporaryRoot)
-        let destinationURL = try folder(named: "existing-job-destination", in: temporaryRoot)
+        let destinationURL = try folder(named: "existing-empty-job-destination", in: temporaryRoot)
         let existingJobURL = try folder(named: "A001", in: destinationURL)
         let metadata = sourceMetadata(for: sourceURL, bytes: 1024, fileCount: 1)
 
+        assertPreflightBlocksExistingJobPath(sourceURL: sourceURL, destinationURL: destinationURL, expectedPath: existingJobURL.path, metadata: metadata)
+    }
+
+    func testPreflightBlocksExistingDestinationJobDirectoryWithFiles() throws {
+        let sourceURL = try folder(named: "A002", in: temporaryRoot)
+        let destinationURL = try folder(named: "existing-nonempty-job-destination", in: temporaryRoot)
+        let existingJobURL = try folder(named: "A002", in: destinationURL)
+        try writeFile("existing.mov", contents: "already copied", in: existingJobURL)
+        let metadata = sourceMetadata(for: sourceURL, bytes: 1024, fileCount: 1)
+
+        assertPreflightBlocksExistingJobPath(sourceURL: sourceURL, destinationURL: destinationURL, expectedPath: existingJobURL.path, metadata: metadata)
+    }
+
+    func testPreflightBlocksExistingRegularFileAtDestinationJobPath() throws {
+        let sourceURL = try folder(named: "A003", in: temporaryRoot)
+        let destinationURL = try folder(named: "existing-file-job-destination", in: temporaryRoot)
+        try writeFile("A003", contents: "not a directory", in: destinationURL)
+        let existingJobURL = destinationURL.appendingPathComponent("A003")
+        let metadata = sourceMetadata(for: sourceURL, bytes: 1024, fileCount: 1)
+
+        assertPreflightBlocksExistingJobPath(sourceURL: sourceURL, destinationURL: destinationURL, expectedPath: existingJobURL.path, metadata: metadata)
+    }
+
+    func testPreflightBlocksExistingSymlinkAtDestinationJobPath() throws {
+        let sourceURL = try folder(named: "A004", in: temporaryRoot)
+        let destinationURL = try folder(named: "existing-symlink-job-destination", in: temporaryRoot)
+        let symlinkTargetURL = try folder(named: "symlink-target", in: temporaryRoot)
+        let existingJobURL = destinationURL.appendingPathComponent("A004")
+        try FileManager.default.createSymbolicLink(at: existingJobURL, withDestinationURL: symlinkTargetURL)
+        let metadata = sourceMetadata(for: sourceURL, bytes: 1024, fileCount: 1)
+
+        assertPreflightBlocksExistingJobPath(sourceURL: sourceURL, destinationURL: destinationURL, expectedPath: existingJobURL.path, metadata: metadata)
+    }
+
+    private func assertPreflightBlocksExistingJobPath(
+        sourceURL: URL,
+        destinationURL: URL,
+        expectedPath: String,
+        metadata: SourceStorageMetadata
+    ) {
         XCTAssertThrowsError(
             try TransferPreflightValidator.validate(
                 source: sourceURL,
@@ -226,10 +281,10 @@ final class MetadataOnlySourceSafetyXCTests: XCTestCase {
                 destinationFreeSpaceBytes: 2048
             )
         ) { error in
-            XCTAssertEqual(error as? TransferPreflightError, .destinationJobFolderAlreadyExists(existingJobURL.path))
+            XCTAssertEqual(error as? TransferPreflightError, .destinationJobPathAlreadyExists(expectedPath))
             XCTAssertEqual(
                 (error as? TransferPreflightError)?.errorDescription,
-                "Destination job folder already exists: \(existingJobURL.path). FST will not overwrite or merge into an existing job folder."
+                "Destination job path already exists: \(expectedPath). Choose a new destination or create a new unique folder. FST will not merge or overwrite existing job data."
             )
         }
     }
@@ -392,6 +447,48 @@ final class MetadataOnlySourceSafetyXCTests: XCTestCase {
         XCTAssertFalse(try containsReportFile(in: cardURL))
     }
 
+    func testExistingDestinationJobPathPreflightFailureDoesNotStartRsyncOrWriteReportInExistingJobDirectory() async throws {
+        let sourceURL = try folder(named: "coordinator-existing-job-source", in: temporaryRoot)
+        try writeFile("A001_C001.mov", contents: "media", in: sourceURL)
+        let destinationURL = try folder(named: "coordinator-existing-job-destination", in: temporaryRoot)
+        let existingJobURL = try folder(named: sourceURL.lastPathComponent, in: destinationURL)
+        try writeFile("existing.mov", contents: "already here", in: existingJobURL)
+
+        XCTAssertEqual(TransferPreflightValidator.safeReportFolder(source: sourceURL, destination: destinationURL), destinationURL)
+
+        let coordinator = TransferCoordinator()
+        let recorder = TransferCoordinatorRecorder()
+        await coordinator.configureCallbacks(
+            onStateChanged: { state in recorder.appendState(state) },
+            onProgress: { _ in },
+            onSpeed: { _ in },
+            onTransferTime: { _ in },
+            onCurrentFile: { _ in },
+            onError: { error in recorder.appendError(error) },
+            onLog: { log in recorder.appendLog(log) }
+        )
+
+        await coordinator.startTransfer(
+            source: sourceURL,
+            destination: destinationURL,
+            bandwidthLimit: nil,
+            mode: .none
+        )
+
+        try await waitForCoordinatorTerminalReport(recorder)
+        let states = recorder.snapshotStates()
+        let errors = recorder.snapshotErrors()
+        let logMessages = recorder.snapshotLogs().map(\.message)
+
+        XCTAssertTrue(states.contains(.error))
+        XCTAssertFalse(states.contains(.copying))
+        XCTAssertTrue(errors.contains("TRANSFER ERROR: Destination job path already exists: \(existingJobURL.path). Choose a new destination or create a new unique folder. FST will not merge or overwrite existing job data."))
+        XCTAssertFalse(logMessages.contains("Transfer Started"))
+        XCTAssertFalse(logMessages.contains("TRANSFER COMPLETE. Verification disabled."))
+        XCTAssertFalse(logMessages.contains("Verification Passed. SAFE TO EJECT."))
+        XCTAssertFalse(try containsReportFile(in: existingJobURL))
+    }
+
     private func assertSourceValidationFails(_ sourceURL: URL, expectedError: TransferError) async throws {
         let driveService = DriveService()
         do {
@@ -432,6 +529,18 @@ final class MetadataOnlySourceSafetyXCTests: XCTestCase {
             try await Task.sleep(nanoseconds: 20_000_000)
         }
         XCTFail("Coordinator did not reach preflight error before timeout.")
+    }
+
+    private func waitForCoordinatorTerminalReport(_ recorder: TransferCoordinatorRecorder) async throws {
+        let deadline = Date().addingTimeInterval(3)
+        while Date() < deadline {
+            if recorder.snapshotStates().contains(.error),
+               recorder.snapshotLogs().contains(where: { $0.message.hasPrefix("Report saved: ") || $0.message == "Report skipped: no report was written because the destination was unsafe for report output." }) {
+                return
+            }
+            try await Task.sleep(nanoseconds: 20_000_000)
+        }
+        XCTFail("Coordinator did not reach preflight error/report completion before timeout.")
     }
 
     private func containsReportFile(in folderURL: URL) throws -> Bool {

@@ -164,7 +164,7 @@ nonisolated public enum TransferPreflightError: Error, Equatable, LocalizedError
     case sameSourceAndDestination
     case destinationInsideSource
     case sourceInsideDestination
-    case destinationJobFolderAlreadyExists(String)
+    case destinationJobPathAlreadyExists(String)
     case noTransferableFiles
     case unableToDetermineDestinationFreeSpace
     case insufficientDestinationSpace(required: Int64, available: Int64)
@@ -177,8 +177,8 @@ nonisolated public enum TransferPreflightError: Error, Equatable, LocalizedError
             return "Destination cannot be inside the source folder. Choose a destination outside the source/media tree."
         case .sourceInsideDestination:
             return "Source cannot be inside the destination folder. Choose a separate destination outside the source/media tree."
-        case .destinationJobFolderAlreadyExists(let path):
-            return "Destination job folder already exists: \(path). FST will not overwrite or merge into an existing job folder."
+        case .destinationJobPathAlreadyExists(let path):
+            return "Destination job path already exists: \(path). Choose a new destination or create a new unique folder. FST will not merge or overwrite existing job data."
         case .noTransferableFiles:
             return "No transferable files found after exclusions."
         case .unableToDetermineDestinationFreeSpace:
@@ -256,9 +256,8 @@ nonisolated public enum TransferPreflightValidator {
         }
 
         let jobFolderURL = destinationURL.appendingPathComponent(source.lastPathComponent, isDirectory: true)
-        var isDirectory: ObjCBool = false
-        if fileManager.fileExists(atPath: jobFolderURL.path, isDirectory: &isDirectory), isDirectory.boolValue {
-            throw TransferPreflightError.destinationJobFolderAlreadyExists(jobFolderURL.path)
+        if fileManager.fileExists(atPath: jobFolderURL.path) {
+            throw TransferPreflightError.destinationJobPathAlreadyExists(jobFolderURL.path)
         }
 
         guard sourceMetadata.fileCount > 0, sourceMetadata.totalSizeBytes > 0 else {
@@ -297,13 +296,8 @@ nonisolated public enum TransferPreflightValidator {
         }
 
         let jobFolderURL = destinationURL.appendingPathComponent(source.lastPathComponent, isDirectory: true)
-        var isDirectory: ObjCBool = false
-        if fileManager.fileExists(atPath: jobFolderURL.path, isDirectory: &isDirectory), isDirectory.boolValue {
-            let canonicalJobFolderURL = canonicalDirectoryURL(jobFolderURL)
-            if sameDirectory(canonicalJobFolderURL, sourceURL) || directory(canonicalJobFolderURL, isInside: sourceURL) {
-                return destinationURL
-            }
-            return canonicalJobFolderURL
+        if fileManager.fileExists(atPath: jobFolderURL.path) {
+            return destinationURL
         }
 
         return destinationURL
