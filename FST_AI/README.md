@@ -22,6 +22,42 @@ This folder standardizes:
 - Prompt templates
 - Release gates
 
+## Command Center Memory Files
+
+Before starting any task, read:
+
+- `FST_AI/memory/COMMAND_CENTER_HANDOVER.md`
+- `FST_AI/memory/WORK_HISTORY.md`
+- `AGENTS.md`
+- `docs/00_AI_AGENT_START_HERE.md`
+
+If docs conflict, use this priority:
+1. `AGENTS.md`
+2. `FST_AI/memory/COMMAND_CENTER_HANDOVER.md`
+3. `docs/00_AI_AGENT_START_HERE.md`
+4. `FST_AI/memory/WORK_HISTORY.md`
+5. older archived docs
+
+After meaningful work, propose a new `WORK_HISTORY.md` entry. If the baseline changes, also propose a `COMMAND_CENTER_HANDOVER.md` update. Meaningful work includes source, safety policy, report wording/schema, release/package/tag/GitHub Release, architecture, routing, or source-of-truth docs changes.
+
+Reusable Codex prompt starter:
+
+```text
+Before doing anything, read:
+- FST_AI/memory/COMMAND_CENTER_HANDOVER.md
+- FST_AI/memory/WORK_HISTORY.md
+- AGENTS.md
+- docs/00_AI_AGENT_START_HERE.md
+
+Then confirm:
+- current branch
+- git status
+- latest commit
+- whether the task changes safety truth, transfer truth, operator truth, or docs only
+
+Do not proceed if the task conflicts with Command Center safety rules.
+```
+
 ## Current Agent Model
 
 - Mi / Command Center: Technical Lead, Safety Gate, Prompt Architect, Workflow Router.
@@ -34,6 +70,17 @@ This folder standardizes:
 Never allow convenience, speed, UI polish, or agent autonomy to override data safety.
 
 Source media must be treated as read-only. FST must copy from source, verify against source, and report results, but must never mutate or delete source media.
+
+Command Center safety rules:
+
+- Never mutate source media.
+- Never reintroduce SAFE TO FORMAT or Source Format Authorization wording unless explicitly requested and policy-reviewed.
+- Use SAFE TO EJECT / SAFE TO EJECT DESTINATION for operator-facing output.
+- Never let UI estimates, destination observer metrics, speed, ETA, current item, or Verify ETA affect copy success, verify success, report truth, or SAFE TO EJECT.
+- Never use Apple/System/Homebrew rsync fallback.
+- Git tag alone is not a downloadable release.
+- Release is complete only after GitHub Release has zip + checksum assets.
+- Do not delete ambiguous repo folders without inventory and user approval.
 
 Priority order:
 

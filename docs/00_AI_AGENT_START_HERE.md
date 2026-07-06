@@ -48,6 +48,8 @@ Do not add features that do not reduce media-loss risk.
 
 For current AI-assisted development workflow, use:
 
+- `FST_AI/memory/COMMAND_CENTER_HANDOVER.md`
+- `FST_AI/memory/WORK_HISTORY.md`
 - `FST_AI/README.md`
 - `FST_AI/memory/current-priority.md`
 - `FST_AI/memory/project-baseline.md`
@@ -68,6 +70,12 @@ For current AI-assisted development workflow, use:
 Use `FST_AI/` for current routing, prompt templates, skill playbooks, QA templates, and UI design guidance.
 
 Do not use older agent routing if it conflicts with `FST_AI/`.
+
+Required handover startup:
+- Read `FST_AI/memory/COMMAND_CENTER_HANDOVER.md`, `FST_AI/memory/WORK_HISTORY.md`, `AGENTS.md`, and this file before making changes.
+- If docs conflict, follow: `AGENTS.md`, then `COMMAND_CENTER_HANDOVER.md`, then this file, then `WORK_HISTORY.md`, then older archived docs.
+- After meaningful work, propose a new `FST_AI/memory/WORK_HISTORY.md` entry. If the baseline changes, also propose a `FST_AI/memory/COMMAND_CENTER_HANDOVER.md` update.
+- Meaningful work includes source, safety policy, report wording/schema, release/package/tag/GitHub Release, architecture, routing, or source-of-truth docs changes.
 
 ---
 

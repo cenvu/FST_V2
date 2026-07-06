@@ -93,6 +93,35 @@ Rules:
 
 ---
 
+## Required Handover Startup
+
+Before making changes, every AI agent must read:
+
+- `FST_AI/memory/COMMAND_CENTER_HANDOVER.md`
+- `FST_AI/memory/WORK_HISTORY.md`
+- `AGENTS.md`
+- `docs/00_AI_AGENT_START_HERE.md`
+
+If docs conflict, use this priority:
+1. `AGENTS.md`
+2. `FST_AI/memory/COMMAND_CENTER_HANDOVER.md`
+3. `docs/00_AI_AGENT_START_HERE.md`
+4. `FST_AI/memory/WORK_HISTORY.md`
+5. older archived docs
+
+After meaningful work, propose a `FST_AI/memory/WORK_HISTORY.md` update. If the baseline changes, also propose a `FST_AI/memory/COMMAND_CENTER_HANDOVER.md` update.
+
+Meaningful work includes:
+- source code changes
+- safety policy changes
+- report wording/schema changes
+- release/package/tag/GitHub Release changes
+- architecture changes
+- workflow/AI-agent routing changes
+- docs cleanup that changes source-of-truth status
+
+---
+
 ## 4. Technical Baseline
 
 - current version v1.3.4 display 1.3.4 build 20260706

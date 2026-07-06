@@ -48,8 +48,26 @@ Do not add features that do not reduce media-loss risk.
 
 Before doing non-trivial work, agents must read the relevant files in `FST_AI/`.
 
+Required handover startup:
+
+- `FST_AI/memory/COMMAND_CENTER_HANDOVER.md`
+- `FST_AI/memory/WORK_HISTORY.md`
+- `AGENTS.md`
+- `docs/00_AI_AGENT_START_HERE.md`
+
+If docs conflict, use this priority:
+1. `AGENTS.md`
+2. `FST_AI/memory/COMMAND_CENTER_HANDOVER.md`
+3. `docs/00_AI_AGENT_START_HERE.md`
+4. `FST_AI/memory/WORK_HISTORY.md`
+5. older archived docs
+
+After meaningful work, propose a `FST_AI/memory/WORK_HISTORY.md` update. If the baseline changes, also propose a `FST_AI/memory/COMMAND_CENTER_HANDOVER.md` update. Meaningful work includes source, safety policy, report wording/schema, release/package/tag/GitHub Release, architecture, routing, or source-of-truth docs changes.
+
 Minimum reading:
 
+- `FST_AI/memory/COMMAND_CENTER_HANDOVER.md`
+- `FST_AI/memory/WORK_HISTORY.md`
 - `FST_AI/README.md`
 - `FST_AI/memory/current-priority.md`
 - `FST_AI/memory/agent-roles.md`
