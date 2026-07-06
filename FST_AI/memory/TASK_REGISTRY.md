@@ -29,6 +29,19 @@ This appears to have been run before as <entry>. Do you want to rerun it, contin
 
 ## Recent Tasks
 
+### 2026-07-06 - Runtime QA-1 second-Mac package QA template
+
+- Date: 2026-07-06
+- Task ID: Runtime QA-1
+- Task name: Second-Mac Package QA Plan and Evidence Template
+- Agent: Codex
+- Status: planned/template prepared
+- Files changed: `FST_AI/templates/second-mac-package-qa-v1.3.4.md`, `FST_AI/memory/WORK_HISTORY.md`, `FST_AI/memory/TASK_REGISTRY.md`
+- Commit/tag/release: not committed, not tagged, not released
+- Safety impact: QA planning only; no Swift/runtime/package behavior changed
+- Checks: `git diff --check`, `git status --short`, `git diff --stat`
+- Notes: does not mark second-Mac QA as passed; user must provide download/checksum/launch/transfer/report evidence
+
 ### 2026-07-06 - Batch AI-3A minor fix patch after AI-3 review
 
 - Date: 2026-07-06
