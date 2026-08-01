@@ -333,6 +333,89 @@ final class MetadataOnlySourceSafetyXCTests: XCTestCase {
         }
     }
 
+    func testCapacitySelectionFallsBackWhenImportantUsageIsMisleadingZero() throws {
+        let ordinaryCapacity = 733_642_752
+
+        XCTAssertEqual(
+            try DriveService.selectAvailableCapacity(importantUsage: 0, ordinary: ordinaryCapacity),
+            Int64(ordinaryCapacity)
+        )
+    }
+
+    func testCapacitySelectionFallsBackWhenImportantUsageIsUnavailable() throws {
+        let ordinaryCapacity = 730_906_624
+
+        XCTAssertEqual(
+            try DriveService.selectAvailableCapacity(importantUsage: nil, ordinary: ordinaryCapacity),
+            Int64(ordinaryCapacity)
+        )
+    }
+
+    func testCapacitySelectionPrefersPositiveImportantUsage() throws {
+        XCTAssertEqual(
+            try DriveService.selectAvailableCapacity(importantUsage: 8_192, ordinary: 4_096),
+            8_192
+        )
+    }
+
+    func testCapacitySelectionPreservesGenuinelyFullOrdinaryVolume() throws {
+        XCTAssertEqual(
+            try DriveService.selectAvailableCapacity(importantUsage: 0, ordinary: 0),
+            0
+        )
+    }
+
+    func testCapacitySelectionThrowsWhenNoUsableSignalExists() {
+        XCTAssertThrowsError(
+            try DriveService.selectAvailableCapacity(importantUsage: nil, ordinary: nil)
+        ) { error in
+            XCTAssertEqual(error as? TransferPreflightError, .unableToDetermineDestinationFreeSpace)
+        }
+
+        XCTAssertThrowsError(
+            try DriveService.selectAvailableCapacity(importantUsage: nil, ordinary: -1)
+        ) { error in
+            XCTAssertEqual(error as? TransferPreflightError, .unableToDetermineDestinationFreeSpace)
+        }
+    }
+
+    func testCapacitySelectionFallsBackWhenImportantUsageIsNegative() throws {
+        XCTAssertEqual(
+            try DriveService.selectAvailableCapacity(importantUsage: -1, ordinary: 4_096),
+            4_096
+        )
+    }
+
+    @MainActor
+    func testOrdinaryFallbackCapacityKeepsStartEligibleWhenSourceFits() throws {
+        let sourceURL = try folder(named: "ordinary-fallback-source", in: temporaryRoot)
+        let destinationURL = try folder(named: "ordinary-fallback-destination", in: temporaryRoot)
+        let requiredBytes: Int64 = 1_024
+        let selectedCapacity = try DriveService.selectAvailableCapacity(
+            importantUsage: 0,
+            ordinary: 4_096
+        )
+        let viewModel = TransferViewModel()
+
+        viewModel.sourceURL = sourceURL
+        viewModel.destinationURL = destinationURL
+        viewModel.sourceMetadata = sourceMetadata(for: sourceURL, bytes: requiredBytes, fileCount: 1)
+        viewModel.destinationMetadata = DestinationStorageMetadata(
+            freeSpaceBytes: selectedCapacity,
+            filesystem: "Test",
+            isWritable: true
+        )
+        viewModel.bundledRsyncInfo = BundledRsyncInfo(
+            executableURL: destinationURL,
+            version: BundledRsyncService.bundledVersion,
+            diagnostics: []
+        )
+
+        XCTAssertLessThan(requiredBytes, selectedCapacity)
+        XCTAssertFalse(viewModel.hasInsufficientDestinationSpace)
+        XCTAssertTrue(viewModel.canStartTransfer)
+    }
+
     func testPreflightUsesExclusionAwareSourceSize() async throws {
         let sourceURL = try folder(named: "exclusion-aware-source", in: temporaryRoot)
         let destinationURL = try folder(named: "exclusion-aware-destination", in: temporaryRoot)

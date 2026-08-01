@@ -39,12 +39,7 @@ public actor DriveService {
     }
     
     public func calculateFreeSpace(at url: URL) throws -> Int64 {
-        let values = try url.resourceValues(forKeys: [.volumeAvailableCapacityForImportantUsageKey, .volumeAvailableCapacityKey])
-        if let importantCapacity = values.volumeAvailableCapacityForImportantUsage {
-            return importantCapacity
-        }
-
-        return Int64(values.volumeAvailableCapacity ?? 0)
+        try calculateReliableFreeSpace(at: url)
     }
 
     public func calculateReliableFreeSpace(at url: URL) throws -> Int64 {
@@ -55,11 +50,21 @@ public actor DriveService {
             throw TransferPreflightError.unableToDetermineDestinationFreeSpace
         }
 
-        if let importantCapacity = values.volumeAvailableCapacityForImportantUsage, importantCapacity >= 0 {
+        return try Self.selectAvailableCapacity(
+            importantUsage: values.volumeAvailableCapacityForImportantUsage,
+            ordinary: values.volumeAvailableCapacity
+        )
+    }
+
+    nonisolated static func selectAvailableCapacity(
+        importantUsage: Int64?,
+        ordinary: Int?
+    ) throws -> Int64 {
+        if let importantCapacity = importantUsage, importantCapacity > 0 {
             return importantCapacity
         }
 
-        if let availableCapacity = values.volumeAvailableCapacity, availableCapacity >= 0 {
+        if let availableCapacity = ordinary, availableCapacity >= 0 {
             return Int64(availableCapacity)
         }
 
