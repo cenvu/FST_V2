@@ -20,6 +20,23 @@ Primary users:
 
 ## Current Baseline After v1.3.4
 
+## Current Sprint Status — consolidated pre-commit review Sprint (2026-08-01)
+
+- CONFIRMED readiness classification: READY_TO_COMMIT.
+- CONFIRMED all 9 modified tracked files and 24 untracked paths across repository reviewed and classified.
+- CONFIRMED secret scan CLEAR; script and JSON configuration validations PASS; Handoff System `--verify` PASS.
+- Established 4-group atomic commit plan without staging or committing any code.
+- Next action: Execute the approved commit plan one group at a time, stopping after each group for verification and without pushing.
+
+## Current Sprint Status — terminal-tail ownership fix (2026-08-01)
+
+- CONFIRMED `TransferCoordinator.workflowTask` is now the active-workflow ownership gate. `startTransfer(...)` requires both an admissible terminal/ready state and `workflowTask == nil`.
+- CONFIRMED the detached task clears ownership only after `runWorkflow(...)` returns, which is after each success, failure, and cancellation path completes `saveTerminalReport(...)` and its final log callback.
+- CONFIRMED regression: `TransferViewModelRuntimeXCTests.testTerminalTailBlocksSecondCoordinatorStartUntilReportCallbacksFinish` paused Job 1 at `saveTerminalReport(...)`; pre-fix the second Coordinator request observed `.validating`, post-fix it remains `.error` and is not admitted.
+- CONFIRMED test-only tail hook is `#if DEBUG`; release behavior and operator-facing terminal-state timing are unchanged.
+- CONFIRMED validation: focused 1/1, relevant 100/100, and canonical 172/172 tests passed at `/tmp/FST-TerminalTail-Fix`; no failed or skipped tests.
+- Remaining risk: the wider shared `isCancelled`/engine-process generation issue is not changed in this Sprint. Perform independent review of terminal-tail ownership and determine whether the remaining write-only workflowTask risk has been fully resolved.
+
 Current repository baseline:
 - Version: v1.3.4 build 20260706
 - Tag: v1.3.4-b20260706
@@ -419,6 +436,44 @@ Meaningful work includes:
 - architecture changes
 - workflow/AI-agent routing changes
 - docs cleanup that changes source-of-truth status
+
+## CodeGraph MCP Integration (2026-08-01)
+
+- Official CodeGraph MCP runtime pinned: `@astudioplus/codegraph-mcp@0.19.1` (codegraph-ai/CodeGraph), server name `fst-codegraph`.
+- Clients: Claude Code (project `.mcp.json`; one-time `/mcp` approval pending), Antigravity/Gemini (workspace `.agents/mcp_config.json` + rule `.agents/rules/fst-codegraph.md`), Codex CLI (global `~/.codex/config.toml`, wrapper scoped to FST).
+- Wrapper: `FST_AI/tools/fst-codegraph-mcp.sh`; shared rules: `FST_AI/memory/CODEGRAPH_OPERATING_RULES.md`; index status: `FST_AI/memory/CODEGRAPH_INDEX_STATUS.md`.
+- Index: 71 files, 628 symbols, 12 authority docs, storage `~/.codegraph/` (project fst-v2-c035).
+- Known limitation: codegraph-server 0.19.1 Swift parser fails on `TransferViewModel.swift`, `RsyncEngine.swift`, `AppUpdateServiceXCTests.swift`, `NotificationCoordinatorXCTests.swift` in multi-file workspaces; Swift call edges partial. Direct source inspection remains mandatory for safety-critical code (CodeGraph is an index, not the source of truth).
+- No production code, tests, Xcode settings, entitlements, rsync, or safety behavior changed. Validation: `xcodebuild test` 169/169 passed.
+
+## Handoff System (2026-08-01)
+
+- `handoffs/CURRENT_HANDOFF.md` is the latest operational continuation record for all agents (Gemini, GPT, Claude, DeepSeek, future agents). Read it before and during work.
+- Timestamped handoffs under `handoffs/` are immutable evidence; `handoffs/INDEX.md` is append-only history — never edit or reorder entries; publish a CORRECTION or VERIFICATION handoff instead of editing history.
+- GitHub Issues remain the task queue. Git, tests, commits, pull requests, and actual source are the final confirmation sources; a handoff is never proof when repository evidence disagrees.
+- Sprint Mode and Lean Mode are active.
+- Publish completed work with `FST_AI/tools/publish_handoff.py`; full rules in `handoffs/README.md`.
+- CodeGraph remains advisory (0.19.1; Swift parsing partial — four files fail to parse; direct source inspection mandatory).
+
+## Repeated-Start Admission Baseline (2026-08-01)
+
+- The confirmed repeated-start admission race is fixed in the current uncommitted worktree at `main` / `6c35cad`.
+- `TransferCoordinator.startTransfer(...)` now reserves Coordinator-owned state as `.validating` immediately after its admissible-state guard and before scheduling `Task.detached`; a second immediate request therefore cannot create a second `runWorkflow`.
+- Deterministic canonical regression: `MetadataOnlySourceSafetyXCTests.testRepeatedStartAdmitsExactlyOneWorkflow` calls Start twice without suspension in one isolated Coordinator region. Pre-fix evidence was `[ready, ready]`; post-fix evidence is `[validating, validating]`.
+- Verification: focused 1/1 passed after fix; relevant Coordinator/ViewModel/report suites 57/57 passed; canonical full suite 170/170 passed with 0 failed and 0 skipped using `/tmp/FST-RepeatedStart-Fix`.
+- No ViewModel, engine, report, notification, update-check, Xcode, entitlement, dependency, version, bundled-rsync, or release change was required.
+- CodeGraph 0.19.1 remained advisory: Coordinator source context matched, but callers/impact/related-tests undercounted and `TransferViewModel.swift`, `RsyncEngine.swift`, plus the updated isolated-parameter test file failed Swift parsing.
+- Next action: perform an independent review of the repeated-start fix and then investigate VerifyEngine verification-mode-none semantics.
+
+## Verification-None Contract Baseline (2026-08-01)
+
+- The internal VerifyEngine verification-mode-none semantics Sprint selected TEST_AND_DOCUMENT (uncommitted, `main` / `6c35cad`).
+- Production contract: `TransferCoordinator` fast-exits on `mode == .none` after copy success (TransferCoordinator.swift:231-249) — `.copyComplete`, "TRANSFER COMPLETE. Verification disabled.", report with `verificationResult: nil`. `VerifyEngine.startVerification` is production-unreachable for `.none`; SAFE TO EJECT is unreachable.
+- Direct engine contract (now documented in `VerifyEngine.startVerification`'s doc comment and pinned by `VerificationHashStrategyXCTests.testDirectNoneModeVerificationDoesNotHashAndEmitsZeroVerifiedPassed`): inventory build, file-count and size comparison still run; `.none` never hashes; `sampleFiles(.none)` returns `[]`; exactly one `.completed(.passed)` with `verifiedFiles == 0` / `passedFiles == 0` — a copy-only pass, not verified-safety evidence. Deterministic, no failure/cancel events.
+- ADD_EXPLICIT_SKIPPED was rejected: it would require >3 production files (ReportEngine exhaustive `VerificationStatus` switches and UI/ViewModel mappings) and change report/UI behavior; the result object already carries the machine-readable `verifiedFiles == 0` distinction.
+- Verification: focused contract test 1/1 before and after the comment; relevant suites (VerificationHashStrategyXCTests, MetadataOnlySourceSafetyXCTests, ReportEngineXCTests, TransferViewModelRuntimeXCTests, LogVisibilityFilterXCTests) 98/98 passed, 0 failed, 0 skipped (`/tmp/FST-VerifyNone-Contract`); full suite NOT run (test + comment only; no runtime behavior change); `git diff --check` passed.
+- No production runtime behavior, rsync, report, Telegram, update-check, UI, state machine, or repeated-start changes were made.
+- Next action: investigate the terminal-state-before-report/log-completion overlap without modifying production code.
 
 ## Compact Memory Version
 
