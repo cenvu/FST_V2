@@ -104,6 +104,67 @@ final class VerificationHashStrategyXCTests: XCTestCase {
         XCTAssertTrue(logMessages.contains(where: { $0.contains("Hash Algorithm: xxHash64") }))
     }
 
+    // Direct VerifyEngine contract for mode `.none`: production never sends `.none`
+    // here (TransferCoordinator fast-exits to `.copyComplete`), so this pins the
+    // engine-internal semantics — a copy-only pass with zero verified files.
+    func testDirectNoneModeVerificationDoesNotHashAndEmitsZeroVerifiedPassed() async throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
+        let source = root.appendingPathComponent("source", isDirectory: true)
+        let destination = root.appendingPathComponent("destination", isDirectory: true)
+        try FileManager.default.createDirectory(at: source, withIntermediateDirectories: true)
+        try FileManager.default.createDirectory(at: destination, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+
+        try "camera".write(to: source.appendingPathComponent("clip.mov"), atomically: true, encoding: .utf8)
+        try "camera".write(to: destination.appendingPathComponent("clip.mov"), atomically: true, encoding: .utf8)
+
+        let recorder = HashStrategyVerificationEventRecorder()
+        let request = VerificationRequest(sourceURL: source, destinationURL: destination, mode: .none)
+        await VerifyEngine().startVerification(request: request) { event in
+            recorder.append(event)
+        }
+
+        let events = recorder.snapshot()
+
+        // Deterministic completion: exactly one terminal `.completed` event, no failure/cancel.
+        let completedEvents = events.filter { event in
+            if case .completed = event { return true }
+            return false
+        }
+        XCTAssertEqual(completedEvents.count, 1, "Expected exactly one terminal .completed event, got: \(events)")
+        guard case .completed(let result) = events.last else {
+            XCTFail("Expected the final event to be .completed, got: \(events)")
+            return
+        }
+
+        // Copy-only pass: `.none` never hashes, so zero files are verified or passed.
+        XCTAssertEqual(result.status, .passed)
+        XCTAssertEqual(result.totalFiles, 1)
+        XCTAssertEqual(result.verifiedFiles, 0)
+        XCTAssertEqual(result.passedFiles, 0)
+        XCTAssertEqual(result.failedFiles, 0)
+
+        // No hashing occurred: hashing emits .currentFile, .hashGenerated, and .progress.
+        let hashingEvents = events.filter { event in
+            if case .currentFile = event { return true }
+            if case .hashGenerated = event { return true }
+            if case .progress = event { return true }
+            return false
+        }
+        XCTAssertTrue(hashingEvents.isEmpty, "Mode .none must not emit hashing events, got: \(hashingEvents)")
+
+        let terminalFailures = events.filter { event in
+            if case .failed = event { return true }
+            if case .cancelled = event { return true }
+            return false
+        }
+        XCTAssertTrue(terminalFailures.isEmpty, "Mode .none must not emit failure or cancellation, got: \(terminalFailures)")
+
+        // Zero verified files means this `.passed` result carries no verified-safety
+        // evidence. The SAFE TO EJECT gate for `.none` is proven by the existing
+        // Coordinator/report tests (copyComplete only, never SAFE TO EJECT).
+    }
+
     private func report(mode: VerificationMode, status: VerificationStatus?, finalStatus: TransferState) -> TransferReport {
         TransferReport(
             date: "2026-06-22",

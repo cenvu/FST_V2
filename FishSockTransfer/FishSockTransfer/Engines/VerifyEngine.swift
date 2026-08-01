@@ -10,9 +10,15 @@ nonisolated public struct FileInfo: Equatable, Sendable {
 
 public actor VerifyEngine {
     private var isCancelled = false
-    
+
     public init() {}
-    
+
+    /// Runs inventory, path/size comparison, and (for non-`.none` modes) hash verification.
+    ///
+    /// Mode `.none` never hashes: the empty sample short-circuits to `.completed(.passed)`
+    /// with `verifiedFiles == 0` — a copy-only pass, not verified-safety evidence.
+    /// Production never sends `.none` here; `TransferCoordinator` fast-exits to
+    /// `.copyComplete`, so SAFE TO EJECT remains unreachable for `.none`.
     public func startVerification(request: VerificationRequest, onEvent: @escaping @Sendable (VerificationEvent) -> Void) async {
         isCancelled = false
         onEvent(.started)
