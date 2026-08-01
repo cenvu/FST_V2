@@ -4,6 +4,54 @@ import XCTest
 
 @MainActor
 final class TransferViewModelRuntimeXCTests: XCTestCase {
+    func testTerminalTailBlocksSecondCoordinatorStartUntilReportCallbacksFinish() async throws {
+        let root = FileManager.default.temporaryDirectory
+            .appendingPathComponent("FSTTerminalTailOverlap-\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+
+        let firstSource = root.appendingPathComponent("missing-source-one", isDirectory: true)
+        let secondSource = root.appendingPathComponent("missing-source-two", isDirectory: true)
+        let coordinator = TransferCoordinator()
+        let terminalTailGate = TerminalTailAsyncGate()
+
+        await coordinator.configureCallbacks(
+            onStateChanged: { _ in },
+            onProgress: { _ in },
+            onSpeed: { _ in },
+            onTransferTime: { _ in },
+            onCurrentFile: { _ in },
+            onError: { _ in },
+            onLog: { _ in },
+            onLogsSnapshot: { [] }
+        )
+        await coordinator.setTerminalReportTailHookForTesting {
+            await terminalTailGate.pause()
+        }
+
+        await coordinator.startTransfer(
+            source: firstSource,
+            destination: root,
+            bandwidthLimit: nil,
+            mode: .none
+        )
+        await terminalTailGate.waitUntilPaused()
+
+        let stateWhileFirstTerminalTailIsPaused = await issueSecondStartWhileFirstTerminalTailIsPaused(
+            on: coordinator,
+            source: secondSource,
+            destination: root
+        )
+
+        XCTAssertEqual(
+            stateWhileFirstTerminalTailIsPaused,
+            .error,
+            "A terminal state must not admit a second workflow until the first report/log tail has completed."
+        )
+
+        await terminalTailGate.resume()
+    }
+
     func testCopyRuntimeCallbacksUpdatePublishedMetricsOnMainActor() {
         let viewModel = makeViewModel()
 
@@ -405,6 +453,41 @@ final class TransferViewModelRuntimeXCTests: XCTestCase {
         }
 
         XCTFail("Timed out waiting for Telegram send count \(expectedCount).")
+    }
+
+    private func issueSecondStartWhileFirstTerminalTailIsPaused(
+        on coordinator: isolated TransferCoordinator,
+        source: URL,
+        destination: URL
+    ) -> TransferState {
+        coordinator.startTransfer(source: source, destination: destination, bandwidthLimit: nil, mode: .none)
+        return coordinator.state
+    }
+}
+
+private actor TerminalTailAsyncGate {
+    private var isPaused = false
+    private var hasPaused = false
+    private var pauseWaiter: CheckedContinuation<Void, Never>?
+    private var resumeWaiter: CheckedContinuation<Void, Never>?
+
+    func pause() async {
+        guard !hasPaused else { return }
+        hasPaused = true
+        isPaused = true
+        pauseWaiter?.resume()
+        pauseWaiter = nil
+        await withCheckedContinuation { resumeWaiter = $0 }
+    }
+
+    func waitUntilPaused() async {
+        if isPaused { return }
+        await withCheckedContinuation { pauseWaiter = $0 }
+    }
+
+    func resume() {
+        resumeWaiter?.resume()
+        resumeWaiter = nil
     }
 }
 

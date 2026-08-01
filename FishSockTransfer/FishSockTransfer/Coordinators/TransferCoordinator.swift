@@ -29,6 +29,10 @@ public actor TransferCoordinator {
     
     private var isCancelled = false
     private var workflowTask: Task<Void, Never>?
+
+#if DEBUG
+    private var onTerminalReportTailEnteredForTesting: (@Sendable () async -> Void)?
+#endif
     
     public init(
         driveService: DriveService = DriveService(),
@@ -67,6 +71,12 @@ public actor TransferCoordinator {
         self.onLog = onLog
         self.onLogsSnapshot = onLogsSnapshot
     }
+
+#if DEBUG
+    internal func setTerminalReportTailHookForTesting(_ hook: (@Sendable () async -> Void)?) {
+        onTerminalReportTailEnteredForTesting = hook
+    }
+#endif
     
     private func updateState(_ newState: TransferState) async {
         self.state = newState
@@ -80,15 +90,25 @@ public actor TransferCoordinator {
     
     public func startTransfer(source: URL, destination: URL, bandwidthLimit: Int?, mode: VerificationMode) {
         // Enforce valid start states
-        guard state == .ready || state == .copyComplete || state == .safeToFormat || state == .error || state == .cancelled else {
+        guard state == .ready || state == .copyComplete || state == .safeToFormat || state == .error || state == .cancelled,
+              workflowTask == nil else {
             return
         }
-        
+
+        // Reserve the single active workflow before scheduling asynchronous work.
+        state = .validating
         isCancelled = false
         
         workflowTask = Task.detached(priority: .userInitiated) { [self] in
             await self.runWorkflow(source: source, destination: destination, bandwidthLimit: bandwidthLimit, mode: mode)
+            await self.workflowDidFinish()
         }
+    }
+
+    private func workflowDidFinish() {
+        // A successor cannot exist while workflowTask is non-nil, so this completion
+        // cannot clear ownership belonging to a newer workflow.
+        workflowTask = nil
     }
     
     public func cancelTransfer() {
@@ -551,6 +571,9 @@ public actor TransferCoordinator {
         verificationStartedAt: Date? = nil,
         verificationEndedAt: Date? = nil
     ) async {
+#if DEBUG
+        await onTerminalReportTailEnteredForTesting?()
+#endif
         let bundledInfo = await bundledRsyncService.bundledInfo()
         let createdAt = Date()
         let report = makeReport(

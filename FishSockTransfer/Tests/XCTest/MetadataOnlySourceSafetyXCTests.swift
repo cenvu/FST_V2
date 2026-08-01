@@ -406,6 +406,24 @@ final class MetadataOnlySourceSafetyXCTests: XCTestCase {
         XCTAssertFalse(try containsReportFile(in: sourceURL))
     }
 
+    func testRepeatedStartAdmitsExactlyOneWorkflow() async {
+        let sourceURL = temporaryRoot.appendingPathComponent("missing-source", isDirectory: true)
+        let destinationURL = temporaryRoot.appendingPathComponent("missing-source", isDirectory: true)
+        let coordinator = TransferCoordinator()
+
+        let statesAfterRequests = await issueRepeatedStartsWithoutSuspension(
+            on: coordinator,
+            source: sourceURL,
+            destination: destinationURL
+        )
+
+        XCTAssertEqual(
+            statesAfterRequests,
+            [.validating, .validating],
+            "The first request must reserve validation synchronously, and the second must leave that single reservation unchanged."
+        )
+    }
+
     func testSourceInsideDestinationPreflightFailureDoesNotWriteReportOnSourceMedia() async throws {
         let cardURL = try folder(named: "CARD", in: temporaryRoot)
         let sourceURL = try folder(named: "DCIM", in: cardURL)
@@ -529,6 +547,18 @@ final class MetadataOnlySourceSafetyXCTests: XCTestCase {
             try await Task.sleep(nanoseconds: 20_000_000)
         }
         XCTFail("Coordinator did not reach preflight error before timeout.")
+    }
+
+    private func issueRepeatedStartsWithoutSuspension(
+        on coordinator: isolated TransferCoordinator,
+        source: URL,
+        destination: URL
+    ) -> [TransferState] {
+        coordinator.startTransfer(source: source, destination: destination, bandwidthLimit: nil, mode: .none)
+        let stateAfterFirstRequest = coordinator.state
+        coordinator.startTransfer(source: source, destination: destination, bandwidthLimit: nil, mode: .none)
+        let stateAfterSecondRequest = coordinator.state
+        return [stateAfterFirstRequest, stateAfterSecondRequest]
     }
 
     private func waitForCoordinatorTerminalReport(_ recorder: TransferCoordinatorRecorder) async throws {
