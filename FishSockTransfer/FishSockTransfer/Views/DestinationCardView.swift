@@ -94,7 +94,7 @@ public struct DestinationCardView: View {
 
             Color.clear.frame(height: 8)
 
-            HStack {
+            HStack(spacing: 8) {
                 Button {
                     guard !viewModel.isTransferConfigurationLocked else { return }
                     guard let url = FolderPicker.chooseFolder() else { return }
@@ -107,6 +107,20 @@ public struct DestinationCardView: View {
                 .opacity(viewModel.isTransferConfigurationLocked ? 0.25 : 1.0)
                 .controlSize(.regular)
                 .fixedSize()
+
+                Button {
+                    viewModel.clearDestinationFolder()
+                } label: {
+                    Label("Clear Folder", systemImage: "xmark.square")
+                }
+                .buttonStyle(.bordered)
+                .disabled(viewModel.destinationURL == nil || viewModel.isTransferConfigurationLocked)
+                .opacity(viewModel.destinationURL == nil || viewModel.isTransferConfigurationLocked ? 0.25 : 1.0)
+                .controlSize(.regular)
+                .fixedSize()
+                .accessibilityLabel("Clear Folder")
+                .help("Removes this destination selection from FST only. The folder or drive on disk is never deleted or modified.")
+
                 Spacer(minLength: 0).frame(width: 0)
             }
         }

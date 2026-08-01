@@ -88,27 +88,34 @@ public actor TransferCoordinator {
         await onLog?(LogEntry(category: category, message: message))
     }
     
-    public func startTransfer(source: URL, destination: URL, bandwidthLimit: Int?, mode: VerificationMode) {
+    @discardableResult
+    public func startTransfer(source: URL, destination: URL, bandwidthLimit: Int?, mode: VerificationMode) -> Bool {
         // Enforce valid start states
         guard state == .ready || state == .copyComplete || state == .safeToFormat || state == .error || state == .cancelled,
               workflowTask == nil else {
-            return
+            return false
         }
 
         // Reserve the single active workflow before scheduling asynchronous work.
         state = .validating
         isCancelled = false
-        
+
         workflowTask = Task.detached(priority: .userInitiated) { [self] in
-            await self.runWorkflow(source: source, destination: destination, bandwidthLimit: bandwidthLimit, mode: mode)
-            await self.workflowDidFinish()
+            let finalState = await self.runWorkflow(source: source, destination: destination, bandwidthLimit: bandwidthLimit, mode: mode)
+            await self.finishWorkflow(with: finalState)
         }
+        return true
     }
 
-    private func workflowDidFinish() {
-        // A successor cannot exist while workflowTask is non-nil, so this completion
-        // cannot clear ownership belonging to a newer workflow.
+    /// Releases workflow-admission ownership before the terminal state becomes
+    /// externally observable. `runWorkflow` performs all of its cleanup
+    /// (report save, terminal logging) and returns its outcome without
+    /// publishing it, so by the time this method's `updateState` call makes
+    /// the terminal state visible to the ViewModel, `workflowTask` is already
+    /// `nil` and an immediate Retry is admissible with no caller-side polling.
+    private func finishWorkflow(with finalState: TransferState) async {
         workflowTask = nil
+        await updateState(finalState)
     }
     
     public func cancelTransfer() {
@@ -132,7 +139,12 @@ public actor TransferCoordinator {
         }
     }
     
-    private func runWorkflow(source: URL, destination: URL, bandwidthLimit: Int?, mode: VerificationMode) async {
+    /// Runs the full validate -> copy -> verify workflow and returns its
+    /// terminal outcome without publishing it. The caller (`finishWorkflow`)
+    /// releases admission ownership and then publishes the returned state, so
+    /// no terminal state is ever externally observable while this workflow
+    /// still holds `workflowTask`.
+    private func runWorkflow(source: URL, destination: URL, bandwidthLimit: Int?, mode: VerificationMode) async -> TransferState {
         let workflowStartDate = Date()
         var sourceMetadata: SourceStorageMetadata?
         var copyStartedAt: Date?
@@ -160,7 +172,6 @@ public actor TransferCoordinator {
             let message = "TRANSFER ERROR: \(error.localizedDescription)"
             await log(category: .error, message: message)
             await onError?(message)
-            await updateState(.error)
             await saveTerminalReport(
                 source: source,
                 destination: destination,
@@ -173,11 +184,10 @@ public actor TransferCoordinator {
                 startedAt: workflowStartDate,
                 endedAt: Date()
             )
-            return
+            return .error
         }
-        
+
         if isCancelled {
-            await updateState(.cancelled)
             await saveTerminalReport(
                 source: source,
                 destination: destination,
@@ -190,9 +200,9 @@ public actor TransferCoordinator {
                 startedAt: workflowStartDate,
                 endedAt: Date()
             )
-            return
+            return .cancelled
         }
-        
+
         // STATE: COPYING
         await updateState(.copying)
         let request = TransferRequest(sourceURL: source, destinationURL: destination, bandwidthLimit: bandwidthLimit)
@@ -201,7 +211,6 @@ public actor TransferCoordinator {
         copyEndedAt = Date()
         
         if isCancelled {
-            await updateState(.cancelled)
             await saveTerminalReport(
                 source: source,
                 destination: destination,
@@ -216,9 +225,9 @@ public actor TransferCoordinator {
                 copyStartedAt: copyStartedAt,
                 copyEndedAt: copyEndedAt
             )
-            return
+            return .cancelled
         }
-        
+
         if !rsyncSuccess {
             let failureReason: String?
             if let err = rsyncError {
@@ -227,7 +236,6 @@ public actor TransferCoordinator {
             } else {
                 failureReason = "TRANSFER ERROR: Transfer failed."
             }
-            await updateState(.error)
             await saveTerminalReport(
                 source: source,
                 destination: destination,
@@ -242,12 +250,11 @@ public actor TransferCoordinator {
                 copyStartedAt: copyStartedAt,
                 copyEndedAt: copyEndedAt
             )
-            return
+            return .error
         }
-        
+
         // Mode None -> Fast Exit
         if mode == .none {
-            await updateState(.copyComplete)
             await log(category: .system, message: "TRANSFER COMPLETE. Verification disabled.")
             await saveTerminalReport(
                 source: source,
@@ -263,9 +270,9 @@ public actor TransferCoordinator {
                 copyStartedAt: copyStartedAt,
                 copyEndedAt: copyEndedAt
             )
-            return
+            return .copyComplete
         }
-        
+
         // STATE: VERIFYING
         await updateState(.verifying)
         let verifiedDestination = destination.appendingPathComponent(source.lastPathComponent, isDirectory: true)
@@ -275,7 +282,6 @@ public actor TransferCoordinator {
         verificationEndedAt = Date()
         
         if isCancelled {
-            await updateState(.cancelled)
             await saveTerminalReport(
                 source: source,
                 destination: destination,
@@ -292,9 +298,9 @@ public actor TransferCoordinator {
                 verificationStartedAt: verificationStartedAt,
                 verificationEndedAt: verificationEndedAt
             )
-            return
+            return .cancelled
         }
-        
+
         if !verifySuccess {
             let failureReason: String?
             if let err = verifyError {
@@ -303,7 +309,6 @@ public actor TransferCoordinator {
             } else {
                 failureReason = "MANUAL CHECK REQUIRED: Verification failed."
             }
-            await updateState(.error)
             await saveTerminalReport(
                 source: source,
                 destination: destination,
@@ -320,11 +325,10 @@ public actor TransferCoordinator {
                 verificationStartedAt: verificationStartedAt,
                 verificationEndedAt: verificationEndedAt
             )
-            return
+            return .error
         }
-        
+
         // Internal state name is legacy; operator-facing language is SAFE TO EJECT.
-        await updateState(.safeToFormat)
         await log(category: .system, message: "Verification Passed. SAFE TO EJECT.")
         await saveTerminalReport(
             source: source,
@@ -342,6 +346,7 @@ public actor TransferCoordinator {
             verificationStartedAt: verificationStartedAt,
             verificationEndedAt: verificationEndedAt
         )
+        return .safeToFormat
     }
     
     private func executeRsync(

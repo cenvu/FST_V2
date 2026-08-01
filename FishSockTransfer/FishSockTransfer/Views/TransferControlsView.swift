@@ -5,7 +5,9 @@ import SwiftUI
 public struct TransferControlsView: View {
     @ObservedObject var viewModel: TransferViewModel
     @State private var isActionHovered = false
-    
+    @State private var isShowingCancelConfirmation = false
+    @State private var cancelRequestGuard = TransferCancelRequestGuard()
+
     // Limits represented in KiB/s for rsync 3.x --bwlimit semantics.
     private let bandwidthOptions: [(label: String, value: Int?)] = [
         ("50 MB/s", RsyncBandwidthLimit.kibPerSecond(for: 50)),
@@ -204,7 +206,8 @@ public struct TransferControlsView: View {
             HStack(spacing: 12) {
                 Image(systemName: TransferControlsActionPresentation.icon(
                     for: viewModel.transferState,
-                    errorMessage: viewModel.errorMessage
+                    errorMessage: viewModel.errorMessage,
+                    canStartTransfer: viewModel.canStartTransfer
                 ))
                 .font(.system(size: iconSize, weight: .semibold))
                 .foregroundColor(statusColor)
@@ -247,9 +250,39 @@ public struct TransferControlsView: View {
         .buttonStyle(PlainButtonStyle())
         .disabled(!isActionButtonEnabled)
         .opacity(isActionButtonEnabled ? 1 : 0.68)
+        .accessibilityLabel(accessibilityActionLabel)
+        .confirmationDialog("Cancel Transfer?", isPresented: $isShowingCancelConfirmation, titleVisibility: .visible) {
+            Button("Cancel Transfer", role: .destructive) {
+                cancelRequestGuard.confirmCancellationRequest()
+                isShowingCancelConfirmation = false
+                viewModel.cancelTransfer()
+            }
+            Button("Continue Transfer", role: .cancel) {
+                isShowingCancelConfirmation = false
+            }
+        } message: {
+            Text("The current transfer will stop. Source and destination selections will remain available.")
+        }
+        .onChange(of: viewModel.transferState) { newState in
+            cancelRequestGuard.reset(for: newState)
+        }
         .onHover { hovering in
             isActionHovered = hovering
         }
+    }
+
+    private var accessibilityActionLabel: String {
+        if TransferActionPresentation.isActiveCancellableState(viewModel.transferState) {
+            return "Cancel Transfer"
+        }
+        if viewModel.transferState == .error, viewModel.canStartTransfer {
+            return "Retry Transfer"
+        }
+        return TransferControlsActionPresentation.title(
+            for: viewModel.transferState,
+            errorMessage: viewModel.errorMessage,
+            canStartTransfer: viewModel.canStartTransfer
+        )
     }
 
     private var displayProgress: Double {
@@ -404,8 +437,10 @@ public struct TransferControlsView: View {
     private var isActionButtonEnabled: Bool {
         switch viewModel.transferState {
         case .copying, .verifying:
-            return true
+            return !cancelRequestGuard.isCancellationRequested
         case .validating:
+            // Validation has no cancellable task in the current Coordinator,
+            // so the active presentation must stay disabled.
             return false
         case .ready, .error, .cancelled, .copyComplete, .safeToFormat:
             return viewModel.canStartTransfer
@@ -423,11 +458,15 @@ public struct TransferControlsView: View {
     }
 
     private func handleActionButton() {
-        if viewModel.transferState == .copying || viewModel.transferState == .verifying {
-            viewModel.cancelTransfer()
-        } else {
-            viewModel.startTransfer()
+        if TransferActionPresentation.isActiveCancellableState(viewModel.transferState) {
+            // Active cancellable state: request operator confirmation first.
+            // No ViewModel cancellation request is sent before confirmation.
+            if cancelRequestGuard.allowsNewCancellationRequest(for: viewModel.transferState) {
+                isShowingCancelConfirmation = true
+            }
+            return
         }
+        viewModel.startTransfer()
     }
 }
 
@@ -491,40 +530,30 @@ nonisolated public enum TransferControlsActionPresentation {
         errorMessage: String? = nil,
         canStartTransfer: Bool
     ) -> String {
-        if state == .cancelled, canStartTransfer {
-            return "START NEW TRANSFER"
-        }
-
-        switch visualRole(for: state, errorMessage: errorMessage) {
-        case .preparing:
-            return "PREPARING TRANSFER"
-        case .transferring:
-            return "TRANSFERRING"
-        case .verifying:
-            return "VERIFYING"
-        case .copyOnlyComplete:
-            return "TRANSFER COMPLETE"
-        case .safeToFormat:
-            return "SAFE TO EJECT"
-        case .manualCheckRequired:
+        // Manual-check failures keep their dedicated label; every other state
+        // uses the single source of truth TransferActionPresentation.title
+        // (defined in TransferViewModel.swift so the canonical XCTest module
+        // can pin the presentation contract).
+        if isManualCheckRequired(errorMessage: errorMessage) {
             return "MANUAL CHECK REQUIRED"
-        case .error:
-            return "TRANSFER ERROR"
-        case .cancelled:
-            return "CANCELLED"
-        case .idle:
-            return "START"
         }
+        return TransferActionPresentation.title(for: state, canStartTransfer: canStartTransfer)
     }
 
-    public static func icon(for state: TransferState, errorMessage: String? = nil) -> String {
+    public static func icon(
+        for state: TransferState,
+        errorMessage: String? = nil,
+        canStartTransfer: Bool = false
+    ) -> String {
+        if state == .error, canStartTransfer {
+            return "arrow.clockwise"
+        }
+
         switch visualRole(for: state, errorMessage: errorMessage) {
         case .preparing:
             return "magnifyingglass"
-        case .transferring:
-            return "arrow.right.circle.fill"
-        case .verifying:
-            return "checkmark.shield.fill"
+        case .transferring, .verifying:
+            return "stop.fill"
         case .copyOnlyComplete:
             return "doc.on.doc"
         case .safeToFormat:

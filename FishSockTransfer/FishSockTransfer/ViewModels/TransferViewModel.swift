@@ -132,6 +132,41 @@ public final class TransferViewModel: ObservableObject {
         return true
     }
 
+    /// Removes the selected Source from FST only.
+    ///
+    /// Cancels any in-flight Source metadata task, clears the selected URL,
+    /// Source metadata, and Source-derived validation state, then recomputes
+    /// Start eligibility. The real folder on disk is never deleted, moved,
+    /// renamed, or modified. Transfer logs, terminal reports, notification
+    /// history, and Destination selection are untouched.
+    public func clearSourceFolder() {
+        guard !isTransferConfigurationLocked else { return }
+        sourceMetadataTask?.cancel()
+        sourceMetadataTask = nil
+        sourceURL = nil
+        sourceMetadata = nil
+        refreshStorageWarning()
+        errorMessage = nil
+    }
+
+    /// Removes the selected Destination from FST only.
+    ///
+    /// Cancels any in-flight Destination metadata task, clears the selected
+    /// URL, Destination metadata, free-space information, and
+    /// destination-derived warnings, then recomputes Start eligibility. The
+    /// real folder or volume on disk is never deleted, moved, renamed,
+    /// formatted, or modified. Transfer logs, terminal reports, notification
+    /// history, and Source selection are untouched.
+    public func clearDestinationFolder() {
+        guard !isTransferConfigurationLocked else { return }
+        destinationMetadataTask?.cancel()
+        destinationMetadataTask = nil
+        destinationURL = nil
+        destinationMetadata = nil
+        refreshStorageWarning()
+        errorMessage = nil
+    }
+
     private func setupBindings() {
         callbacksConfiguredTask = Task { [weak self, coordinator] in
             await coordinator.configureCallbacks(
@@ -281,7 +316,8 @@ public final class TransferViewModel: ObservableObject {
 
         if let bandwidthLimit {
             do {
-                _ = try RsyncBandwidthLimit.validate(kibPerSecond: bandwidthLimit)
+                let kibPerSecond = RsyncBandwidthLimit.kibPerSecond(for: bandwidthLimit)
+                _ = try RsyncBandwidthLimit.validate(kibPerSecond: kibPerSecond)
             } catch {
                 errorMessage = error.localizedDescription
                 addLog(category: .error, message: error.localizedDescription)
@@ -299,13 +335,23 @@ public final class TransferViewModel: ObservableObject {
         addLog(category: .info, message: "Destination: \(destinationURL.lastPathComponent)")
         notifyJobStarted()
 
+        let bandwidthLimitKiB = bandwidthLimit.map { RsyncBandwidthLimit.kibPerSecond(for: $0) }
         let callbacksConfiguredTask = callbacksConfiguredTask
-        Task { [coordinator, sourceURL, destinationURL, bandwidthLimit, verificationMode, callbacksConfiguredTask] in
+
+        // TransferState is Coordinator-owned. No state is asserted here: the
+        // Coordinator publishes the real `.validating` transition itself the
+        // instant it admits this request. One immediate admission attempt is
+        // made with the Source, Destination, bandwidth, and verification mode
+        // current right now — no retry loop, no delay, no stale capture. If
+        // admission is rejected, nothing here changes: the current state and
+        // configuration are left exactly as they were, and the operator may
+        // press Retry again.
+        Task { [coordinator, sourceURL, destinationURL, bandwidthLimitKiB, verificationMode, callbacksConfiguredTask] in
             await callbacksConfiguredTask?.value
             await coordinator.startTransfer(
                 source: sourceURL,
                 destination: destinationURL,
-                bandwidthLimit: bandwidthLimit,
+                bandwidthLimit: bandwidthLimitKiB,
                 mode: verificationMode
             )
         }
@@ -795,7 +841,8 @@ public final class TransferViewModel: ObservableObject {
     private var bandwidthLimitValidationMessage: String? {
         guard let bandwidthLimit else { return nil }
         do {
-            _ = try RsyncBandwidthLimit.validate(kibPerSecond: bandwidthLimit)
+            let kibPerSecond = RsyncBandwidthLimit.kibPerSecond(for: bandwidthLimit)
+            _ = try RsyncBandwidthLimit.validate(kibPerSecond: kibPerSecond)
             return nil
         } catch {
             return error.localizedDescription
@@ -817,6 +864,9 @@ public final class TransferViewModel: ObservableObject {
                 let metadata = try await driveService.sourceMetadata(for: url)
                 try Task.checkCancellation()
                 await MainActor.run {
+                    // URL-identity guard: a stale task must never repopulate a
+                    // cleared or re-selected Source.
+                    guard self?.sourceURL == url else { return }
                     self?.sourceMetadata = metadata
                     self?.refreshStorageWarning()
                 }
@@ -824,6 +874,7 @@ public final class TransferViewModel: ObservableObject {
                 return
             } catch {
                 await MainActor.run {
+                    guard self?.sourceURL == url else { return }
                     self?.sourceMetadata = nil
                     self?.storageWarningMessage = nil
                     self?.errorMessage = "Unable to analyze source folder."
@@ -839,6 +890,9 @@ public final class TransferViewModel: ObservableObject {
                 let metadata = try await driveService.destinationMetadata(for: url)
                 try Task.checkCancellation()
                 await MainActor.run {
+                    // URL-identity guard: a stale task must never repopulate a
+                    // cleared or re-selected Destination.
+                    guard self?.destinationURL == url else { return }
                     self?.destinationMetadata = metadata
                     self?.refreshStorageWarning()
                 }
@@ -846,6 +900,7 @@ public final class TransferViewModel: ObservableObject {
                 return
             } catch {
                 await MainActor.run {
+                    guard self?.destinationURL == url else { return }
                     self?.destinationMetadata = nil
                     self?.storageWarningMessage = nil
                     self?.errorMessage = "Unable to analyze destination folder."
@@ -883,7 +938,95 @@ public final class TransferViewModel: ObservableObject {
         self.verifyElapsedSeconds = seconds
         self.updateVerifyETA()
     }
+
+    // Lets deterministic tests await the in-flight metadata tasks to prove a
+    // stale completion can never repopulate a cleared folder selection.
+    internal var sourceMetadataTaskForTesting: Task<Void, Never>? { sourceMetadataTask }
+    internal var destinationMetadataTaskForTesting: Task<Void, Never>? { destinationMetadataTask }
 #endif
+}
+
+/// Single source of truth for the main action button label per state.
+/// SwiftUI-free so the canonical XCTest module (which compiles the ViewModel
+/// but not the Views) can pin the presentation contract deterministically.
+nonisolated public enum TransferActionPresentation {
+    public static func title(for state: TransferState, canStartTransfer: Bool = false) -> String {
+        if state == .cancelled, canStartTransfer {
+            return "START NEW TRANSFER"
+        }
+
+        if state == .error, canStartTransfer {
+            return "RETRY"
+        }
+
+        switch state {
+        case .ready:
+            return "START"
+        case .validating:
+            return "PREPARING TRANSFER"
+        case .copying, .verifying:
+            return "CANCEL"
+        case .copyComplete:
+            return "TRANSFER COMPLETE"
+        case .safeToFormat:
+            return "SAFE TO EJECT"
+        case .error:
+            return "TRANSFER ERROR"
+        case .cancelled:
+            return "CANCELLED"
+        }
+    }
+
+    public static func actionIcon(for state: TransferState, canStartTransfer: Bool = false) -> String? {
+        if state == .error, canStartTransfer {
+            return "arrow.clockwise"
+        }
+        return nil
+    }
+
+    public static func accessibilityLabel(for state: TransferState, canStartTransfer: Bool = false) -> String? {
+        if state == .error, canStartTransfer {
+            return "Retry Transfer"
+        }
+        return nil
+    }
+
+    /// True only for states whose active workflow has a real cancellation
+    /// path (copying and verifying). Validation has no cancellable task, so
+    /// it is deliberately excluded.
+    public static func isActiveCancellableState(_ state: TransferState) -> Bool {
+        state == .copying || state == .verifying
+    }
+}
+
+/// Smallest View/UI-layer guard that allows exactly one cancellation request
+/// per active workflow. Confirmation is a View concern; this type only
+/// records that a confirmed cancellation request was sent so the Cancel
+/// button disables and no duplicate request can reach the ViewModel. It
+/// resets automatically when the workflow leaves the active states.
+nonisolated public struct TransferCancelRequestGuard {
+    public private(set) var isCancellationRequested = false
+
+    public init() {}
+
+    /// Records the single confirmed cancellation request for this workflow.
+    public mutating func confirmCancellationRequest() {
+        isCancellationRequested = true
+    }
+
+    /// Resets the guard when the workflow leaves `.copying`/`.verifying`, so
+    /// a future workflow (or a new transfer) can cancel again.
+    public mutating func reset(for state: TransferState) {
+        if state != .copying, state != .verifying {
+            isCancellationRequested = false
+        }
+    }
+
+    /// True only in active cancellable states with no request already sent.
+    public func allowsNewCancellationRequest(for state: TransferState) -> Bool {
+        guard TransferActionPresentation.isActiveCancellableState(state) else { return false }
+        return !isCancellationRequested
+    }
 }
 
 nonisolated public enum TransferDestinationPreview {
