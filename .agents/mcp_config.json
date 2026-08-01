@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "fst-codegraph": {
+      "command": "/Users/cenvu/DEV/FST_V2/FST_AI/tools/fst-codegraph-mcp.sh",
+      "args": [],
+      "cwd": "/Users/cenvu/DEV/FST_V2"
+    }
+  }
+}

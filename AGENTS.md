@@ -489,3 +489,25 @@ Do not add unless explicitly requested:
 At 3:00 AM on set, with a producer behind the DIT, choose the implementation that is easiest to inspect, explain, cancel, and verify.
 
 Data safety beats everything.
+
+---
+
+## CodeGraph MCP (fst-codegraph)
+
+- The CodeGraph MCP server name is `fst-codegraph`, project-scoped to this repository.
+- Read `FST_AI/memory/CODEGRAPH_OPERATING_RULES.md` and `FST_AI/memory/CODEGRAPH_INDEX_STATUS.md` before coding.
+- Run CodeGraph pre-edit context and impact analysis (`codegraph_get_edit_context`, `codegraph_analyze_impact`, `codegraph_get_callers`, `codegraph_get_callees`, `codegraph_find_related_tests`) before production edits.
+- CodeGraph is an index, not the source of truth: actual source, tests, Git state, AGENTS.md, and FST authority documents win.
+- Fall back to direct source inspection when CodeGraph is unavailable; never block emergency inspection merely because MCP is unavailable.
+- Never edit blindly. State the owning layer and the smallest safe change surface before editing.
+
+---
+
+## Handoff System (cross-agent)
+
+- `handoffs/CURRENT_HANDOFF.md` is the latest operational continuation record. Read it before starting work and after resuming work.
+- Timestamped handoffs under `handoffs/` are immutable evidence. `handoffs/INDEX.md` is append-only. Never edit, reorder, or delete historical entries; correct errors with a new CORRECTION or VERIFICATION handoff.
+- GitHub Issues are the task queue. Git, tests, commits, pull requests, and actual source are the final confirmation sources; a handoff is never proof when repository evidence disagrees.
+- Before work: read authority documents, read `handoffs/CURRENT_HANDOFF.md`, check Git status and the current commit, check the relevant GitHub Issue, connect `fst-codegraph`, read direct source, confirm the task is not already completed, and work in Sprint Mode and Lean Mode.
+- After meaningful work: run required verification, inspect the Git diff and status, update the GitHub Issue when authorized, publish one complete handoff through `FST_AI/tools/publish_handoff.py`, confirm the timestamped file + CURRENT + exactly one INDEX entry, and report the handoff filename. Never edit a historical handoff.
+- Full rules: `handoffs/README.md` and `FST_AI/memory/CODEGRAPH_OPERATING_RULES.md`.
