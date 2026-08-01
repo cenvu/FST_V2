@@ -409,9 +409,9 @@ private final class MockNotificationService: NotificationService, @unchecked Sen
     }
 
     func sendMessage(_ message: String, configuration: TelegramNotificationConfiguration) async throws {
-        lock.lock()
-        messages.append(message)
-        lock.unlock()
+        lock.withLock {
+            messages.append(message)
+        }
 
         if let error {
             throw error
