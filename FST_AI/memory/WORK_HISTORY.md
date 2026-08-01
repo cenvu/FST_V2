@@ -21,6 +21,17 @@ Each entry must include:
 
 ## Recent History
 
+### 2026-08-02 - v1.3.5 Release Sprint
+
+- Agent/model: Antigravity IDE / Gemini 3.6 Flash
+- Branch/commit/tag: main; tag v1.3.5 (pending)
+- Files changed: multiple markdown documentation files and pbxproj versions
+- What changed: Prepared all versioning metadata, documentation, handovers, project guidelines, PRD, and changelogs for the FST v1.3.5 release.
+- Safety boundary confirmation: Version metadata and documentation update only. No changes to core Swift engines or runtime logic.
+- Build/test/package result: Tests pending before package/tag execution.
+- Whether committed/tagged/released: Will be committed as "release: v1.3.5", tagged, and published as a GitHub release.
+- Next recommended action: Run tests, build package, commit, tag, and publish GitHub Release.
+
 ### 2026-08-01 - Consolidated pre-commit review Sprint (READY_TO_COMMIT)
 
 - Agent/model: Antigravity IDE / Gemini 3.6 Flash

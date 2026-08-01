@@ -2,7 +2,7 @@
 
 # FST Technical Guide
 
-Version: 2026-06-30
+Version: 2026-08-02
 Status: Current Project Source of Truth
 Applies To: Codex, Claude, ChatGPT, human contributors
 
@@ -36,8 +36,8 @@ Do not add features that do not reduce media-loss risk.
 
 ## Current Release Snapshot
 
-- Version: v1.3.4 display 1.3.4 build 20260706
-- Package: `dist/FishSockTransfer-v1.3.4-b20260706-local-macOS13_5plus-arm64.zip`
+- Version: v1.3.5 display 1.3.5 build 20260802
+- Package: `dist/FishSockTransfer-v1.3.5-b20260802-local-macOS13_5plus-arm64.zip`
 - Platform: macOS 13.5+, Apple Silicon arm64 only
 - Package type: local owner-side ad-hoc build
 - Signing: ad-hoc signed, not notarized, not Developer ID signed
@@ -46,6 +46,8 @@ Do not add features that do not reduce media-loss risk.
 - Operator-facing verified success: SAFE TO EJECT
 
 FST does not format media and does not eject media.
+
+v1.3.5 packages the Clear Folder controls, safe Start-to-Cancel behavior, full-workflow Retry, persistent security-scoped folder access, and fixes misleading external-volume free space reporting.
 
 v1.3.4 hardens Detailed TXT Report V1 and safety wording. It does not change transfer, verify, rsync, Telegram, update-check, or UI layout behavior.
 

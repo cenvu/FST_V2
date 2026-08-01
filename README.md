@@ -6,7 +6,7 @@
 [![macOS 13.5+](https://img.shields.io/badge/macOS-13.5%2B-blue.svg)](https://apple.com/macos)
 [![Apple Silicon arm64](https://img.shields.io/badge/architecture-Apple_Silicon_arm64-ff69b4.svg)]()
 [![Swift 5.9+](https://img.shields.io/badge/Swift-5.9%2B-FA7343.svg)](https://swift.org)
-[![Version v1.3.4](https://img.shields.io/badge/version-v1.3.4-success.svg)]()
+[![Version v1.3.5](https://img.shields.io/badge/version-v1.3.5-success.svg)]()
 [![License](https://img.shields.io/badge/license-Source_Available_/_Non--Commercial-orange.svg)](LICENSE)
 
 English documentation is included below.
@@ -120,12 +120,14 @@ What FST cannot / does not do:
 ## Thông tin sử dụng và phát triển
 
 ### Trạng thái hiện tại
-- Phiên bản: v1.3.4
+- Phiên bản: v1.3.5
 - Nền tảng: macOS 13.5+, Apple Silicon arm64
 - Chữ ký: ad-hoc signed
 - Notarization: không được notarized
 - Phạm vi: một nguồn, một đích, một tác vụ chạy tại một thời điểm
 - Transfer engine: sử dụng rsync 3.4.4 đi kèm
+
+v1.3.5 bổ sung các nút Clear Folder, hành vi Start-to-Cancel an toàn, tính năng Retry toàn bộ workflow khi có lỗi, lưu quyền truy cập thư mục Source/Destination qua các lần mở lại app, và sửa lỗi hiển thị sai dung lượng trống của ổ cứng ngoài.
 
 v1.3.4 harden Detailed TXT Report V1, bổ sung disclaimer song ngữ gần đầu report, làm rõ kết quả verify thành SAFE TO EJECT DESTINATION, giảm thông tin rsync cho operator còn rsync 3.4.4, và cập nhật test cho wording an toàn. FST chỉ báo cáo kết quả copy và verification. Quyết định xoá, format, hoặc tái sử dụng source media vẫn thuộc trách nhiệm của người dùng.
 
@@ -179,12 +181,14 @@ Xem chi tiết:
 ## Usage and development information
 
 ### Current status
-- Version: v1.3.4
+- Version: v1.3.5
 - Platform: macOS 13.5+, Apple Silicon arm64
 - Signing: ad-hoc signed
 - Notarization: not notarized
 - Scope: single source, single destination, single active job
 - Transfer engine: bundled rsync 3.4.4
+
+v1.3.5 packages the Clear Folder controls, safe Start-to-Cancel behavior, full-workflow Retry, persistent security-scoped folder access, and fixes misleading external-volume free space reporting.
 
 v1.3.4 hardens Detailed TXT Report V1, adds a bilingual disclaimer near the top of reports, clarifies verified success as SAFE TO EJECT DESTINATION, reduces operator-facing rsync detail to rsync 3.4.4, and updates tests for report wording safety. FST reports copy and verification results only. Decisions to erase, format, or reuse source media remain the user's responsibility.
 

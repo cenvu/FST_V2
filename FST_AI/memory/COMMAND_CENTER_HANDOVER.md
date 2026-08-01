@@ -122,18 +122,18 @@ Deferred:
 ## Latest Release State
 
 Version metadata:
-- `MARKETING_VERSION = 1.3.4`
-- `CURRENT_PROJECT_VERSION = 20260706`
-- Package script `APP_VERSION = 1.3.4`
-- Package script `BUILD_NUMBER = 20260706`
-- Technical Logs footer badge: `v1.3.4`
+- `MARKETING_VERSION = 1.3.5`
+- `CURRENT_PROJECT_VERSION = 20260802`
+- Package script `APP_VERSION = 1.3.5`
+- Package script `BUILD_NUMBER = 20260802`
+- Technical Logs footer badge: `v1.3.5`
 
 GitHub Release:
-- Tag: `v1.3.4-b20260706`
-- Name: `FST v1.3.4 build 20260706`
+- Tag: `v1.3.5-b20260802`
+- Name: `FST v1.3.5 build 20260802`
 - Assets:
-  - `FishSockTransfer-v1.3.4-b20260706-local-macOS13_5plus-arm64.zip`
-  - `SHA256SUMS-v1.3.4.txt`
+  - `FishSockTransfer-v1.3.5-b20260802-local-macOS13_5plus-arm64.zip`
+  - `SHA256SUMS-v1.3.5.txt`
 
 Release rule:
 - A git tag alone is not a downloadable release.
@@ -479,7 +479,7 @@ Meaningful work includes:
 
 FST / FishSock Transfer is a native macOS SwiftUI DIT/Data Wrangler app for one-source, one-destination, one-job media offload. Core workflow: SOURCE -> COPY -> VERIFY -> SAFE TO EJECT DESTINATION. Priority is Data Safety > Reliability > Repeatability > Maintainability > Performance > Convenience. FST does not format, erase, reuse, or eject source media; it reports copy and verification evidence for operator judgment.
 
-Current baseline after v1.3.4: branch `main`, HEAD `f0d0cbf`, tag `v1.3.4-b20260706`, GitHub Release has zip + checksum. Version metadata: `MARKETING_VERSION=1.3.4`, `CURRENT_PROJECT_VERSION=20260706`, package script `APP_VERSION=1.3.4`, `BUILD_NUMBER=20260706`. Package is local owner-side ad-hoc signed, not Developer ID signed, not notarized, Apple Silicon arm64 only, macOS 13.5+. v1.3.3 remains the network permission / sandbox outbound entitlement hotfix. v1.3.4 is Detailed TXT Report V1 hardening: clearer sections, bilingual disclaimer near top, active output avoids obsolete format-safety wording, final verified success clarified as SAFE TO EJECT DESTINATION, report filenames/job IDs no longer use source name, operator-facing rsync detail reduced to rsync 3.4.4, technical log sharing note, and wording tests.
+Current baseline after v1.3.5: branch `main`, tag `v1.3.5`, GitHub Release has zip + checksum. Version metadata: `MARKETING_VERSION=1.3.5`, `CURRENT_PROJECT_VERSION=20260802`, package script `APP_VERSION=1.3.5`, `BUILD_NUMBER=20260802`. Package is local owner-side ad-hoc signed, not Developer ID signed, not notarized, Apple Silicon arm64 only, macOS 13.5+. v1.3.5 packages the Clear Folder controls, safe Start-to-Cancel behavior, full-workflow Retry, persistent security-scoped folder access, and fixes misleading external-volume free space reporting. v1.3.4 remains the Detailed TXT Report V1 hardening update.
 
 Architecture: SwiftUI Views -> TransferViewModel -> TransferCoordinator -> Engines -> Services. `TransferCoordinator` owns workflow/state transitions. `RsyncEngine` owns bundled rsync execution/streaming/cancel. `ProgressParser` handles rsync output framing. `VerifyEngine` owns inventory/hash verification. `ReportEngine` owns TXT report generation. `BundledRsyncService` must validate bundled rsync 3.4.4; Apple/System/Homebrew fallback is forbidden. Telegram and update-check are visibility-only.
 

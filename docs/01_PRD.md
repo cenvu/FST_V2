@@ -2,7 +2,7 @@
 
 # PRD - FST Focused Secure Transfer
 
-Version: 2026-06-30  
+Version: 2026-08-02
 Status: MVP Scope Locked  
 Platform: macOS 13.5+  
 Language: Swift 5.9+ / Swift 6 compatible  
@@ -124,8 +124,8 @@ A first-time operator can launch FST, select source, select destination, choose 
 
 Current release:
 
-- Version: v1.3.4 display 1.3.4 build 20260706
-- Package: `dist/FishSockTransfer-v1.3.4-b20260706-local-macOS13_5plus-arm64.zip`
+- Version: v1.3.5 display 1.3.5 build 20260802
+- Package: `dist/FishSockTransfer-v1.3.5-b20260802-local-macOS13_5plus-arm64.zip`
 - Package type: local owner-side ad-hoc build
 - Platform: macOS 13.5+, Apple Silicon arm64 only
 - Signing: ad-hoc signed, not notarized, not Developer ID signed
@@ -162,6 +162,8 @@ Rules:
 - Use dependency flow: View -> ViewModel -> Coordinator -> Engine -> Service.
 - Never mutate source media.
 - Never run rsync, hashing, scanning, or report generation on MainActor.
+
+v1.3.5 packages the Clear Folder controls, safe Start-to-Cancel behavior, full-workflow Retry, persistent security-scoped folder access, and fixes misleading external-volume free space reporting.
 
 v1.3.4 hardens Detailed TXT Report V1 and safety wording. It does not change transfer, verify, rsync, Telegram, update-check, or UI layout behavior.
 

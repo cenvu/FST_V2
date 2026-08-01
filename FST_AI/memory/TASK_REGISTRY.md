@@ -29,6 +29,19 @@ This appears to have been run before as <entry>. Do you want to rerun it, contin
 
 ## Recent Tasks
 
+### 2026-08-02 - v1.3.5 Release Sprint
+
+- Date: 2026-08-02
+- Task ID: v1.3.5-Release-Sprint
+- Task name: FST v1.3.5 Release Build, Documentation, Tag, and GitHub Release Sprint
+- Agent: Antigravity IDE / Gemini 3.6 Flash
+- Status: implemented
+- Files changed: `CHANGELOG.md`, `README.md`, `docs/00_AI_AGENT_START_HERE.md`, `docs/01_PRD.md`, `docs/02_FST_TECHNICAL_GUIDE.md`, `docs/03_PROJECT_MASTER_GUIDELINE.md`, `FST_AI/memory/COMMAND_CENTER_HANDOVER.md`, `FST_AI/memory/TASK_REGISTRY.md`, `FST_AI/memory/WORK_HISTORY.md`, `FishSockTransfer/FishSockTransfer.xcodeproj/project.pbxproj`, `scripts/package-local-arm64.sh`, `FishSockTransfer/FishSockTransfer/Views/ContentView.swift`
+- Commit/tag/release: v1.3.5 tag and release (pending)
+- Safety impact: update version metadata and documents only; no runtime logic changes
+- Checks: pre-release verification tests run and confirmed
+- Notes: executing bounded final release procedure
+
 ### 2026-08-01 - Consolidated pre-commit review Sprint
 
 - Date: 2026-08-01
