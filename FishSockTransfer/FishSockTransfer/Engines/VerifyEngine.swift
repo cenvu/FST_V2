@@ -11,6 +11,14 @@ nonisolated public struct FileInfo: Equatable, Sendable {
 public actor VerifyEngine {
     private var isCancelled = false
 
+#if DEBUG
+    private var onFileVerifiedForTesting: (@Sendable () async -> Void)?
+
+    internal func setFileVerifiedHookForTesting(_ hook: (@Sendable () async -> Void)?) {
+        onFileVerifiedForTesting = hook
+    }
+#endif
+
     public init() {}
 
     /// Runs inventory, path/size comparison, and (for non-`.none` modes) hash verification.
@@ -155,6 +163,12 @@ public actor VerifyEngine {
                 // 5. Update progress
                 passedCount += 1
                 onEvent(.progress(Double(passedCount) / Double(totalToVerify)))
+
+#if DEBUG
+                // Test-only seam: after this file's hash comparison passed and
+                // before the next file's cancellation check. Absent in release.
+                await onFileVerifiedForTesting?()
+#endif
             }
             log("Phase: Hash comparison completed", onEvent: onEvent)
             
