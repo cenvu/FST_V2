@@ -14,6 +14,155 @@ nonisolated public enum TransferInteractionLock {
     }
 }
 
+// MARK: - FR-003 bookmark persistence and access-lease vocabulary
+//
+// Defined here (not in BookmarkService.swift) so TransferViewModel and its
+// deterministic tests never need to reference the concrete BookmarkService
+// actor's own compilation unit. BookmarkService.swift conforms to these
+// protocols and remains the sole place that calls real macOS bookmark and
+// security-scope APIs.
+
+public enum BookmarkRole: String, Sendable {
+    case source
+    case destination
+}
+
+public enum BookmarkResolution: Sendable, Equatable {
+    /// No bookmark was ever saved for this role — a normal "nothing to
+    /// restore" result, not an error.
+    case none
+    case usable(url: URL, wasStale: Bool)
+    /// Stored data exists but could not be resolved (malformed/corrupt).
+    case corrupt
+}
+
+public enum BookmarkAccessResult: Sendable, Equatable {
+    case started
+    /// The OS-level access attempt itself did not succeed. This alone is not
+    /// proof the URL is unusable — callers must still validate.
+    case failedToStart
+    /// A newer generation already claimed this role while this attempt was
+    /// in flight. Any access acquired by this attempt has already been
+    /// released; the caller must not apply this result.
+    case superseded
+}
+
+/// Save/resolve/refresh/remove one app-scoped bookmark per role. Implemented
+/// by `BookmarkService` in production; deterministic tests inject a fake.
+/// `nonisolated` on every requirement: this project defaults unannotated
+/// declarations to `@MainActor` isolation, but conforming types are actors
+/// with their own isolation (or plain Sendable value types with none) — never
+/// MainActor — so the requirements themselves must opt out explicitly.
+public protocol BookmarkPersisting: Sendable {
+    nonisolated func saveBookmark(for url: URL, role: BookmarkRole, generation: Int) async -> Bool
+    nonisolated func resolveBookmark(for role: BookmarkRole) async -> BookmarkResolution
+    nonisolated func refreshBookmark(for url: URL, role: BookmarkRole, generation: Int) async -> Bool
+    nonisolated func removeBookmark(for role: BookmarkRole, generation: Int) async
+}
+
+/// Raw, role-agnostic security-scope syscalls. Implemented by
+/// `BookmarkService` in production (wrapping `URL.startAccessingSecurityScopedResource`);
+/// deterministic tests inject a fake, optionally gated, to make lease races
+/// reproducible without any wall-clock wait.
+public protocol SecurityScopedAccessing: Sendable {
+    nonisolated func startAccessing(_ url: URL) async -> Bool
+    nonisolated func stopAccessing(_ url: URL) async
+}
+
+/// Inert default so every existing call site that does not care about
+/// bookmarks (nearly all current tests, and `TransferViewModel()` used in
+/// isolation) gets harmless no-op behavior with zero UserDefaults or
+/// security-scope interaction.
+public nonisolated struct NullBookmarkPersistence: BookmarkPersisting {
+    public init() {}
+    public func saveBookmark(for url: URL, role: BookmarkRole, generation: Int) async -> Bool { false }
+    public func resolveBookmark(for role: BookmarkRole) async -> BookmarkResolution { .none }
+    public func refreshBookmark(for url: URL, role: BookmarkRole, generation: Int) async -> Bool { false }
+    public func removeBookmark(for role: BookmarkRole, generation: Int) async {}
+}
+
+public nonisolated struct NullSecurityScopedAccessProvider: SecurityScopedAccessing {
+    public init() {}
+    public func startAccessing(_ url: URL) async -> Bool { false }
+    public func stopAccessing(_ url: URL) async {}
+}
+
+/// Owns the single active security-scope access lease per role and makes
+/// restore-vs-Select/Clear races deterministic: every attempt is tagged with
+/// the caller's monotonic `generation` (bumped by the ViewModel on every
+/// Select/Clear). Whichever generation is highest always wins a role's
+/// tracked lease, regardless of which call's underlying syscall happens to
+/// return first, and a call that loses immediately releases whatever it just
+/// acquired. No sleeps, polling, or timeouts are involved.
+public actor BookmarkAccessCoordinator {
+    private let accessProvider: SecurityScopedAccessing
+    private var activeLeases: [BookmarkRole: (url: URL, generation: Int)] = [:]
+
+    public init(accessProvider: SecurityScopedAccessing) {
+        self.accessProvider = accessProvider
+    }
+
+    @discardableResult
+    public func beginAccess(for url: URL, role: BookmarkRole, generation: Int) async -> BookmarkAccessResult {
+        if let current = activeLeases[role], current.generation > generation {
+            return .superseded
+        }
+
+        // Re-selecting the same folder does not require another OS start call.
+        // Promote the existing lease to the newer generation without creating
+        // an unbalanced security-scope reference.
+        if let current = activeLeases[role], current.url == url {
+            activeLeases[role] = (url, generation)
+            return .started
+        }
+
+        let started = await accessProvider.startAccessing(url)
+
+        if let current = activeLeases[role], current.generation > generation {
+            // A newer request won this role while the syscall was in flight.
+            if started {
+                await accessProvider.stopAccessing(url)
+            }
+            return .superseded
+        }
+
+        guard started else { return .failedToStart }
+
+        if let current = activeLeases[role] {
+            if current.url == url {
+                // Another same-URL attempt acquired a redundant reference
+                // while this call was suspended. Release only this attempt.
+                if started { await accessProvider.stopAccessing(url) }
+                if current.generation < generation {
+                    activeLeases[role] = (url, generation)
+                }
+                return .started
+            }
+            await accessProvider.stopAccessing(current.url)
+        }
+        activeLeases[role] = (url, generation)
+        return .started
+    }
+
+    /// Releases access for `role` only when `url`/`generation` still match
+    /// the lease FST currently owns for that role — a stale or already
+    /// superseded caller can never release a newer, still-active lease.
+    public func endAccess(for role: BookmarkRole, url: URL, generation: Int) async {
+        guard let current = activeLeases[role], current.url == url, current.generation == generation else { return }
+        await accessProvider.stopAccessing(url)
+        activeLeases[role] = nil
+    }
+
+    /// Releases every lease FST currently owns, regardless of role or
+    /// generation. Used only when the owning ViewModel is being torn down.
+    public func endAllAccess() async {
+        for (role, lease) in activeLeases {
+            await accessProvider.stopAccessing(lease.url)
+            activeLeases[role] = nil
+        }
+    }
+}
+
 @MainActor
 public final class TransferViewModel: ObservableObject {
     @Published public var sourceURL: URL?
@@ -50,11 +199,25 @@ public final class TransferViewModel: ObservableObject {
     private let coordinator: TransferCoordinator
     private let driveService: DriveService
     private let bundledRsyncService: BundledRsyncService
+    private let bookmarkPersistence: BookmarkPersisting
+    private let bookmarkAccessCoordinator: BookmarkAccessCoordinator
     private let notificationCoordinator: NotificationCoordinator
     private let notificationSettingsStore: NotificationSettingsStore
     private var callbacksConfiguredTask: Task<Void, Never>?
     private var sourceMetadataTask: Task<Void, Never>?
     private var destinationMetadataTask: Task<Void, Never>?
+    private var sourceRestoreTask: Task<Void, Never>?
+    private var destinationRestoreTask: Task<Void, Never>?
+    private var sourceBookmarkTask: Task<Void, Never>?
+    private var destinationBookmarkTask: Task<Void, Never>?
+    /// Bumped by every Select/Clear for its role. Captured by an in-flight
+    /// restore before any suspension point; the restore drops its result
+    /// without applying it if the live counter has since moved on. Also
+    /// threaded through to `BookmarkAccessCoordinator` as the access-lease
+    /// generation, so a stale restore's security-scope acquisition can never
+    /// clobber a newer Select/Clear's lease regardless of scheduling order.
+    private var sourceSelectionGeneration = 0
+    private var destinationSelectionGeneration = 0
     private var workflowElapsedTask: Task<Void, Never>?
     private var notificationHeartbeatTask: Task<Void, Never>?
     private var workflowPhaseStartedAt: Date?
@@ -79,12 +242,16 @@ public final class TransferViewModel: ObservableObject {
         coordinator: TransferCoordinator? = nil,
         driveService: DriveService? = nil,
         bundledRsyncService: BundledRsyncService = BundledRsyncService(),
+        bookmarkPersistence: BookmarkPersisting = NullBookmarkPersistence(),
+        bookmarkAccessProvider: SecurityScopedAccessing = NullSecurityScopedAccessProvider(),
         notificationCoordinator: NotificationCoordinator = NotificationCoordinator(),
         notificationSettingsStore: NotificationSettingsStore = NotificationSettingsStore()
     ) {
         self.bundledRsyncService = bundledRsyncService
         self.coordinator = coordinator ?? TransferCoordinator(bundledRsyncService: bundledRsyncService)
         self.driveService = driveService ?? DriveService()
+        self.bookmarkPersistence = bookmarkPersistence
+        self.bookmarkAccessCoordinator = BookmarkAccessCoordinator(accessProvider: bookmarkAccessProvider)
         self.notificationCoordinator = notificationCoordinator
         self.notificationSettingsStore = notificationSettingsStore
         self.notificationSettings = notificationSettingsStore.loadSettings()
@@ -92,6 +259,12 @@ public final class TransferViewModel: ObservableObject {
         self.notificationStatus = .from(settings: self.notificationSettings, token: self.telegramBotToken)
         setupBindings()
         refreshBundledRsyncInfo()
+        restorePersistedFolders()
+    }
+
+    deinit {
+        let bookmarkAccessCoordinator = bookmarkAccessCoordinator
+        Task { await bookmarkAccessCoordinator.endAllAccess() }
     }
 
     @discardableResult
@@ -106,10 +279,18 @@ public final class TransferViewModel: ObservableObject {
             return false
         }
 
+        sourceRestoreTask?.cancel()
+        let releasingGeneration = sourceSelectionGeneration
+        let releasingURL = sourceURL
+        sourceSelectionGeneration += 1
+        let generation = sourceSelectionGeneration
+
         sourceURL = url
         sourceMetadata = nil
         refreshSourceMetadata(for: url)
         errorMessage = nil
+
+        persistSelection(url, role: .source, generation: generation, releasingURL: releasingURL, releasingGeneration: releasingGeneration)
         return true
     }
 
@@ -125,46 +306,280 @@ public final class TransferViewModel: ObservableObject {
             return false
         }
 
+        destinationRestoreTask?.cancel()
+        let releasingGeneration = destinationSelectionGeneration
+        let releasingURL = destinationURL
+        destinationSelectionGeneration += 1
+        let generation = destinationSelectionGeneration
+
         destinationURL = url
         destinationMetadata = nil
         refreshDestinationMetadata(for: url)
         errorMessage = nil
+
+        persistSelection(url, role: .destination, generation: generation, releasingURL: releasingURL, releasingGeneration: releasingGeneration)
         return true
+    }
+
+    /// Saves the bookmark for the newly accepted `url` under `role`, acquires
+    /// its access lease under `generation`, and releases the previously held
+    /// lease (if any and if different) under its own older generation. Fire
+    /// and forget from the ViewModel's perspective: a save/access failure is
+    /// visible through `errorMessage`/logs but never un-accepts an otherwise
+    /// valid current selection.
+    private func persistSelection(
+        _ url: URL,
+        role: BookmarkRole,
+        generation: Int,
+        releasingURL: URL?,
+        releasingGeneration: Int
+    ) {
+        let bookmarkPersistence = bookmarkPersistence
+        let bookmarkAccessCoordinator = bookmarkAccessCoordinator
+        let task = Task { [weak self] in
+            let isStillCurrent = await MainActor.run { () -> Bool in
+                guard let self else { return false }
+                let current = role == .source ? self.sourceSelectionGeneration : self.destinationSelectionGeneration
+                return current == generation
+            }
+            guard isStillCurrent else { return }
+
+            let saved = await bookmarkPersistence.saveBookmark(for: url, role: role, generation: generation)
+            let remainsCurrentAfterSave = await MainActor.run { () -> Bool in
+                guard let self else { return false }
+                let current = role == .source ? self.sourceSelectionGeneration : self.destinationSelectionGeneration
+                return current == generation
+            }
+            guard remainsCurrentAfterSave else { return }
+
+            let accessResult = await bookmarkAccessCoordinator.beginAccess(for: url, role: role, generation: generation)
+            let remainsCurrentAfterAccess = await MainActor.run { () -> Bool in
+                guard let self else { return false }
+                let current = role == .source ? self.sourceSelectionGeneration : self.destinationSelectionGeneration
+                return current == generation
+            }
+            guard remainsCurrentAfterAccess else {
+                if accessResult == .started {
+                    await bookmarkAccessCoordinator.endAccess(for: role, url: url, generation: generation)
+                }
+                return
+            }
+
+            if let releasingURL, releasingURL != url {
+                await bookmarkAccessCoordinator.endAccess(for: role, url: releasingURL, generation: releasingGeneration)
+            }
+            guard !saved else { return }
+            await MainActor.run {
+                guard let self else { return }
+                let currentGeneration = role == .source ? self.sourceSelectionGeneration : self.destinationSelectionGeneration
+                guard currentGeneration == generation else { return }
+                let roleName = role == .source ? "Source" : "Destination"
+                self.errorMessage = "Could not save \(roleName) access for next launch."
+                self.addLog(category: .warning, message: "Failed to save \(roleName) bookmark for relaunch restoration.")
+            }
+        }
+        switch role {
+        case .source: sourceBookmarkTask = task
+        case .destination: destinationBookmarkTask = task
+        }
     }
 
     /// Removes the selected Source from FST only.
     ///
-    /// Cancels any in-flight Source metadata task, clears the selected URL,
-    /// Source metadata, and Source-derived validation state, then recomputes
-    /// Start eligibility. The real folder on disk is never deleted, moved,
-    /// renamed, or modified. Transfer logs, terminal reports, notification
-    /// history, and Destination selection are untouched.
+    /// Cancels any in-flight Source metadata/restore task, clears the
+    /// selected URL, Source metadata, and Source-derived validation state,
+    /// releases the owned Source security-scope lease exactly once, removes
+    /// the persisted Source bookmark, then recomputes Start eligibility. The
+    /// real folder on disk is never deleted, moved, renamed, or modified.
+    /// Transfer logs, terminal reports, notification history, and
+    /// Destination selection are untouched.
     public func clearSourceFolder() {
         guard !isTransferConfigurationLocked else { return }
+        sourceRestoreTask?.cancel()
         sourceMetadataTask?.cancel()
         sourceMetadataTask = nil
+        let releasingGeneration = sourceSelectionGeneration
+        let releasingURL = sourceURL
+        sourceSelectionGeneration += 1
         sourceURL = nil
         sourceMetadata = nil
         refreshStorageWarning()
         errorMessage = nil
+        releasePersistedSelection(role: .source, releasingURL: releasingURL, releasingGeneration: releasingGeneration, removalGeneration: sourceSelectionGeneration)
     }
 
     /// Removes the selected Destination from FST only.
     ///
-    /// Cancels any in-flight Destination metadata task, clears the selected
-    /// URL, Destination metadata, free-space information, and
-    /// destination-derived warnings, then recomputes Start eligibility. The
-    /// real folder or volume on disk is never deleted, moved, renamed,
-    /// formatted, or modified. Transfer logs, terminal reports, notification
-    /// history, and Source selection are untouched.
+    /// Cancels any in-flight Destination metadata/restore task, clears the
+    /// selected URL, Destination metadata, free-space information, and
+    /// destination-derived warnings, releases the owned Destination
+    /// security-scope lease exactly once, removes the persisted Destination
+    /// bookmark, then recomputes Start eligibility. The real folder or volume
+    /// on disk is never deleted, moved, renamed, formatted, or modified.
+    /// Transfer logs, terminal reports, notification history, and Source
+    /// selection are untouched.
     public func clearDestinationFolder() {
         guard !isTransferConfigurationLocked else { return }
+        destinationRestoreTask?.cancel()
         destinationMetadataTask?.cancel()
         destinationMetadataTask = nil
+        let releasingGeneration = destinationSelectionGeneration
+        let releasingURL = destinationURL
+        destinationSelectionGeneration += 1
         destinationURL = nil
         destinationMetadata = nil
         refreshStorageWarning()
         errorMessage = nil
+        releasePersistedSelection(role: .destination, releasingURL: releasingURL, releasingGeneration: releasingGeneration, removalGeneration: destinationSelectionGeneration)
+    }
+
+    private func releasePersistedSelection(role: BookmarkRole, releasingURL: URL?, releasingGeneration: Int, removalGeneration: Int) {
+        let bookmarkPersistence = bookmarkPersistence
+        let bookmarkAccessCoordinator = bookmarkAccessCoordinator
+        Task {
+            if let releasingURL {
+                await bookmarkAccessCoordinator.endAccess(for: role, url: releasingURL, generation: releasingGeneration)
+            }
+            await bookmarkPersistence.removeBookmark(for: role, generation: removalGeneration)
+        }
+    }
+
+    /// One explicit, idempotent relaunch-restoration entry point (FR-003).
+    /// Calling it more than once returns the same in-flight/completed tasks
+    /// rather than starting new ones. Source and Destination restore through
+    /// two independent tasks so one role's failure or delay can never affect
+    /// the other. Never starts a transfer and never reuses persisted
+    /// metadata — restored folders go through the normal metadata refresh
+    /// path exactly like a fresh manual selection.
+    @discardableResult
+    public func restorePersistedFolders() -> (source: Task<Void, Never>, destination: Task<Void, Never>) {
+        let sourceTask: Task<Void, Never>
+        if let existing = sourceRestoreTask {
+            sourceTask = existing
+        } else {
+            let generation = sourceSelectionGeneration
+            let task = Task { [weak self] in
+                guard let self else { return }
+                await self.restoreSourceFolder(expectedGeneration: generation)
+            }
+            sourceRestoreTask = task
+            sourceTask = task
+        }
+
+        let destinationTask: Task<Void, Never>
+        if let existing = destinationRestoreTask {
+            destinationTask = existing
+        } else {
+            let generation = destinationSelectionGeneration
+            let task = Task { [weak self] in
+                guard let self else { return }
+                await self.restoreDestinationFolder(expectedGeneration: generation)
+            }
+            destinationRestoreTask = task
+            destinationTask = task
+        }
+
+        return (sourceTask, destinationTask)
+    }
+
+    private func restoreSourceFolder(expectedGeneration: Int) async {
+        let bookmarkPersistence = bookmarkPersistence
+        let bookmarkAccessCoordinator = bookmarkAccessCoordinator
+        let resolved = await bookmarkPersistence.resolveBookmark(for: .source)
+
+        switch resolved {
+        case .none:
+            return
+
+        case .corrupt:
+            await bookmarkPersistence.removeBookmark(for: .source, generation: expectedGeneration)
+            guard sourceSelectionGeneration == expectedGeneration else { return }
+            errorMessage = "Saved Source access could not be restored. Choose the Source folder again."
+            addLog(category: .warning, message: "Saved Source bookmark data was corrupt and has been removed.")
+
+        case .usable(let url, let wasStale):
+            await bookmarkAccessCoordinator.beginAccess(for: url, role: .source, generation: expectedGeneration)
+
+            do {
+                try await driveService.validateSource(at: url)
+            } catch {
+                await bookmarkAccessCoordinator.endAccess(for: .source, url: url, generation: expectedGeneration)
+                await bookmarkPersistence.removeBookmark(for: .source, generation: expectedGeneration)
+                guard sourceSelectionGeneration == expectedGeneration else { return }
+                errorMessage = "Saved Source access could not be restored. Choose the Source folder again."
+                addLog(category: .warning, message: "Restored Source folder is no longer usable: \(error.localizedDescription)")
+                return
+            }
+
+            if wasStale {
+                let refreshed = await bookmarkPersistence.refreshBookmark(for: url, role: .source, generation: expectedGeneration)
+                guard refreshed else {
+                    await bookmarkAccessCoordinator.endAccess(for: .source, url: url, generation: expectedGeneration)
+                    await bookmarkPersistence.removeBookmark(for: .source, generation: expectedGeneration)
+                    guard sourceSelectionGeneration == expectedGeneration else { return }
+                    errorMessage = "Saved Source access could not be restored. Choose the Source folder again."
+                    addLog(category: .warning, message: "Stale Source bookmark could not be refreshed.")
+                    return
+                }
+            }
+
+            guard sourceSelectionGeneration == expectedGeneration else {
+                await bookmarkAccessCoordinator.endAccess(for: .source, url: url, generation: expectedGeneration)
+                return
+            }
+            sourceURL = url
+            refreshSourceMetadata(for: url)
+        }
+    }
+
+    private func restoreDestinationFolder(expectedGeneration: Int) async {
+        let bookmarkPersistence = bookmarkPersistence
+        let bookmarkAccessCoordinator = bookmarkAccessCoordinator
+        let resolved = await bookmarkPersistence.resolveBookmark(for: .destination)
+
+        switch resolved {
+        case .none:
+            return
+
+        case .corrupt:
+            await bookmarkPersistence.removeBookmark(for: .destination, generation: expectedGeneration)
+            guard destinationSelectionGeneration == expectedGeneration else { return }
+            errorMessage = "Saved Destination access could not be restored. Choose the Destination folder again."
+            addLog(category: .warning, message: "Saved Destination bookmark data was corrupt and has been removed.")
+
+        case .usable(let url, let wasStale):
+            await bookmarkAccessCoordinator.beginAccess(for: url, role: .destination, generation: expectedGeneration)
+
+            do {
+                try await driveService.validateDestination(at: url)
+            } catch {
+                await bookmarkAccessCoordinator.endAccess(for: .destination, url: url, generation: expectedGeneration)
+                await bookmarkPersistence.removeBookmark(for: .destination, generation: expectedGeneration)
+                guard destinationSelectionGeneration == expectedGeneration else { return }
+                errorMessage = "Saved Destination access could not be restored. Choose the Destination folder again."
+                addLog(category: .warning, message: "Restored Destination folder is no longer usable: \(error.localizedDescription)")
+                return
+            }
+
+            if wasStale {
+                let refreshed = await bookmarkPersistence.refreshBookmark(for: url, role: .destination, generation: expectedGeneration)
+                guard refreshed else {
+                    await bookmarkAccessCoordinator.endAccess(for: .destination, url: url, generation: expectedGeneration)
+                    await bookmarkPersistence.removeBookmark(for: .destination, generation: expectedGeneration)
+                    guard destinationSelectionGeneration == expectedGeneration else { return }
+                    errorMessage = "Saved Destination access could not be restored. Choose the Destination folder again."
+                    addLog(category: .warning, message: "Stale Destination bookmark could not be refreshed.")
+                    return
+                }
+            }
+
+            guard destinationSelectionGeneration == expectedGeneration else {
+                await bookmarkAccessCoordinator.endAccess(for: .destination, url: url, generation: expectedGeneration)
+                return
+            }
+            destinationURL = url
+            refreshDestinationMetadata(for: url)
+        }
     }
 
     private func setupBindings() {
@@ -943,6 +1358,14 @@ public final class TransferViewModel: ObservableObject {
     // stale completion can never repopulate a cleared folder selection.
     internal var sourceMetadataTaskForTesting: Task<Void, Never>? { sourceMetadataTask }
     internal var destinationMetadataTaskForTesting: Task<Void, Never>? { destinationMetadataTask }
+
+    // Lets deterministic tests await bookmark persistence/restoration work.
+    internal var sourceRestoreTaskForTesting: Task<Void, Never>? { sourceRestoreTask }
+    internal var destinationRestoreTaskForTesting: Task<Void, Never>? { destinationRestoreTask }
+    internal var sourceBookmarkTaskForTesting: Task<Void, Never>? { sourceBookmarkTask }
+    internal var destinationBookmarkTaskForTesting: Task<Void, Never>? { destinationBookmarkTask }
+    internal var sourceSelectionGenerationForTesting: Int { sourceSelectionGeneration }
+    internal var destinationSelectionGenerationForTesting: Int { destinationSelectionGeneration }
 #endif
 }
 

@@ -11,7 +11,15 @@ public struct ContentView: View {
 
     private let tabContentHeight: CGFloat = 600
 
-    @StateObject private var viewModel = TransferViewModel()
+    // TransferViewModel cannot default this to a concrete BookmarkService()
+    // itself: BookmarkService.swift is compiled only into the app target, not
+    // the canonical XCTest target's explicit source list, so the default has
+    // to live at this app-only construction site instead. One shared instance
+    // satisfies both protocol roles.
+    @StateObject private var viewModel: TransferViewModel = {
+        let bookmarkService = BookmarkService()
+        return TransferViewModel(bookmarkPersistence: bookmarkService, bookmarkAccessProvider: bookmarkService)
+    }()
     @State private var selectedTab: MainTab = .transfer
     @State private var showDiagnostics: Bool = false
     

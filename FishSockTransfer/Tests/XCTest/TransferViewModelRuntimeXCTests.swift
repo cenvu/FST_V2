@@ -1167,6 +1167,565 @@ final class TransferViewModelRuntimeXCTests: XCTestCase {
         try await waitForViewModelState(.cancelled, on: viewModel)
     }
 
+    // MARK: - Prompt 2 FR-003 BookmarkAccessCoordinator (generation-aware lease safety)
+
+    func testBookmarkAccessCoordinatorStopsSuccessfulAccessExactlyOnce() async throws {
+        let provider = FakeSecurityScopedAccessProvider()
+        let coordinator = BookmarkAccessCoordinator(accessProvider: provider)
+        let url = try makeBookmarkTestDirectory(name: "access-stop-once")
+        defer { try? FileManager.default.removeItem(at: url) }
+
+        let started = await coordinator.beginAccess(for: url, role: .source, generation: 1)
+        XCTAssertEqual(started, .started)
+        await coordinator.endAccess(for: .source, url: url, generation: 1)
+        await coordinator.endAccess(for: .source, url: url, generation: 1)
+
+        let stopCount = await provider.stopCount(for: url)
+        XCTAssertEqual(stopCount, 1, "A second endAccess for an already-released lease must be a no-op.")
+    }
+
+    func testBookmarkAccessCoordinatorNeverStopsFailedStart() async throws {
+        let provider = FakeSecurityScopedAccessProvider()
+        let url = try makeBookmarkTestDirectory(name: "access-failed-start")
+        defer { try? FileManager.default.removeItem(at: url) }
+        await provider.failToStart(for: url)
+        let coordinator = BookmarkAccessCoordinator(accessProvider: provider)
+
+        let result = await coordinator.beginAccess(for: url, role: .source, generation: 1)
+        await coordinator.endAccess(for: .source, url: url, generation: 1)
+
+        XCTAssertEqual(result, .failedToStart)
+        let stopCount = await provider.stopCount(for: url)
+        XCTAssertEqual(stopCount, 0, "Nothing was started, so nothing may be stopped.")
+    }
+
+    func testBookmarkAccessCoordinatorDoesNotStartSameURLTwiceAcrossGenerations() async throws {
+        let provider = FakeSecurityScopedAccessProvider()
+        let url = try makeBookmarkTestDirectory(name: "access-same-url-generation")
+        defer { try? FileManager.default.removeItem(at: url) }
+        let coordinator = BookmarkAccessCoordinator(accessProvider: provider)
+
+        let firstResult = await coordinator.beginAccess(for: url, role: .source, generation: 1)
+        let secondResult = await coordinator.beginAccess(for: url, role: .source, generation: 2)
+        let startCount = await provider.startCount(for: url)
+        let stopCount = await provider.stopCount(for: url)
+        XCTAssertEqual(firstResult, .started)
+        XCTAssertEqual(secondResult, .started)
+        XCTAssertEqual(startCount, 1)
+        XCTAssertEqual(stopCount, 0)
+
+        await coordinator.endAccess(for: .source, url: url, generation: 2)
+        let finalStopCount = await provider.stopCount(for: url)
+        XCTAssertEqual(finalStopCount, 1)
+    }
+
+    func testBookmarkAccessCoordinatorReplacingRoleBalancesOnlyThatRolesLease() async throws {
+        let provider = FakeSecurityScopedAccessProvider()
+        let coordinator = BookmarkAccessCoordinator(accessProvider: provider)
+        let oldSource = try makeBookmarkTestDirectory(name: "replace-old-source")
+        let newSource = try makeBookmarkTestDirectory(name: "replace-new-source")
+        let destination = try makeBookmarkTestDirectory(name: "replace-destination")
+        defer {
+            try? FileManager.default.removeItem(at: oldSource)
+            try? FileManager.default.removeItem(at: newSource)
+            try? FileManager.default.removeItem(at: destination)
+        }
+
+        _ = await coordinator.beginAccess(for: oldSource, role: .source, generation: 1)
+        _ = await coordinator.beginAccess(for: destination, role: .destination, generation: 1)
+
+        let replaced = await coordinator.beginAccess(for: newSource, role: .source, generation: 2)
+
+        XCTAssertEqual(replaced, .started)
+        let oldSourceStops = await provider.stopCount(for: oldSource)
+        let destinationStops = await provider.stopCount(for: destination)
+        XCTAssertEqual(oldSourceStops, 1, "Replacing Source must balance the old Source lease exactly once.")
+        XCTAssertEqual(destinationStops, 0, "Replacing Source must never touch the Destination lease.")
+    }
+
+    func testBookmarkAccessCoordinatorSupersededAttemptReleasesAcquiredAccessAndNeverWins() async throws {
+        let provider = FakeSecurityScopedAccessProvider()
+        let coordinator = BookmarkAccessCoordinator(accessProvider: provider)
+        let staleURL = try makeBookmarkTestDirectory(name: "superseded-stale")
+        let freshURL = try makeBookmarkTestDirectory(name: "superseded-fresh")
+        defer {
+            try? FileManager.default.removeItem(at: staleURL)
+            try? FileManager.default.removeItem(at: freshURL)
+        }
+        let gate = TerminalTailAsyncGate()
+        await provider.gateStart(for: staleURL, using: gate)
+
+        async let staleResult = coordinator.beginAccess(for: staleURL, role: .source, generation: 1)
+        await gate.waitUntilPaused()
+
+        let freshResult = await coordinator.beginAccess(for: freshURL, role: .source, generation: 2)
+        XCTAssertEqual(freshResult, .started)
+
+        await gate.resume()
+        let resolvedStaleResult = await staleResult
+
+        XCTAssertEqual(resolvedStaleResult, .superseded)
+        let staleStops = await provider.stopCount(for: staleURL)
+        XCTAssertEqual(staleStops, 1, "The superseded stale attempt must release the access it just acquired.")
+        let freshStops = await provider.stopCount(for: freshURL)
+        XCTAssertEqual(freshStops, 0, "The winning fresh lease must never be touched by the loser.")
+    }
+
+    // MARK: - Prompt 2 FR-003 Selection saves a bookmark
+
+    func testValidSourceSelectionSavesSourceBookmark() async throws {
+        let source = try makeBookmarkTestDirectory(name: "select-save-source")
+        defer { try? FileManager.default.removeItem(at: source) }
+        let persistence = FakeBookmarkPersisting()
+        let access = FakeSecurityScopedAccessProvider()
+        let viewModel = makeViewModel(persistence: persistence, accessProvider: access)
+
+        XCTAssertTrue(viewModel.selectSourceFolder(source))
+        await viewModel.sourceBookmarkTaskForTesting?.value
+
+        let saveCount = await persistence.saveCallCount(for: .source)
+        XCTAssertEqual(saveCount, 1)
+        let destinationStored = await persistence.isStored(role: .destination)
+        XCTAssertFalse(destinationStored, "Selecting Source must never persist anything under Destination.")
+    }
+
+    func testValidDestinationSelectionSavesDestinationBookmark() async throws {
+        let destination = try makeBookmarkTestDirectory(name: "select-save-destination", withFile: false)
+        defer { try? FileManager.default.removeItem(at: destination) }
+        let persistence = FakeBookmarkPersisting()
+        let access = FakeSecurityScopedAccessProvider()
+        let viewModel = makeViewModel(persistence: persistence, accessProvider: access)
+
+        XCTAssertTrue(viewModel.selectDestinationFolder(destination))
+        await viewModel.destinationBookmarkTaskForTesting?.value
+
+        let saveCount = await persistence.saveCallCount(for: .destination)
+        XCTAssertEqual(saveCount, 1)
+        let sourceStored = await persistence.isStored(role: .source)
+        XCTAssertFalse(sourceStored, "Selecting Destination must never persist anything under Source.")
+    }
+
+    func testLateSourceSaveCannotOverwriteNewerSelectionOnRelaunch() async throws {
+        let sourceA = try makeBookmarkTestDirectory(name: "ordering-source-a")
+        let sourceB = try makeBookmarkTestDirectory(name: "ordering-source-b")
+        defer {
+            try? FileManager.default.removeItem(at: sourceA)
+            try? FileManager.default.removeItem(at: sourceB)
+        }
+        let persistence = FakeBookmarkPersisting()
+        let gate = TerminalTailAsyncGate()
+        await persistence.gateSave(for: sourceA, role: .source, using: gate)
+        let viewModel = makeViewModel(persistence: persistence, accessProvider: FakeSecurityScopedAccessProvider())
+
+        XCTAssertTrue(viewModel.selectSourceFolder(sourceA))
+        await gate.waitUntilPaused()
+        XCTAssertTrue(viewModel.selectSourceFolder(sourceB))
+        await viewModel.sourceBookmarkTaskForTesting?.value
+        let storedSource = await persistence.storedURL(for: .source)
+        XCTAssertEqual(storedSource, sourceB)
+        await gate.resume()
+
+        let relaunched = makeViewModel(persistence: persistence, accessProvider: FakeSecurityScopedAccessProvider())
+        await relaunched.sourceRestoreTaskForTesting?.value
+        XCTAssertEqual(relaunched.sourceURL, sourceB)
+        XCTAssertNotEqual(relaunched.sourceURL, sourceA)
+    }
+
+    func testLateDestinationSaveCannotOverwriteNewerSelectionOnRelaunch() async throws {
+        let destinationA = try makeBookmarkTestDirectory(name: "ordering-destination-a", withFile: false)
+        let destinationB = try makeBookmarkTestDirectory(name: "ordering-destination-b", withFile: false)
+        defer {
+            try? FileManager.default.removeItem(at: destinationA)
+            try? FileManager.default.removeItem(at: destinationB)
+        }
+        let persistence = FakeBookmarkPersisting()
+        let gate = TerminalTailAsyncGate()
+        await persistence.gateSave(for: destinationA, role: .destination, using: gate)
+        let viewModel = makeViewModel(persistence: persistence, accessProvider: FakeSecurityScopedAccessProvider())
+
+        XCTAssertTrue(viewModel.selectDestinationFolder(destinationA))
+        await gate.waitUntilPaused()
+        XCTAssertTrue(viewModel.selectDestinationFolder(destinationB))
+        await viewModel.destinationBookmarkTaskForTesting?.value
+        let storedDestination = await persistence.storedURL(for: .destination)
+        XCTAssertEqual(storedDestination, destinationB)
+        await gate.resume()
+
+        let relaunched = makeViewModel(persistence: persistence, accessProvider: FakeSecurityScopedAccessProvider())
+        await relaunched.destinationRestoreTaskForTesting?.value
+        XCTAssertEqual(relaunched.destinationURL, destinationB)
+        XCTAssertNotEqual(relaunched.destinationURL, destinationA)
+    }
+
+    func testInvalidSourceSelectionIsNotPersisted() async throws {
+        let notAFolder = FileManager.default.temporaryDirectory
+            .appendingPathComponent("FSTBookmarkInvalidSource-\(UUID().uuidString).txt")
+        try Data("not a folder".utf8).write(to: notAFolder)
+        defer { try? FileManager.default.removeItem(at: notAFolder) }
+        let persistence = FakeBookmarkPersisting()
+        let viewModel = makeViewModel(persistence: persistence, accessProvider: FakeSecurityScopedAccessProvider())
+
+        XCTAssertFalse(viewModel.selectSourceFolder(notAFolder))
+
+        let saveCount = await persistence.saveCallCount(for: .source)
+        XCTAssertEqual(saveCount, 0, "An invalid Source selection must never be persisted.")
+    }
+
+    func testInvalidDestinationSelectionIsNotPersisted() async throws {
+        let notAFolder = FileManager.default.temporaryDirectory
+            .appendingPathComponent("FSTBookmarkInvalidDestination-\(UUID().uuidString).txt")
+        try Data("not a folder".utf8).write(to: notAFolder)
+        defer { try? FileManager.default.removeItem(at: notAFolder) }
+        let persistence = FakeBookmarkPersisting()
+        let viewModel = makeViewModel(persistence: persistence, accessProvider: FakeSecurityScopedAccessProvider())
+
+        XCTAssertFalse(viewModel.selectDestinationFolder(notAFolder))
+
+        let saveCount = await persistence.saveCallCount(for: .destination)
+        XCTAssertEqual(saveCount, 0, "An invalid Destination selection must never be persisted.")
+    }
+
+    // MARK: - Prompt 2 FR-003 Relaunch restoration
+
+    func testFreshViewModelRestoresSourceAndDestinationFromSameIsolatedStore() async throws {
+        let source = try makeBookmarkTestDirectory(name: "restore-source")
+        let destination = try makeBookmarkTestDirectory(name: "restore-destination", withFile: false)
+        defer {
+            try? FileManager.default.removeItem(at: source)
+            try? FileManager.default.removeItem(at: destination)
+        }
+        let persistence = FakeBookmarkPersisting()
+        await persistence.seed(role: .source, url: source)
+        await persistence.seed(role: .destination, url: destination)
+
+        let viewModel = makeViewModel(persistence: persistence, accessProvider: FakeSecurityScopedAccessProvider())
+        await viewModel.sourceRestoreTaskForTesting?.value
+        await viewModel.destinationRestoreTaskForTesting?.value
+        await viewModel.sourceMetadataTaskForTesting?.value
+        await viewModel.destinationMetadataTaskForTesting?.value
+
+        XCTAssertEqual(viewModel.sourceURL, source)
+        XCTAssertEqual(viewModel.destinationURL, destination)
+        XCTAssertNotNil(viewModel.sourceMetadata, "Restored Source must go through the normal metadata refresh path.")
+        XCTAssertNotNil(viewModel.destinationMetadata, "Restored Destination must go through the normal metadata refresh path.")
+        XCTAssertEqual(viewModel.transferState, .ready, "Restoration must never start a transfer.")
+    }
+
+    func testValidSourceAndCorruptDestinationRestoresOnlySource() async throws {
+        let source = try makeBookmarkTestDirectory(name: "restore-mixed-source")
+        defer { try? FileManager.default.removeItem(at: source) }
+        let persistence = FakeBookmarkPersisting()
+        await persistence.seed(role: .source, url: source)
+        await persistence.seedCorrupt(role: .destination)
+
+        let viewModel = makeViewModel(persistence: persistence, accessProvider: FakeSecurityScopedAccessProvider())
+        await viewModel.sourceRestoreTaskForTesting?.value
+        await viewModel.destinationRestoreTaskForTesting?.value
+        await viewModel.sourceMetadataTaskForTesting?.value
+
+        XCTAssertEqual(viewModel.sourceURL, source)
+        XCTAssertNil(viewModel.destinationURL)
+        XCTAssertEqual(viewModel.errorMessage, "Saved Destination access could not be restored. Choose the Destination folder again.")
+        let destinationRemoveCount = await persistence.removeCallCount(for: .destination)
+        let sourceRemoveCount = await persistence.removeCallCount(for: .source)
+        XCTAssertEqual(destinationRemoveCount, 1)
+        XCTAssertEqual(sourceRemoveCount, 0, "A corrupt Destination bookmark must never affect Source.")
+    }
+
+    func testCorruptSourceAndValidDestinationRestoresOnlyDestination() async throws {
+        let destination = try makeBookmarkTestDirectory(name: "restore-mixed-destination", withFile: false)
+        defer { try? FileManager.default.removeItem(at: destination) }
+        let persistence = FakeBookmarkPersisting()
+        await persistence.seedCorrupt(role: .source)
+        await persistence.seed(role: .destination, url: destination)
+
+        let viewModel = makeViewModel(persistence: persistence, accessProvider: FakeSecurityScopedAccessProvider())
+        await viewModel.sourceRestoreTaskForTesting?.value
+        await viewModel.destinationRestoreTaskForTesting?.value
+        await viewModel.destinationMetadataTaskForTesting?.value
+
+        XCTAssertEqual(viewModel.destinationURL, destination)
+        XCTAssertNil(viewModel.sourceURL)
+        XCTAssertEqual(viewModel.errorMessage, "Saved Source access could not be restored. Choose the Source folder again.")
+        let sourceRemoveCount = await persistence.removeCallCount(for: .source)
+        let destinationRemoveCount = await persistence.removeCallCount(for: .destination)
+        XCTAssertEqual(sourceRemoveCount, 1)
+        XCTAssertEqual(destinationRemoveCount, 0, "A corrupt Source bookmark must never affect Destination.")
+    }
+
+    func testDeletedRestoredSourceFolderFailsClosedAndRemovesBookmark() async throws {
+        let source = try makeBookmarkTestDirectory(name: "restore-deleted-source")
+        try FileManager.default.removeItem(at: source) // simulate: folder existed at save time, gone by relaunch
+        let persistence = FakeBookmarkPersisting()
+        await persistence.seed(role: .source, url: source)
+
+        let viewModel = makeViewModel(persistence: persistence, accessProvider: FakeSecurityScopedAccessProvider())
+        await viewModel.sourceRestoreTaskForTesting?.value
+
+        XCTAssertNil(viewModel.sourceURL)
+        XCTAssertNil(viewModel.sourceMetadata)
+        XCTAssertFalse(viewModel.canStartTransfer)
+        XCTAssertEqual(viewModel.errorMessage, "Saved Source access could not be restored. Choose the Source folder again.")
+        let removeCount = await persistence.removeCallCount(for: .source)
+        XCTAssertEqual(removeCount, 1)
+    }
+
+    // MARK: - Prompt 2 FR-003 Stale bookmark behavior
+
+    func testStaleUsableSourceBookmarkRefreshesAndRestoresSelection() async throws {
+        let source = try makeBookmarkTestDirectory(name: "stale-usable-source")
+        defer { try? FileManager.default.removeItem(at: source) }
+        let persistence = FakeBookmarkPersisting()
+        await persistence.seed(role: .source, url: source, isStale: true)
+
+        let viewModel = makeViewModel(persistence: persistence, accessProvider: FakeSecurityScopedAccessProvider())
+        await viewModel.sourceRestoreTaskForTesting?.value
+        await viewModel.sourceMetadataTaskForTesting?.value
+
+        XCTAssertEqual(viewModel.sourceURL, source)
+        let refreshCount = await persistence.refreshCalls.count
+        XCTAssertEqual(refreshCount, 1)
+        let stillStored = await persistence.isStored(role: .source)
+        XCTAssertTrue(stillStored, "A successful stale refresh must re-persist under the same role.")
+    }
+
+    func testStaleRefreshFailureRemovesOnlyTheBadRoleAndPreservesTheOther() async throws {
+        let staleSource = try makeBookmarkTestDirectory(name: "stale-refresh-fail-source")
+        let destination = try makeBookmarkTestDirectory(name: "stale-refresh-fail-destination", withFile: false)
+        defer {
+            try? FileManager.default.removeItem(at: staleSource)
+            try? FileManager.default.removeItem(at: destination)
+        }
+        let persistence = FakeBookmarkPersisting()
+        await persistence.seed(role: .source, url: staleSource, isStale: true)
+        await persistence.seed(role: .destination, url: destination)
+        await persistence.failRefresh(for: staleSource)
+
+        let viewModel = makeViewModel(persistence: persistence, accessProvider: FakeSecurityScopedAccessProvider())
+        await viewModel.sourceRestoreTaskForTesting?.value
+        await viewModel.destinationRestoreTaskForTesting?.value
+        await viewModel.destinationMetadataTaskForTesting?.value
+
+        XCTAssertNil(viewModel.sourceURL, "A stale bookmark whose refresh fails must not be applied.")
+        XCTAssertEqual(viewModel.destinationURL, destination, "Destination restoration must be unaffected by a Source stale-refresh failure.")
+        XCTAssertEqual(viewModel.errorMessage, "Saved Source access could not be restored. Choose the Source folder again.")
+        let sourceRemoveCount = await persistence.removeCallCount(for: .source)
+        let destinationRemoveCount = await persistence.removeCallCount(for: .destination)
+        XCTAssertEqual(sourceRemoveCount, 1)
+        XCTAssertEqual(destinationRemoveCount, 0)
+    }
+
+    // MARK: - Prompt 2 FR-003 Restore-vs-Select/Clear race safety
+
+    func testManualSourceSelectionWinsOverLateRestore() async throws {
+        let staleSource = try makeBookmarkTestDirectory(name: "race-select-stale-source")
+        let freshSource = try makeBookmarkTestDirectory(name: "race-select-fresh-source")
+        defer {
+            try? FileManager.default.removeItem(at: staleSource)
+            try? FileManager.default.removeItem(at: freshSource)
+        }
+        let persistence = FakeBookmarkPersisting()
+        await persistence.seed(role: .source, url: staleSource)
+        let access = FakeSecurityScopedAccessProvider()
+        let gate = TerminalTailAsyncGate()
+        await access.gateStart(for: staleSource, using: gate)
+
+        let viewModel = makeViewModel(persistence: persistence, accessProvider: access)
+        let restoreTask = viewModel.sourceRestoreTaskForTesting
+        await gate.waitUntilPaused()
+
+        XCTAssertTrue(viewModel.selectSourceFolder(freshSource))
+        await gate.resume()
+        await restoreTask?.value
+        await viewModel.sourceBookmarkTaskForTesting?.value
+
+        XCTAssertEqual(viewModel.sourceURL, freshSource, "A manual Select issued while restore is paused must win.")
+        let staleStops = await access.stopCount(for: staleSource)
+        XCTAssertEqual(staleStops, 1, "The superseded restore attempt must release the access it acquired for the stale URL.")
+    }
+
+    func testManualDestinationSelectionWinsOverLateRestore() async throws {
+        let staleDestination = try makeBookmarkTestDirectory(name: "race-select-stale-destination", withFile: false)
+        let freshDestination = try makeBookmarkTestDirectory(name: "race-select-fresh-destination", withFile: false)
+        defer {
+            try? FileManager.default.removeItem(at: staleDestination)
+            try? FileManager.default.removeItem(at: freshDestination)
+        }
+        let persistence = FakeBookmarkPersisting()
+        await persistence.seed(role: .destination, url: staleDestination)
+        let access = FakeSecurityScopedAccessProvider()
+        let gate = TerminalTailAsyncGate()
+        await access.gateStart(for: staleDestination, using: gate)
+
+        let viewModel = makeViewModel(persistence: persistence, accessProvider: access)
+        let restoreTask = viewModel.destinationRestoreTaskForTesting
+        await gate.waitUntilPaused()
+
+        XCTAssertTrue(viewModel.selectDestinationFolder(freshDestination))
+        await gate.resume()
+        await restoreTask?.value
+        await viewModel.destinationBookmarkTaskForTesting?.value
+
+        XCTAssertEqual(viewModel.destinationURL, freshDestination, "A manual Select issued while restore is paused must win.")
+        let staleStops = await access.stopCount(for: staleDestination)
+        XCTAssertEqual(staleStops, 1, "The superseded restore attempt must release the access it acquired for the stale URL.")
+    }
+
+    func testClearSourceWinsOverLateRestore() async throws {
+        let staleSource = try makeBookmarkTestDirectory(name: "race-clear-stale-source")
+        defer { try? FileManager.default.removeItem(at: staleSource) }
+        let persistence = FakeBookmarkPersisting()
+        await persistence.seed(role: .source, url: staleSource)
+        let access = FakeSecurityScopedAccessProvider()
+        let gate = TerminalTailAsyncGate()
+        await access.gateStart(for: staleSource, using: gate)
+
+        let viewModel = makeViewModel(persistence: persistence, accessProvider: access)
+        let restoreTask = viewModel.sourceRestoreTaskForTesting
+        await gate.waitUntilPaused()
+
+        viewModel.clearSourceFolder()
+        await gate.resume()
+        await restoreTask?.value
+
+        XCTAssertNil(viewModel.sourceURL, "A Clear issued while restore is paused must never be repopulated by the late restore.")
+        let staleStops = await access.stopCount(for: staleSource)
+        XCTAssertEqual(staleStops, 1, "The abandoned restore attempt must release the access it acquired.")
+    }
+
+    func testClearDestinationWinsOverLateRestore() async throws {
+        let staleDestination = try makeBookmarkTestDirectory(name: "race-clear-stale-destination", withFile: false)
+        defer { try? FileManager.default.removeItem(at: staleDestination) }
+        let persistence = FakeBookmarkPersisting()
+        await persistence.seed(role: .destination, url: staleDestination)
+        let access = FakeSecurityScopedAccessProvider()
+        let gate = TerminalTailAsyncGate()
+        await access.gateStart(for: staleDestination, using: gate)
+
+        let viewModel = makeViewModel(persistence: persistence, accessProvider: access)
+        let restoreTask = viewModel.destinationRestoreTaskForTesting
+        await gate.waitUntilPaused()
+
+        viewModel.clearDestinationFolder()
+        await gate.resume()
+        await restoreTask?.value
+
+        XCTAssertNil(viewModel.destinationURL, "A Clear issued while restore is paused must never be repopulated by the late restore.")
+        let staleStops = await access.stopCount(for: staleDestination)
+        XCTAssertEqual(staleStops, 1, "The abandoned restore attempt must release the access it acquired.")
+    }
+
+    // MARK: - Prompt 2 FR-003 Clear integration
+
+    func testClearSourceRemovesPersistenceAndReleasesAccessExactlyOncePreservingDestination() async throws {
+        let source = try makeBookmarkTestDirectory(name: "clear-source-integration")
+        let destination = try makeBookmarkTestDirectory(name: "clear-source-integration-destination", withFile: false)
+        defer {
+            try? FileManager.default.removeItem(at: source)
+            try? FileManager.default.removeItem(at: destination)
+        }
+        let persistence = FakeBookmarkPersisting()
+        let access = FakeSecurityScopedAccessProvider()
+        let viewModel = makeViewModel(persistence: persistence, accessProvider: access)
+
+        XCTAssertTrue(viewModel.selectSourceFolder(source))
+        await viewModel.sourceBookmarkTaskForTesting?.value
+        XCTAssertTrue(viewModel.selectDestinationFolder(destination))
+        await viewModel.destinationBookmarkTaskForTesting?.value
+
+        viewModel.clearSourceFolder()
+        // Deterministic settle: the release/removal Task has no externally
+        // observable completion signal, so yield until the actor-hop work
+        // finishes — bounded, not a correctness-by-sleep mechanism.
+        for _ in 0..<50 {
+            let removed = await persistence.removeCallCount(for: .source)
+            if removed > 0 { break }
+            await Task.yield()
+        }
+
+        XCTAssertNil(viewModel.sourceURL)
+        XCTAssertEqual(viewModel.destinationURL, destination, "Clearing Source must never affect Destination.")
+        let sourceRemoveCount = await persistence.removeCallCount(for: .source)
+        XCTAssertEqual(sourceRemoveCount, 1)
+        let sourceStops = await access.stopCount(for: source)
+        XCTAssertEqual(sourceStops, 1)
+        let destinationStops = await access.stopCount(for: destination)
+        XCTAssertEqual(destinationStops, 0)
+        // The real folders are never touched.
+        XCTAssertTrue(FileManager.default.fileExists(atPath: source.path))
+        XCTAssertTrue(FileManager.default.fileExists(atPath: destination.path))
+    }
+
+    func testClearDestinationRemovesPersistenceAndReleasesAccessExactlyOncePreservingSource() async throws {
+        let source = try makeBookmarkTestDirectory(name: "clear-destination-integration-source")
+        let destination = try makeBookmarkTestDirectory(name: "clear-destination-integration", withFile: false)
+        defer {
+            try? FileManager.default.removeItem(at: source)
+            try? FileManager.default.removeItem(at: destination)
+        }
+        let persistence = FakeBookmarkPersisting()
+        let access = FakeSecurityScopedAccessProvider()
+        let viewModel = makeViewModel(persistence: persistence, accessProvider: access)
+
+        XCTAssertTrue(viewModel.selectSourceFolder(source))
+        await viewModel.sourceBookmarkTaskForTesting?.value
+        XCTAssertTrue(viewModel.selectDestinationFolder(destination))
+        await viewModel.destinationBookmarkTaskForTesting?.value
+
+        viewModel.clearDestinationFolder()
+        for _ in 0..<50 {
+            let removed = await persistence.removeCallCount(for: .destination)
+            if removed > 0 { break }
+            await Task.yield()
+        }
+
+        XCTAssertNil(viewModel.destinationURL)
+        XCTAssertEqual(viewModel.sourceURL, source, "Clearing Destination must never affect Source.")
+        let destinationRemoveCount = await persistence.removeCallCount(for: .destination)
+        XCTAssertEqual(destinationRemoveCount, 1)
+        let destinationStops = await access.stopCount(for: destination)
+        XCTAssertEqual(destinationStops, 1)
+        let sourceStops = await access.stopCount(for: source)
+        XCTAssertEqual(sourceStops, 0)
+        XCTAssertTrue(FileManager.default.fileExists(atPath: source.path))
+        XCTAssertTrue(FileManager.default.fileExists(atPath: destination.path))
+    }
+
+    // MARK: - Prompt 2 FR-003 Replacement lifecycle
+
+    func testReplacingSourceReleasesOldAccessExactlyOnceAndPreservesDestination() async throws {
+        let oldSource = try makeBookmarkTestDirectory(name: "replace-lifecycle-old-source")
+        let newSource = try makeBookmarkTestDirectory(name: "replace-lifecycle-new-source")
+        let destination = try makeBookmarkTestDirectory(name: "replace-lifecycle-destination", withFile: false)
+        defer {
+            try? FileManager.default.removeItem(at: oldSource)
+            try? FileManager.default.removeItem(at: newSource)
+            try? FileManager.default.removeItem(at: destination)
+        }
+        let persistence = FakeBookmarkPersisting()
+        let access = FakeSecurityScopedAccessProvider()
+        let viewModel = makeViewModel(persistence: persistence, accessProvider: access)
+
+        XCTAssertTrue(viewModel.selectDestinationFolder(destination))
+        await viewModel.destinationBookmarkTaskForTesting?.value
+        XCTAssertTrue(viewModel.selectSourceFolder(oldSource))
+        await viewModel.sourceBookmarkTaskForTesting?.value
+        let oldSourceStartsBeforeReplace = await access.startCount(for: oldSource)
+        XCTAssertEqual(oldSourceStartsBeforeReplace, 1)
+
+        XCTAssertTrue(viewModel.selectSourceFolder(newSource))
+        await viewModel.sourceBookmarkTaskForTesting?.value
+
+        XCTAssertEqual(viewModel.sourceURL, newSource)
+        let oldSourceStops = await access.stopCount(for: oldSource)
+        XCTAssertEqual(oldSourceStops, 1, "Replacing Source must balance exactly the old Source lease.")
+        let newSourceStarts = await access.startCount(for: newSource)
+        XCTAssertEqual(newSourceStarts, 1)
+        let destinationStops = await access.stopCount(for: destination)
+        XCTAssertEqual(destinationStops, 0, "Replacing Source must never touch the Destination lease.")
+        XCTAssertEqual(viewModel.destinationURL, destination)
+    }
+
     private func makeViewModel(notificationService: NotificationService? = nil) -> TransferViewModel {
         let notificationCoordinator = NotificationCoordinator(
             service: notificationService ?? RuntimeMockNotificationService()
@@ -1195,6 +1754,41 @@ final class TransferViewModelRuntimeXCTests: XCTestCase {
             diagnostics: []
         )
         return viewModel
+    }
+
+    /// ViewModel with explicit, deterministic bookmark persistence/access
+    /// doubles injected — never touches `UserDefaults` or a real
+    /// security-scope syscall.
+    private func makeViewModel(
+        persistence: BookmarkPersisting,
+        accessProvider: SecurityScopedAccessing,
+        fakeRsyncURL: URL? = nil
+    ) -> TransferViewModel {
+        let viewModel = TransferViewModel(
+            bundledRsyncService: BundledRsyncService(bundledExecutableURL: fakeRsyncURL),
+            bookmarkPersistence: persistence,
+            bookmarkAccessProvider: accessProvider,
+            notificationCoordinator: NotificationCoordinator(service: RuntimeMockNotificationService())
+        )
+        if let fakeRsyncURL {
+            viewModel.bundledRsyncInfo = BundledRsyncInfo(
+                executableURL: fakeRsyncURL,
+                version: BundledRsyncService.bundledVersion,
+                diagnostics: []
+            )
+        }
+        return viewModel
+    }
+
+    @discardableResult
+    private func makeBookmarkTestDirectory(name: String, withFile: Bool = true) throws -> URL {
+        let url = FileManager.default.temporaryDirectory
+            .appendingPathComponent("FSTBookmark-\(name)-\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
+        if withFile {
+            try Data("media".utf8).write(to: url.appendingPathComponent("A001_C001.mov"))
+        }
+        return url
     }
 
     private func writeFakeRsyncScript(at url: URL) throws {
@@ -1316,7 +1910,7 @@ final class TransferViewModelRuntimeXCTests: XCTestCase {
     }
 }
 
-private actor TerminalTailAsyncGate {
+actor TerminalTailAsyncGate {
     private var isPaused = false
     private var hasPaused = false
     private var pauseWaiter: CheckedContinuation<Void, Never>?
@@ -1411,4 +2005,138 @@ private final class CancelTestRecorder: @unchecked Sendable {
         lock.unlock()
         return snapshot
     }
+}
+
+// MARK: - FR-003 bookmark test doubles
+
+/// Deterministic in-memory stand-in for `BookmarkPersisting`. Never touches
+/// `UserDefaults`, so it can never write into the user's production defaults
+/// domain. Lets tests seed usable/stale/corrupt starting state per role and
+/// force save/refresh failures for specific URLs.
+actor FakeBookmarkPersisting: BookmarkPersisting {
+    private struct Stored {
+        var url: URL
+        var isStale: Bool
+    }
+
+    private var stored: [BookmarkRole: Stored] = [:]
+    private var corruptRoles: Set<BookmarkRole> = []
+    private var saveFailureURLs: Set<URL> = []
+    private var refreshFailureURLs: Set<URL> = []
+    private var latestGeneration: [BookmarkRole: Int] = [:]
+    private var gatedSaveURL: URL?
+    private var gatedSaveRole: BookmarkRole?
+    private var saveGate: TerminalTailAsyncGate?
+    private(set) var saveCalls: [(url: URL, role: BookmarkRole)] = []
+    private(set) var refreshCalls: [(url: URL, role: BookmarkRole)] = []
+    private(set) var removeCalls: [BookmarkRole] = []
+
+    func seed(role: BookmarkRole, url: URL, isStale: Bool = false) {
+        stored[role] = Stored(url: url, isStale: isStale)
+    }
+
+    func seedCorrupt(role: BookmarkRole) {
+        corruptRoles.insert(role)
+    }
+
+    func failSave(for url: URL) {
+        saveFailureURLs.insert(url)
+    }
+
+    func failRefresh(for url: URL) {
+        refreshFailureURLs.insert(url)
+    }
+
+    func gateSave(for url: URL, role: BookmarkRole, using gate: TerminalTailAsyncGate) {
+        gatedSaveURL = url
+        gatedSaveRole = role
+        saveGate = gate
+    }
+
+    func saveBookmark(for url: URL, role: BookmarkRole, generation: Int) async -> Bool {
+        saveCalls.append((url, role))
+        if gatedSaveURL == url, gatedSaveRole == role, let saveGate {
+            await saveGate.pause()
+        }
+        guard generation >= (latestGeneration[role] ?? Int.min) else { return false }
+        latestGeneration[role] = generation
+        guard !saveFailureURLs.contains(url) else { return false }
+        stored[role] = Stored(url: url, isStale: false)
+        return true
+    }
+
+    func resolveBookmark(for role: BookmarkRole) async -> BookmarkResolution {
+        if corruptRoles.contains(role) { return .corrupt }
+        guard let entry = stored[role] else { return .none }
+        return .usable(url: entry.url, wasStale: entry.isStale)
+    }
+
+    func refreshBookmark(for url: URL, role: BookmarkRole, generation: Int) async -> Bool {
+        refreshCalls.append((url, role))
+        guard generation >= (latestGeneration[role] ?? Int.min) else { return false }
+        latestGeneration[role] = generation
+        guard !refreshFailureURLs.contains(url) else { return false }
+        stored[role] = Stored(url: url, isStale: false)
+        return true
+    }
+
+    func removeBookmark(for role: BookmarkRole, generation: Int) async {
+        guard generation >= (latestGeneration[role] ?? Int.min) else { return }
+        latestGeneration[role] = generation
+        removeCalls.append(role)
+        stored[role] = nil
+        corruptRoles.remove(role)
+    }
+
+    func removeCallCount(for role: BookmarkRole) -> Int {
+        removeCalls.filter { $0 == role }.count
+    }
+
+    func saveCallCount(for role: BookmarkRole) -> Int {
+        saveCalls.filter { $0.role == role }.count
+    }
+
+    func isStored(role: BookmarkRole) -> Bool {
+        stored[role] != nil
+    }
+
+    func storedURL(for role: BookmarkRole) -> URL? {
+        stored[role]?.url
+    }
+}
+
+/// Deterministic stand-in for `SecurityScopedAccessing`. Records start/stop
+/// counts per URL, can be told to fail a specific URL's start, and can gate
+/// a specific URL's start call on a `TerminalTailAsyncGate` so restore-vs-
+/// Select/Clear races are reproducible without any wall-clock wait.
+actor FakeSecurityScopedAccessProvider: SecurityScopedAccessing {
+    private var startCounts: [URL: Int] = [:]
+    private var stopCounts: [URL: Int] = [:]
+    private var failToStartURLs: Set<URL> = []
+    private var gatedURL: URL?
+    private var gate: TerminalTailAsyncGate?
+
+    func failToStart(for url: URL) {
+        failToStartURLs.insert(url)
+    }
+
+    func gateStart(for url: URL, using gate: TerminalTailAsyncGate) {
+        gatedURL = url
+        self.gate = gate
+    }
+
+    func startAccessing(_ url: URL) async -> Bool {
+        startCounts[url, default: 0] += 1
+        if gatedURL == url, let gate {
+            await gate.pause()
+        }
+        return !failToStartURLs.contains(url)
+    }
+
+    func stopAccessing(_ url: URL) async {
+        stopCounts[url, default: 0] += 1
+    }
+
+    func startCount(for url: URL) -> Int { startCounts[url] ?? 0 }
+    func stopCount(for url: URL) -> Int { stopCounts[url] ?? 0 }
 }
