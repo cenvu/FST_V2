@@ -50,3 +50,4 @@ new handoffs that reference the older handoff; history is never erased.
 | 2026-08-02T00:25:48+07:00 | 20260802-002548_codex-cli_fst-complete-safety-and-workflow-audit-prompt-3.md | NORMAL | Codex CLI/GPT-5 | FST Complete Safety and Workflow Audit — Prompt 3 of 3 final closure/Prompt 3/3 final independent review, commit, push and closure | main@85056bb | modified | NONE |
 | 2026-08-02T00:41:31+07:00 | 20260802-004131_antigravity-ide_v1-3-5-release-sprint.md | NORMAL | antigravity-ide/UNVERIFIED | v1.3.5-release-sprint/completed | main@02c9326 | clean | NONE |
 | 2026-09-30T10:26:31+07:00 | 20260930-102631_chatgpt-web_fst-brain-return-bridge.md | NORMAL | ChatGPT Web/GPT-5.6 Sol | FST Brain Return Bridge v1/control-plane implementation and publication | main@082a07e | clean | NONE |
+| 2026-09-30T10:52:10+07:00 | 20260930-105210_unverified_task.md | NORMAL | UNVERIFIED/UNVERIFIED | task/phase | main@2c15ff9 | modified | NONE |
