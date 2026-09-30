@@ -29,13 +29,26 @@ This appears to have been run before as <entry>. Do you want to rerun it, contin
 
 ## Recent Tasks
 
+### 2026-09-30 - UI-5 Terminal States Error Presentation
+
+- Date: 2026-09-30
+- Task ID: FST-UI-5
+- Task name: Separate terminal outcomes, error/report evidence and explicit actions
+- Agent: Codex local Worker / GPT-6 (variant UNVERIFIED)
+- Status: implemented; BRAIN review pending
+- Files changed: TransferControlsView.swift; ContentView.swift callback integration; pure TransferActionPresentation contract in TransferViewModel.swift; two existing test files; safety-status.md; required memory and one NORMAL handoff
+- Commit/tag/release: one coherent task commit; final SHA in BRAIN RAW; no tag/release
+- Safety impact: outcome text never secretly starts/retries; Retry/restart gated by unchanged canStartTransfer. Manual-check remains .error plus real message; report truth, active UI-4, workflow/algorithms and SAFE TO EJECT unchanged.
+- Checks: Debug PASS; full/default standalone labels/navigation harness PASS; focused XCTest 137/137; full canonical 237/237, 0 failed/0 skipped; diff check PASS
+- Notes: native GUI QA NOT PHYSICALLY EXECUTED. Single Next Action: RETURN TO BRAIN FOR UI-5 REVIEW; do not start UI-6.
+
 ### 2026-09-30 - UI-4 Active State Control Bar
 
 - Date: 2026-09-30
 - Task ID: FST-UI-4
 - Task name: Separate active phase identity from operator action in a compact Control Bar
 - Agent: Codex local Worker / GPT-6 (variant UNVERIFIED)
-- Status: implemented; BRAIN review pending
+- Status: implemented; PASS_WITH_ADVISORY accepted by BRAIN
 - Files changed: TransferControlsView.swift; SwiftUI-free TransferActionPresentation in TransferViewModel.swift; TransferControlsLabelTests.swift; TransferViewModelRuntimeXCTests.swift; required memory records and one NORMAL handoff
 - Commit/tag/release: one coherent task commit; final SHA in BRAIN RAW; no tag/release
 - Safety impact: Ready gated by unchanged canStartTransfer; Preparing has no action; Copying/Verifying retain CANCEL and confirmed-request guard. Terminal rendering/semantics, state ownership, algorithms and SAFE TO EJECT unchanged.

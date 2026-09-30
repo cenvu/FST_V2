@@ -1373,7 +1373,7 @@ public final class TransferViewModel: ObservableObject {
 /// but not the Views) can pin the presentation contract deterministically.
 nonisolated public enum TransferActionPresentation {
     public static func title(for state: TransferState, canStartTransfer: Bool = false) -> String {
-        if state == .cancelled, canStartTransfer {
+        if canStartTransfer, state == .cancelled || state == .copyComplete || state == .safeToFormat {
             return "START NEW TRANSFER"
         }
 
@@ -1396,6 +1396,17 @@ nonisolated public enum TransferActionPresentation {
             return "TRANSFER ERROR"
         case .cancelled:
             return "CANCELLED"
+        }
+    }
+
+    /// Terminal outcome is not an action. Return only an admissible explicit action label.
+    public static func terminalActionTitle(for state: TransferState, canStartTransfer: Bool) -> String? {
+        guard canStartTransfer else { return nil }
+        switch state {
+        case .copyComplete, .safeToFormat, .error, .cancelled:
+            return title(for: state, canStartTransfer: true)
+        case .ready, .validating, .copying, .verifying:
+            return nil
         }
     }
 

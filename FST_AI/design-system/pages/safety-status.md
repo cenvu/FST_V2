@@ -10,11 +10,15 @@ Safety status must clearly communicate whether the job is SAFE TO EJECT.
 
 The UI must support:
 
-- Not started
-- Copying
-- Verifying
-- SAFE TO EJECT: NO
-- SAFE TO EJECT: YES
+- READY or SETUP REQUIRED
+- PREPARING
+- COPYING
+- VERIFYING
+- TRANSFER COMPLETE (copy succeeded; verification disabled)
+- SAFE TO EJECT (copy succeeded and verification passed)
+- MANUAL CHECK REQUIRED (verification failure)
+- TRANSFER ERROR (generic transfer failure)
+- CANCELLED
 - Blocked by copy failure
 - Blocked by verify failure
 - Blocked by cancellation
@@ -24,22 +28,29 @@ The UI must support:
 
 ## Visual Rules
 
+- Show SAFE TO EJECT positively only when backend copy and verification truth confirms success.
+- Do not display SAFE TO EJECT: NO during normal READY, PREPARING, COPYING, or VERIFYING.
+- Outcome text and operator action are separate; an outcome surface must not secretly perform Retry.
+- Error detail and Open Technical Log provide diagnostic evidence without inventing recovery instructions.
+- Report existence is separate from safety truth; preserve saved, skipped, and warning evidence.
 - SAFE TO EJECT must be text-explicit.
 - Do not rely on color alone.
 - Blocked states must be visually stronger than neutral metadata.
 - Success state must not appear before verify pass.
 - Unknown state must not look like success.
-- Terminal outcomes: TRANSFER COMPLETE, SAFE TO EJECT, MANUAL CHECK REQUIRED, TRANSFER ERROR.
+- Terminal outcomes: TRANSFER COMPLETE, SAFE TO EJECT, MANUAL CHECK REQUIRED, TRANSFER ERROR, CANCELLED.
+- TRANSFER COMPLETE uses neutral/blue copy-only treatment; only SAFE TO EJECT uses verified-success green.
 - Keep the UI minimal for terminal outcomes (control/action state + text badge). Do not require a giant celebratory final card.
 
 ## Wording
 
 Use:
 
-- SAFE TO EJECT: YES
-- SAFE TO EJECT: NO
-- Blocked: Verify failed
-- Blocked: Copy cancelled
+- SAFE TO EJECT
+- TRANSFER COMPLETE
+- MANUAL CHECK REQUIRED with the real verification reason
+- TRANSFER ERROR with the real transfer reason
+- CANCELLED
 - Blocked: Source changed
 - Blocked: File count mismatch
 

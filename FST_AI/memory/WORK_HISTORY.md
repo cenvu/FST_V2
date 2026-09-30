@@ -21,6 +21,17 @@ Each entry must include:
 
 ## Recent History
 
+### 2026-09-30 17:45+07:00 - UI-5 Terminal States Error Presentation
+
+- Agent/model: Codex local Worker / GPT-6 (variant UNVERIFIED)
+- Branch/commit/tag: clean main safely synchronized at e096581023e29acfa9f61861788f9cb489caa5b8 == origin/main; FF-only check up to date; final SHA in BRAIN RAW; no tag/release
+- Files changed: three bounded production presentation files (TransferControlsView, ContentView and TransferActionPresentation in ViewModel); two existing tests; safety-status.md; required memory and one NORMAL handoff
+- What changed: compact terminal Control Bar separates copy-only/verified/manual-check/error/cancelled outcome from optional RETRY/START NEW TRANSFER. Real first error line is shown; remaining lines are inspectable Technical Details. ContentView owns Open Technical Log callback/tab navigation. Duplicate CANCELLED row and repeated same-error start blocker removed; genuine setup blockers retained. Report saved/skipped/warning strings preserved with tooltip/selectable path. One stale safety-status page reconciled.
+- Safety boundary confirmation: active bar/settings/metrics and ViewModel instance logic unchanged. Admission/canStartTransfer, Cancel guard, Coordinator state ownership/terminal cleanup, copy/verify/report algorithms, no-overwrite/source safety, bookmarks/notifications, bandwidth/verification contracts and SAFE TO EJECT untouched.
+- Build/test/package result: Debug PASS; full/default standalone labels/navigation harness PASS; focused 137/137; full canonical 237/237, 0 failed/0 skipped; diff check PASS. Native QA NOT PHYSICALLY EXECUTED; no package.
+- Whether committed/tagged/released: one coherent task commit includes source/tests/doc/memory/handoff; no tag/release
+- Next recommended action: RETURN TO BRAIN FOR UI-5 REVIEW; do not start UI-6.
+
 ### 2026-09-30 17:00+07:00 - UI-4 Active State Control Bar
 
 - Agent/model: Codex local Worker / GPT-6 (variant UNVERIFIED)

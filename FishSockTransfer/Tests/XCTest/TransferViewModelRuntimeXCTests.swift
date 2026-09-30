@@ -921,6 +921,29 @@ final class TransferViewModelRuntimeXCTests: XCTestCase {
         }
     }
 
+    func testTerminalActionLabelsAreSeparateAndRespectExistingAdmission() {
+        let viewModel = makeViewModel()
+        viewModel.sourceURL = URL(fileURLWithPath: "/test/source")
+        viewModel.destinationURL = URL(fileURLWithPath: "/test/destination")
+        viewModel.bundledRsyncInfo = BundledRsyncInfo(
+            executableURL: URL(fileURLWithPath: "/test/rsync"), version: "3.4.4", diagnostics: []
+        )
+        for state in [TransferState.copyComplete, .safeToFormat, .error, .cancelled] {
+            viewModel.applyTransferState(state)
+            XCTAssertTrue(viewModel.canStartTransfer)
+            let action = TransferActionPresentation.terminalActionTitle(for: state, canStartTransfer: viewModel.canStartTransfer)
+            XCTAssertEqual(action, state == .error ? "RETRY" : "START NEW TRANSFER")
+            XCTAssertNotEqual(action, TransferActionPresentation.title(for: state, canStartTransfer: false))
+            viewModel.destinationURL = nil
+            XCTAssertFalse(viewModel.canStartTransfer)
+            XCTAssertNil(TransferActionPresentation.terminalActionTitle(for: state, canStartTransfer: viewModel.canStartTransfer))
+            viewModel.destinationURL = URL(fileURLWithPath: "/test/destination")
+        }
+        for state in [TransferState.ready, .validating, .copying, .verifying] {
+            XCTAssertNil(TransferActionPresentation.terminalActionTitle(for: state, canStartTransfer: true))
+        }
+    }
+
     func testActionPresentationCopyingPresentsCancel() {
         XCTAssertEqual(TransferActionPresentation.title(for: .copying), "CANCEL")
         XCTAssertTrue(TransferActionPresentation.isActiveCancellableState(.copying))

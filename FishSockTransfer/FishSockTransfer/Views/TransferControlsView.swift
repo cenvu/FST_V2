@@ -4,7 +4,7 @@ import SwiftUI
 
 public struct TransferControlsView: View {
     @ObservedObject var viewModel: TransferViewModel
-    @State private var isActionHovered = false
+    private let onOpenTechnicalLog: (() -> Void)?
     @State private var isShowingCancelConfirmation = false
     @State private var cancelRequestGuard = TransferCancelRequestGuard()
 
@@ -14,8 +14,9 @@ public struct TransferControlsView: View {
             (label: "\($0) MB/s", value: Optional($0))
         } + [(label: "Unlimited", value: nil)]
     
-    public init(viewModel: TransferViewModel) {
+    public init(viewModel: TransferViewModel, onOpenTechnicalLog: (() -> Void)? = nil) {
         self.viewModel = viewModel
+        self.onOpenTechnicalLog = onOpenTechnicalLog
     }
     
     public var body: some View {
@@ -26,7 +27,7 @@ public struct TransferControlsView: View {
             case .ready, .validating, .copying, .verifying:
                 activeControlBar
             case .copyComplete, .safeToFormat, .error, .cancelled:
-                actionStatusButton
+                terminalControlBar
             }
 
             if let storageWarningMessage = viewModel.storageWarningMessage {
@@ -39,7 +40,11 @@ public struct TransferControlsView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
 
-            if let startBlockedReason = viewModel.startBlockedReason {
+            if let startBlockedReason = TransferControlsActionPresentation.visibleStartBlockedReason(
+                for: viewModel.transferState,
+                reason: viewModel.startBlockedReason,
+                errorMessage: viewModel.errorMessage
+            ) {
                 HStack(spacing: 8) {
                     Image(systemName: viewModel.isTransferConfigurationLocked ? "lock.fill" : "info.circle.fill")
                     Text(startBlockedReason)
@@ -49,20 +54,12 @@ public struct TransferControlsView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
 
-            if viewModel.transferState == .cancelled {
-                HStack(spacing: 8) {
-                    Image(systemName: TransferControlsActionPresentation.icon(for: .cancelled))
-                    Text(TransferControlsActionPresentation.title(for: .cancelled))
-                }
-                .font(.system(.subheadline, design: .rounded))
-                .foregroundColor(TransferControlsActionPresentation.buttonColor(for: .cancelled))
-                .frame(maxWidth: .infinity, alignment: .leading)
-            }
-
             if let reportStatusMessage = viewModel.reportStatusMessage {
                 HStack(spacing: 8) {
                     Image(systemName: reportStatusMessage.hasPrefix("Report saved: ") ? "doc.text.fill" : "exclamationmark.triangle.fill")
                     Text(reportStatusMessage)
+                        .help(reportStatusMessage)
+                        .textSelection(.enabled)
                         .lineLimit(1)
                         .truncationMode(.middle)
                 }
@@ -268,71 +265,73 @@ public struct TransferControlsView: View {
         )
     }
 
-    private var actionStatusButton: some View {
-        let statusColor = TransferControlsActionPresentation.buttonColor(
-            for: viewModel.transferState,
-            errorMessage: viewModel.errorMessage
-        )
+    private var terminalControlBar: some View {
+        let state = viewModel.transferState
+        let errorMessage = viewModel.errorMessage
+        let stateColor = TransferControlsActionPresentation.stateColor(for: state, errorMessage: errorMessage)
 
-        let isStart = isStartAction
-        let iconSize: CGFloat = isStart ? 28 : 22
-        let iconFrame: CGFloat = isStart ? 42 : 34
-        
-        let strokeOpacity = isStart ? (isActionHovered ? 0.8 : 0.45) : (isActionButtonEnabled ? 0.20 : 0.10)
-        let bgOpacity = isStart ? (isActionHovered ? 0.20 : 0.14) : (isActionButtonEnabled ? 0.07 : 0.04)
-
-        return Button(action: handleActionButton) {
-            HStack(spacing: 12) {
-                Image(systemName: TransferControlsActionPresentation.icon(
-                    for: viewModel.transferState,
-                    errorMessage: viewModel.errorMessage,
-                    canStartTransfer: viewModel.canStartTransfer
-                ))
-                .font(.system(size: iconSize, weight: .semibold))
-                .foregroundColor(statusColor)
-                .frame(width: iconFrame, height: iconFrame)
-                .background(statusColor.opacity(0.13))
-                .clipShape(RoundedRectangle(cornerRadius: 8))
+        return VStack(alignment: .leading, spacing: 8) {
+            HStack(alignment: .top, spacing: 12) {
+                Image(systemName: TransferControlsActionPresentation.stateIcon(for: state, errorMessage: errorMessage))
+                    .font(.body)
+                    .foregroundColor(stateColor)
+                    .accessibilityHidden(true)
 
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(TransferControlsActionPresentation.title(
-                        for: viewModel.transferState,
-                        errorMessage: viewModel.errorMessage,
-                        canStartTransfer: viewModel.canStartTransfer
-                    ))
-                        .font(.system(size: isStart ? 19 : 17, weight: isStart ? .heavy : .bold, design: .rounded))
-                        .foregroundColor(.primary)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.86)
-                    Text(TransferControlsActionPresentation.subtitle(
-                        for: viewModel.transferState,
-                        errorMessage: viewModel.errorMessage,
-                        canStartTransfer: viewModel.canStartTransfer
-                    ))
-                        .font(.system(.footnote, design: .rounded))
+                    Text(TransferControlsActionPresentation.stateTitle(for: state, errorMessage: errorMessage))
+                        .font(.headline)
+                        .foregroundColor(stateColor)
+                    Text(TransferControlsActionPresentation.stateSubtitle(for: state, errorMessage: errorMessage))
+                        .font(.subheadline)
                         .foregroundColor(.secondary)
-                        .lineLimit(3)
                         .fixedSize(horizontal: false, vertical: true)
+                        .textSelection(.enabled)
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
 
-                Spacer(minLength: 0)
+                VStack(alignment: .trailing, spacing: 8) {
+                    if let openTechnicalLogAction {
+                        Button("Open Technical Log", action: openTechnicalLogAction)
+                            .buttonStyle(.bordered)
+                            .fixedSize()
+                    }
+                    if let actionTitle = TransferActionPresentation.terminalActionTitle(
+                        for: state,
+                        canStartTransfer: viewModel.canStartTransfer
+                    ) {
+                        Button(actionTitle, action: handleActionButton)
+                            .buttonStyle(.bordered)
+                            .disabled(!isActionButtonEnabled)
+                            .fixedSize()
+                    }
+                }
             }
-            .padding(12)
-            .frame(maxWidth: .infinity, minHeight: 72, alignment: .leading)
-            .background(statusColor.opacity(bgOpacity))
-            .cornerRadius(8)
-            .overlay(
-                RoundedRectangle(cornerRadius: 8)
-                    .stroke(statusColor.opacity(strokeOpacity), lineWidth: 1)
-            )
+
+            if let detail = TransferControlsActionPresentation.terminalErrorDetail(for: state, errorMessage: errorMessage) {
+                DisclosureGroup("Technical Details") {
+                    Text(detail)
+                        .font(.system(.footnote, design: .monospaced))
+                        .foregroundColor(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .textSelection(.enabled)
+                }
+            }
         }
-        .buttonStyle(PlainButtonStyle())
-        .disabled(!isActionButtonEnabled)
-        .opacity(isActionButtonEnabled ? 1 : 0.68)
-        .accessibilityLabel(accessibilityActionLabel)
-        .onHover { hovering in
-            isActionHovered = hovering
-        }
+        .padding(12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color(NSColor.controlBackgroundColor).opacity(0.55))
+        .cornerRadius(10)
+        .overlay(
+            RoundedRectangle(cornerRadius: 10)
+                .stroke(stateColor.opacity(0.25), lineWidth: 1)
+        )
+    }
+
+    // The same callback supplied by ContentView is used directly by the native Button.
+    var openTechnicalLogAction: (() -> Void)? {
+        guard viewModel.transferState == .error else { return nil }
+        return onOpenTechnicalLog
     }
 
     private var accessibilityActionLabel: String {
@@ -506,10 +505,6 @@ public struct TransferControlsView: View {
         )
     }
 
-    private var isStartAction: Bool {
-        isActionButtonEnabled && viewModel.transferState != .copying && viewModel.transferState != .verifying && viewModel.transferState != .validating
-    }
-
     private var shouldShowProgressDetails: Bool {
         return viewModel.transferState == .validating ||
                viewModel.transferState == .copying ||
@@ -556,7 +551,7 @@ nonisolated public enum TransferControlsVisualRole: Equatable, Sendable {
 
 nonisolated public enum TransferControlsActionPresentation {
     /// State identity is separate from the operator action returned by title(for:).
-    public static func stateTitle(for state: TransferState, canStartTransfer: Bool = false) -> String {
+    public static func stateTitle(for state: TransferState, canStartTransfer: Bool = false, errorMessage: String? = nil) -> String {
         switch state {
         case .ready:
             return canStartTransfer ? "READY" : "SETUP REQUIRED"
@@ -567,7 +562,7 @@ nonisolated public enum TransferControlsActionPresentation {
         case .verifying:
             return "VERIFYING"
         case .copyComplete, .safeToFormat, .error, .cancelled:
-            return title(for: state)
+            return title(for: state, errorMessage: errorMessage)
         }
     }
 
@@ -576,7 +571,8 @@ nonisolated public enum TransferControlsActionPresentation {
         canStartTransfer: Bool = false,
         startBlockedReason: String? = nil,
         workflowPhaseTitle: String = "",
-        workflowPhaseMessage: String = ""
+        workflowPhaseMessage: String = "",
+        errorMessage: String? = nil
     ) -> String {
         switch state {
         case .ready:
@@ -588,12 +584,14 @@ nonisolated public enum TransferControlsActionPresentation {
             return "Copy in progress. Do not remove media."
         case .verifying:
             return "Verification in progress. Do not remove media."
-        case .copyComplete, .safeToFormat, .error, .cancelled:
+        case .error:
+            return terminalErrorSummary(errorMessage: errorMessage)
+        case .copyComplete, .safeToFormat, .cancelled:
             return subtitle(for: state)
         }
     }
 
-    public static func stateIcon(for state: TransferState) -> String {
+    public static func stateIcon(for state: TransferState, errorMessage: String? = nil) -> String {
         switch state {
         case .ready:
             return "tray"
@@ -602,12 +600,12 @@ nonisolated public enum TransferControlsActionPresentation {
         case .copying:
             return "doc.on.doc"
         case .copyComplete, .safeToFormat, .error, .cancelled:
-            return icon(for: state)
+            return icon(for: state, errorMessage: errorMessage)
         }
     }
 
-    public static func stateColor(for state: TransferState) -> Color {
-        switch visualRole(for: state) {
+    public static func stateColor(for state: TransferState, errorMessage: String? = nil) -> Color {
+        switch visualRole(for: state, errorMessage: errorMessage) {
         case .idle:
             return .secondary
         case .preparing, .transferring:
@@ -615,8 +613,35 @@ nonisolated public enum TransferControlsActionPresentation {
         case .verifying:
             return .orange
         case .copyOnlyComplete, .safeToFormat, .manualCheckRequired, .error, .cancelled:
-            return buttonColor(for: state)
+            return buttonColor(for: state, errorMessage: errorMessage)
         }
+    }
+
+    /// Preserve backend text; split only at real line breaks, without diagnosing it.
+    public static func terminalErrorSummary(errorMessage: String?) -> String {
+        let message = errorMessage?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        var summary = message.components(separatedBy: .newlines).first ?? ""
+        if let prefix = summary.range(of: "MANUAL CHECK REQUIRED:", options: [.anchored, .caseInsensitive]) {
+            summary.removeSubrange(prefix)
+            summary = summary.trimmingCharacters(in: .whitespaces)
+        }
+        if !summary.isEmpty { return summary }
+        return isManualCheckRequired(errorMessage: errorMessage)
+            ? "Verification did not pass. Review before using media."
+            : "Review the error before retrying."
+    }
+
+    public static func terminalErrorDetail(for state: TransferState, errorMessage: String?) -> String? {
+        guard state == .error, let errorMessage else { return nil }
+        let lines = errorMessage.trimmingCharacters(in: .whitespacesAndNewlines).components(separatedBy: .newlines)
+        let detail = lines.dropFirst().joined(separator: "\n").trimmingCharacters(in: .whitespacesAndNewlines)
+        return detail.isEmpty ? nil : detail
+    }
+
+    public static func visibleStartBlockedReason(for state: TransferState, reason: String?, errorMessage: String?) -> String? {
+        // The error is already shown in the terminal bar; preserve other setup blockers.
+        if state == .error, reason == errorMessage { return nil }
+        return reason
     }
 
     public static func visualRole(for state: TransferState) -> TransferControlsVisualRole {
@@ -653,11 +678,9 @@ nonisolated public enum TransferControlsActionPresentation {
         errorMessage: String? = nil,
         canStartTransfer: Bool
     ) -> String {
-        // Manual-check failures keep their dedicated label; every other state
-        // uses the single source of truth TransferActionPresentation.title
-        // (defined in TransferViewModel.swift so the canonical XCTest module
-        // can pin the presentation contract).
-        if isManualCheckRequired(errorMessage: errorMessage) {
+        // Outcome wording applies only when no retry is being presented.
+        // An admissible retry always retains its explicit operator action label.
+        if state == .error, !canStartTransfer, isManualCheckRequired(errorMessage: errorMessage) {
             return "MANUAL CHECK REQUIRED"
         }
         return TransferActionPresentation.title(for: state, canStartTransfer: canStartTransfer)

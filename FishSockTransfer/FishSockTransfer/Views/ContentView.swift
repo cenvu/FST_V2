@@ -140,7 +140,9 @@ public struct ContentView: View {
                 StorageAnalysisView(viewModel: viewModel)
                     .frame(maxWidth: .infinity)
 
-                TransferControlsView(viewModel: viewModel)
+                TransferControlsView(viewModel: viewModel, onOpenTechnicalLog: {
+                    selectedTab = .logs
+                })
                     .frame(maxWidth: .infinity)
             }
             .padding(.horizontal, 16)

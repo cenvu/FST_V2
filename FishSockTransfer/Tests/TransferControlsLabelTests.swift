@@ -44,8 +44,10 @@ struct TransferControlsLabelTests {
         }
         testActionPresentation()
         testActiveStateAndActionSeparation()
+        testTerminalStateAndActionSeparation()
         try await MainActor.run {
             try testViewModelStartGateAndSelectionLock()
+            testTechnicalLogCallback()
         }
 
         print("TransferControlsLabelTests passed")
@@ -391,6 +393,69 @@ struct TransferControlsLabelTests {
             assertFalse(guardState.allowsNewCancellationRequest(for: state), "no cancellation outside copying/verifying")
             assertTrue(guardState.allowsNewCancellationRequest(for: .copying), "next workflow can cancel")
         }
+    }
+
+    private static func testTerminalStateAndActionSeparation() {
+        let cases: [(TransferState, String?, String, String, TransferControlsVisualRole, String)] = [
+            (.copyComplete, nil, "TRANSFER COMPLETE", "Copy completed. Verification was disabled.", .copyOnlyComplete, "START NEW TRANSFER"),
+            (.safeToFormat, nil, "SAFE TO EJECT", "Verification completed successfully.", .safeToFormat, "START NEW TRANSFER"),
+            (.error, "MANUAL CHECK REQUIRED: File mismatch.", "MANUAL CHECK REQUIRED", "File mismatch.", .manualCheckRequired, "RETRY"),
+            (.error, "The destination location is unavailable or cannot be written.", "TRANSFER ERROR", "The destination location is unavailable or cannot be written.", .error, "RETRY"),
+            (.cancelled, nil, "CANCELLED", "Transfer was cancelled.", .cancelled, "START NEW TRANSFER")
+        ]
+        for (state, error, outcome, message, role, action) in cases {
+            for canStart in [false, true] {
+                assertEqual(TransferControlsActionPresentation.stateTitle(for: state, canStartTransfer: canStart, errorMessage: error), outcome, "terminal outcome independent of admission")
+                assertEqual(TransferControlsActionPresentation.stateSubtitle(for: state, canStartTransfer: canStart, errorMessage: error), message, "terminal evidence independent of admission")
+                assertEqual(TransferControlsActionPresentation.visualRole(for: state, errorMessage: error), role, "terminal role")
+                assertEqual(TransferActionPresentation.terminalActionTitle(for: state, canStartTransfer: canStart), canStart ? action : nil, "only admissible explicit terminal actions")
+                if canStart {
+                    assertEqual(TransferControlsActionPresentation.title(for: state, errorMessage: error, canStartTransfer: true), action, "action title cannot be a hidden outcome")
+                    assertNotEqual(action, outcome, "state and action differ")
+                }
+            }
+            if state != .safeToFormat {
+                assertNotEqual(role, .safeToFormat, "unverified or failed/cancelled outcome cannot be success")
+                assertFalse(message.contains("SAFE TO EJECT"), "message cannot overstate safety")
+                assertNotEqual(TransferControlsActionPresentation.stateIcon(for: state, errorMessage: error), "checkmark.circle.fill", "only verified success uses safe icon")
+            }
+        }
+        assertEqual(TransferControlsActionPresentation.stateIcon(for: .safeToFormat), "checkmark.circle.fill", "verified-success icon")
+        assertNotEqual(TransferControlsActionPresentation.stateIcon(for: .error, errorMessage: "MANUAL CHECK REQUIRED: File mismatch."), TransferControlsActionPresentation.stateIcon(for: .error), "warning and generic error icons distinct")
+
+        let raw = "MANUAL CHECK REQUIRED: File mismatch.\nsource=A001.mov\ndestination checksum differs"
+        assertEqual(TransferControlsActionPresentation.stateSubtitle(for: .error, errorMessage: raw), "File mismatch.", "operator summary from real first line")
+        assertEqual(TransferControlsActionPresentation.terminalErrorDetail(for: .error, errorMessage: raw), "source=A001.mov\ndestination checksum differs", "remaining diagnostic lines preserved without repeated summary")
+        assertNil(TransferControlsActionPresentation.terminalErrorDetail(for: .error, errorMessage: "Transfer process exited with error code 23."), "single-line truth already shown; log provides diagnostics")
+        assertNil(TransferControlsActionPresentation.terminalErrorDetail(for: .safeToFormat, errorMessage: raw), "stale error does not contaminate verified outcome")
+        assertNil(TransferControlsActionPresentation.visibleStartBlockedReason(for: .error, reason: raw, errorMessage: raw), "error must not repeat as a start blocker")
+        assertEqual(TransferControlsActionPresentation.visibleStartBlockedReason(for: .error, reason: "Select a destination folder.", errorMessage: raw), "Select a destination folder.", "different genuine setup blocker remains visible")
+        assertEqual(TransferControlsActionPresentation.visibleStartBlockedReason(for: .ready, reason: raw, errorMessage: raw), raw, "active blocking evidence remains unchanged")
+        for state in [TransferState.ready, .validating, .copying, .verifying] {
+            assertNil(TransferActionPresentation.terminalActionTitle(for: state, canStartTransfer: true), "no terminal action in active states")
+            assertFalse(TransferControlsActionPresentation.stateTitle(for: state, canStartTransfer: true, errorMessage: raw).contains("SAFE TO EJECT"), "active state must not render safe banner from stale error")
+            assertFalse(TransferControlsActionPresentation.stateSubtitle(for: state, canStartTransfer: true).contains("SAFE TO EJECT: NO"), "no active false-negative safety banner")
+        }
+    }
+
+    @MainActor
+    private static func testTechnicalLogCallback() {
+        let viewModel = TransferViewModel(bundledRsyncService: BundledRsyncService(bundledExecutableURL: nil))
+        var navigations = 0
+        let view = TransferControlsView(viewModel: viewModel, onOpenTechnicalLog: { navigations += 1 })
+        for error in ["MANUAL CHECK REQUIRED: File mismatch.", "Transfer process exited with error code 23."] {
+            viewModel.transferState = .error
+            viewModel.errorMessage = error
+            assertTrue(view.openTechnicalLogAction != nil, "terminal errors expose supplied callback used by native Button")
+            view.openTechnicalLogAction?()
+        }
+        assertEqual(navigations, 2, "both error outcomes invoke exact provided navigation callback")
+        for state in [TransferState.ready, .validating, .copying, .verifying, .copyComplete, .safeToFormat, .cancelled] {
+            viewModel.transferState = state
+            assertNil(view.openTechnicalLogAction, "technical-log error action absent in other states")
+        }
+        viewModel.transferState = .error
+        assertNil(TransferControlsView(viewModel: viewModel).openTechnicalLogAction, "no dead navigation button without callback")
     }
 
     @MainActor

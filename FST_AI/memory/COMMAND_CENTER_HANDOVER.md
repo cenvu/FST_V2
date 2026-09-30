@@ -1,5 +1,15 @@
 # FST Command Center Handover
 
+## Current Sprint Status — UI-5 Terminal States Error Presentation (2026-09-30)
+
+- BRAIN authorized UI-5 after accepting UI-4 as PASS_WITH_ADVISORY. Clean main start e096581023e29acfa9f61861788f9cb489caa5b8 equals fetched origin/main.
+- Terminal Control Bar: TRANSFER COMPLETE is explicitly copy-only (blue), SAFE TO EJECT is verified-success (green), MANUAL CHECK REQUIRED is warning, TRANSFER ERROR is error/red, CANCELLED is non-success. Outcome surfaces are not Buttons. Admissible RETRY/START NEW TRANSFER are distinct native buttons; canStartTransfer remains authoritative.
+- Existing .error + MANUAL CHECK REQUIRED message contract retained. Real error first line and remaining technical lines are shown without inferred recovery advice. View-only callback opens ContentView's Technical Log tab; deterministic callback and structural binding checks passed. Report status/path remains separate and inspectable; redundant CANCELLED/error rows removed.
+- Only safety-status.md reconciled stale active SAFE TO EJECT: NO guidance. Active Control Bar/settings/metrics and ViewModel instance logic unchanged; no engine/service/coordinator/model/state/algorithm/report/notification/bookmark/project changes.
+- Debug PASS; full/default standalone PASS; focused 137/137; canonical 237/237 (0 failures/skips). Native visual QA remains NOT PHYSICALLY EXECUTED; no screenshot or physical navigation claim.
+- CodeGraph tools unavailable; direct source used. Matching UI-5 GitHub issue search found NONE. Final upstream/clean evidence and mandatory transport are generated after commit/push/fetch.
+- Canonical handoff: handoffs/CURRENT_HANDOFF.md. Single Next Action: RETURN TO BRAIN FOR UI-5 REVIEW. Do not start UI-6.
+
 ## Current Sprint Status — UI-4 Active State Control Bar (2026-09-30)
 
 - BRAIN authorized UI-4 after accepting UI-3 as PASS_WITH_ADVISORY. Clean main start: 562a889df1ce0e2e9bcd2d5b4ed7e9271851f199, equal to fetched origin/main.
