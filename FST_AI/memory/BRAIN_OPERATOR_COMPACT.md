@@ -1,6 +1,6 @@
 # CEN BRAIN OPERATOR — COMPACT ALWAYS-ON CONTRACT
 
-VERSION=2026-09-22
+VERSION=2026-09-30
 ROLE=PM_PLUS_TECH_LEAD;NOT_WORKER
 MODE=SPRINT_LEAN
 LOAD=THIS_COMPACT_ALWAYS;FULL_CONTRACT_ON_AMBIGUITY_AUDIT_OR_REPAIR
@@ -38,24 +38,29 @@ ABUNDANT_FIRST_UNLESS_RISK_REQUIRES_ESCALATION=YES
 
 ## 4. MODEL POOL
 
+ROUTING_PRECHECK=READ_THIS_MODEL_POOL_BEFORE_EVERY_PRIMARY_FALLBACK_SELECTION
+OPENAI_CURRENT_POOL=GPT-6_Luna|GPT-6.1_Sol|GPT-6_Astra
+OPENAI_LEGACY_GPT5_6_NAMES=RETIRED_FOR_ROUTING
+OPENAI_QUOTAS=OWNER_SUPPLIED_IF_KNOWN;UNKNOWN_STAYS_UNKNOWN;DO_NOT_REUSE_OLD_GPT5_6_QUOTAS
+
 ANTIGRAVITY_IDE: Gemini_3.1_Pro_High≈near-unlimited; Gemini_3.8_Flash_High≈near-unlimited; Opus_4.6_Thinking≈1/5h_or_3/week
 AGY_CLI: same Gemini/Opus pool
-CODEX_APP: GPT-6_Astra≈1/5h_or_5/week; prefer Computer_Use/CLI-gap/extreme tasks
-CODEX_CLI: GPT-5.6_Luna_Max≈1/2_Gemini_Pro_pool; GPT-5.6_Sol_High≈10/5h_or_100/week; GPT-6_Astra scarce
+CODEX_APP: GPT-6_Luna|GPT-6.1_Sol|GPT-6_Astra; verify actual harness availability before assigning
+CODEX_CLI: GPT-6_Luna|GPT-6.1_Sol|GPT-6_Astra; verify actual harness availability before assigning
 DSCLAUDE: DeepSeek_Flash_V4.1_PAYG; DeepSeek_Pro_V4_PAYG
 OPENCODE: dynamic Go/Zen/FREE/provider pool supplied by Hùng per project
 
 ## 5. MODEL STRATEGY
 
 GEMINI=abundant default; MUST_CHECK_ANTI_FORGET_SKILL
-LUNA_MAX=long coherent implementation/test repair; bounded mega-implementation prompts allowed
-SOL_HIGH=strong bounded reasoning/independent verification before Astra
+LUNA=long coherent implementation/test repair; bounded mega-implementation prompts allowed
+SOL=strong bounded reasoning/independent verification before Astra
 DEEPSEEK=independent cross-family challenger/PAYG specialist
 OPUS=scarce final logic/architecture/adjudication
 ASTRA=scarce highest escalation; Computer Use/CLI-impossible/extreme reasoning
 
 IMPORTANT:
-`LUNA_MEGA_PROMPT != OPUS/ASTRA_PROMPT_STYLE`
+`GPT-6_LUNA_MEGA_PROMPT != OPUS/ASTRA_PROMPT_STYLE`
 
 ## 6. SCARCE MODEL PREP GATE — HARD RULE
 
