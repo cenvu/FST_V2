@@ -28,6 +28,7 @@ Before starting any task, read:
 
 - `FST_AI/memory/TASK_REGISTRY.md`
 - `FST_AI/memory/COMMAND_CENTER_HANDOVER.md`
+- `FST_AI/memory/BRAIN_OPERATOR_COMPACT.md`
 - `FST_AI/memory/WORK_HISTORY.md`
 - `AGENTS.md`
 - `docs/00_AI_AGENT_START_HERE.md`
@@ -62,6 +63,47 @@ Then confirm:
 
 Do not proceed if the task conflicts with Command Center safety rules.
 ```
+
+## FST BRAIN Return Bridge
+
+Every meaningful Worker prompt routed from ChatGPT Web BRAIN returns through one fixed Desktop file:
+
+```text
+~/Desktop/03_FST_BRAIN.md
+```
+
+This is the only FST file an Agent may create, write, export, copy, or replace on Desktop. No alternate Desktop report, RAW, handoff, screenshot, prompt, or convenience copy is allowed unless Hùng explicitly changes this contract.
+
+The file is a transport envelope, never canonical authority. Its body is always:
+
+```text
+FULL REPORT
++ RAW EVIDENCE
++ BRAIN OPERATOR
+```
+
+Default FULL REPORT is the canonical `handoffs/CURRENT_HANDOFF.md`. RAW always includes a fresh repository/handoff verification snapshot and may additionally embed explicit repo-local UTF-8 evidence files. BRAIN OPERATOR is loaded verbatim from `FST_AI/memory/BRAIN_OPERATOR_COMPACT.md`.
+
+Finalization sequence for mutating Worker work:
+
+```text
+MUTATE -> TEST -> HANDOFF -> COMMIT -> PUSH -> FETCH/VERIFY -> RETURN_TO_BRAIN
+```
+
+After repository verification:
+
+```bash
+python3 FST_AI/tools/export_brain_return.py \
+  --task "<task>" \
+  --result PASS \
+  [--raw <repo-relative-evidence.md> ...]
+```
+
+The exporter has no arbitrary output path. PASS is automatically downgraded to FAIL if handoff verification fails, the worktree is not clean, or local HEAD does not equal its configured upstream. A Worker-declared FAIL is still exported so BRAIN can adjudicate it.
+
+The Worker then returns only the compact five-line status printed by the exporter. Hùng should only need to drag `03_FST_BRAIN.md` into ChatGPT Web; canonical files remain in the local/GitHub repository.
+
+Skill: `FST_AI/skills/fst-brain-return-finalizer/SKILL.md`.
 
 ## Current Agent Model
 

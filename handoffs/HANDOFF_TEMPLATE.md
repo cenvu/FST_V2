@@ -153,7 +153,10 @@ Exactly one primary next action:
 7. perform only the Single Next Action;
 8. work in Sprint Mode and Lean Mode;
 9. publish a new handoff when done;
-10. never edit an old handoff.>
+10. for BRAIN-routed work, commit/push/fetch-verify the final repo state;
+11. generate only `~/Desktop/03_FST_BRAIN.md` through `FST_AI/tools/export_brain_return.py`;
+12. return only the compact PASS/FAIL status and tell Hùng to send that one file to BRAIN;
+13. never edit an old handoff.>
 ```
 
 ## 15. References
@@ -165,3 +168,5 @@ Exactly one primary next action:
 - Authority documents: <list>
 - Reports: <list | NONE>
 - Logs: <list | NONE>
+- Brain Return Raw Inputs: <repo-relative UTF-8 evidence paths | NONE; built-in Git/handoff RAW snapshot is always included>
+- Desktop Brain Projection: `~/Desktop/03_FST_BRAIN.md` (generated after final repository verification; non-canonical; the only FST Desktop file)

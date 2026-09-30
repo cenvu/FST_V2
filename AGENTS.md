@@ -52,6 +52,7 @@ Required handover startup:
 
 - `FST_AI/memory/TASK_REGISTRY.md`
 - `FST_AI/memory/COMMAND_CENTER_HANDOVER.md`
+- `FST_AI/memory/BRAIN_OPERATOR_COMPACT.md`
 - `FST_AI/memory/WORK_HISTORY.md`
 - `AGENTS.md`
 - `docs/00_AI_AGENT_START_HERE.md`
@@ -442,7 +443,37 @@ Never run rsync, hashing, scanning, or report generation on the MainActor.
 
 ## Required Agent Response Format
 
-Every coding response must use:
+Detailed implementation evidence belongs in the canonical handoff and the BRAIN return bundle, not in the Worker's terminal/chat response.
+
+For every meaningful task that came from BRAIN / ChatGPT Web, the final user-visible response MUST be compact. Normal successful completion is exactly:
+
+```text
+RESULT: PASS
+TASK: <short task name>
+HANDOFF: <repo-relative canonical handoff/full report>
+BRAIN_FILE: ~/Desktop/03_FST_BRAIN.md
+SEND TO BRAIN: ~/Desktop/03_FST_BRAIN.md
+```
+
+If the task or finalization fails, use `RESULT: FAIL`. Keep the return compact; put diagnosis, tests, diffs, RAW evidence, blockers, risks, and the exact one next action in the handoff / BRAIN file instead of pasting them into chat.
+
+Final BRAIN-routed sequence:
+
+```text
+MUTATE/VERIFY -> TEST -> HANDOFF -> COMMIT -> PUSH -> FETCH/VERIFY -> 03_FST_BRAIN.md -> RETURN_TO_BRAIN
+```
+
+Generate the single Desktop bridge only through:
+
+```bash
+python3 FST_AI/tools/export_brain_return.py \
+  --task "<task>" \
+  --result PASS
+```
+
+Use `--result FAIL` for a failed/blocked Worker result. PASS is fail-closed and is automatically downgraded to FAIL when the handoff is not verified, the worktree is not clean, or local HEAD does not equal its configured upstream.
+
+For non-BRAIN direct owner work, agents may still use the traditional internal summary fields when useful:
 
 ```text
 PHASE:
@@ -453,8 +484,6 @@ TESTS:
 VERIFY:
 ```
 
-Keep responses short. Code first. No speculative redesign.
-
 Before editing:
 
 ```text
@@ -464,9 +493,6 @@ Before editing:
 4. Add or update tests when changing engine/parser/coordinator/report behavior.
 5. Provide a verification command or manual verification step.
 ```
-
----
-
 ## Forbidden Scope Creep
 
 Do not add unless explicitly requested:
@@ -509,5 +535,8 @@ Data safety beats everything.
 - Timestamped handoffs under `handoffs/` are immutable evidence. `handoffs/INDEX.md` is append-only. Never edit, reorder, or delete historical entries; correct errors with a new CORRECTION or VERIFICATION handoff.
 - GitHub Issues are the task queue. Git, tests, commits, pull requests, and actual source are the final confirmation sources; a handoff is never proof when repository evidence disagrees.
 - Before work: read authority documents, read `handoffs/CURRENT_HANDOFF.md`, check Git status and the current commit, check the relevant GitHub Issue, connect `fst-codegraph`, read direct source, confirm the task is not already completed, and work in Sprint Mode and Lean Mode.
-- After meaningful work: run required verification, inspect the Git diff and status, update the GitHub Issue when authorized, publish one complete handoff through `FST_AI/tools/publish_handoff.py`, confirm the timestamped file + CURRENT + exactly one INDEX entry, and report the handoff filename. Never edit a historical handoff.
-- Full rules: `handoffs/README.md` and `FST_AI/memory/CODEGRAPH_OPERATING_RULES.md`.
+- After meaningful work: run required verification, inspect the Git diff and status, update the GitHub Issue when authorized, publish one complete handoff through `FST_AI/tools/publish_handoff.py`, confirm the timestamped file + CURRENT + exactly one INDEX entry, and never edit a historical handoff.
+- For every BRAIN-routed task, commit/push/fetch-verify the final repository state, then run `FST_AI/tools/export_brain_return.py`. It writes only `~/Desktop/03_FST_BRAIN.md`, containing the full canonical handoff/report + RAW evidence + `FST_AI/memory/BRAIN_OPERATOR_COMPACT.md`.
+- No agent may create, copy, export, or generate any other Desktop file for FST. Repository artifacts stay in repository-authorized locations; `03_FST_BRAIN.md` is a non-canonical transport projection only.
+- The Worker's final user-visible response is the exporter's compact PASS/FAIL return; its last line points Hùng to `~/Desktop/03_FST_BRAIN.md` for ChatGPT Web BRAIN.
+- Full rules: `handoffs/README.md`, `FST_AI/skills/fst-brain-return-finalizer/SKILL.md`, and `FST_AI/memory/CODEGRAPH_OPERATING_RULES.md`.

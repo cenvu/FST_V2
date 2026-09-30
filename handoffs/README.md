@@ -18,7 +18,8 @@ continuation context**, not replacements for Git or GitHub Issues.
   actual source.
 - **Operational context:** `handoffs/` files.
 - **CodeGraph:** advisory index only; never replaces direct source inspection.
-- A handoff is never proof when repository evidence disagrees with it.
+- **Desktop bridge:** `~/Desktop/03_FST_BRAIN.md` is a non-canonical one-file transport projection only.
+- A handoff or Desktop bundle is never proof when repository evidence disagrees with it.
 
 ## Layout
 
@@ -31,6 +32,11 @@ handoffs/
   YYYYMMDD-HHMMSS_<agent-slug>_<task-slug>.md  <- immutable timestamped handoffs
 ```
 
+External BRAIN return projection (not part of repo history):
+
+```text
+~/Desktop/03_FST_BRAIN.md   <- the only FST Desktop file; overwritten per BRAIN return
+```
 ## Startup process (every agent, before work)
 
 1. Read the authority documents (`AGENTS.md`,
@@ -65,11 +71,48 @@ python3 FST_AI/tools/publish_handoff.py \
 
 6. Confirm the receipt: timestamped file created, `CURRENT_HANDOFF.md`
    replaced atomically, exactly one `INDEX.md` entry appended.
-7. Report the published handoff filename.
+7. For mutating work, commit the authorized repository changes including the
+   handoff, push, fetch, and verify local HEAD equals its configured upstream.
+   For read-only work, verify zero mutation and current repository identity.
+8. Build the single BRAIN return envelope:
 
-Every completed task ends with one handoff unless the agent made no repository
-change and produced no meaningful investigation result.
+```bash
+python3 FST_AI/tools/export_brain_return.py \
+  --task "<task>" \
+  --result PASS \
+  [--raw <repo-relative-evidence.md> ...]
+```
 
+   Use `--result FAIL` for a failed/blocked Worker outcome. The exporter always
+   includes a built-in RAW repository snapshot. PASS is downgraded to FAIL if
+   handoff verification, worktree cleanliness, or upstream equality is not proven.
+9. Return only the compact status printed by the exporter. The last line tells
+   Hùng to send `~/Desktop/03_FST_BRAIN.md` to ChatGPT Web BRAIN.
+
+Every completed BRAIN-routed task ends with one canonical handoff and one
+Desktop projection. The projection never replaces repository/GitHub truth.
+
+## Single Desktop bridge rule
+
+FST has exactly one authorized Agent-written Desktop path:
+
+```text
+~/Desktop/03_FST_BRAIN.md
+```
+
+Rules:
+
+- No Agent may create, copy, export, rename, or generate any other FST file on Desktop.
+- Do not manually copy a handoff, report, RAW log, prompt, or evidence file to Desktop.
+- Repository artifacts remain under authorized project paths and normal Git/GitHub history.
+- The Desktop file may be overwritten on the next BRAIN return; it is not immutable history.
+- The Desktop file is never canonical authority. Repo/GitHub truth wins.
+- The bundle order is fixed: FULL REPORT -> RAW EVIDENCE -> BRAIN OPERATOR.
+- FULL REPORT defaults to `handoffs/CURRENT_HANDOFF.md`.
+- RAW always includes a read-only Git/handoff verification snapshot and may include only explicit repo-local UTF-8 evidence passed with `--raw`.
+- BRAIN OPERATOR is embedded verbatim from `FST_AI/memory/BRAIN_OPERATOR_COMPACT.md`.
+- `FST_AI/tools/export_brain_return.py` intentionally has no `--output` argument and does not enumerate or clean Desktop.
+- A FAIL result is still returned through `03_FST_BRAIN.md` when inputs are available, so BRAIN receives the evidence instead of forcing Hùng to hunt project files.
 ## Append-only policy
 
 - Timestamped handoff files are **immutable** after publication: never edit,

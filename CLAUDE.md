@@ -9,6 +9,7 @@ ejects source media.
 
 - AGENTS.md
 - FST_AI/memory/COMMAND_CENTER_HANDOVER.md
+- FST_AI/memory/BRAIN_OPERATOR_COMPACT.md
 - docs/00_AI_AGENT_START_HERE.md
 - FST_AI/memory/TASK_REGISTRY.md
 - FST_AI/memory/WORK_HISTORY.md
@@ -127,7 +128,7 @@ verification failure blocks SAFE TO EJECT. `VerifyEngine` emits results;
   - `bash scripts/package-local-arm64.sh` (release packaging only)
 - Use a Claude-specific DerivedData directory (e.g. `/tmp/FST-Claude-DerivedData`)
   to avoid colliding with other terminal sessions.
-- Report format: PHASE / FILES / LAYER CHECK / PATCH / TESTS / VERIFY.
+- Detailed evidence belongs in the canonical handoff. For a BRAIN-routed task, the final user-visible response is only the compact `RESULT / TASK / HANDOFF / BRAIN_FILE / SEND TO BRAIN` return produced by `FST_AI/tools/export_brain_return.py`; do not paste the full report or RAW logs into chat.
 - When final status is uncertain, fail safely and tell the operator not to
   erase or reuse the source.
 
@@ -168,6 +169,14 @@ For Claude Code and DeepSeek through the Claude Code harness:
   authorized, publish one handoff via
   `python3 FST_AI/tools/publish_handoff.py --draft <file> --agent "Claude Code"
   --model <model> --task <task> --phase <phase> --type NORMAL --corrects NONE`,
-  confirm timestamped file + CURRENT + exactly one INDEX entry, report the
-  filename, never edit an old handoff.
-- Full rules: `handoffs/README.md`.
+  confirm timestamped file + CURRENT + exactly one INDEX entry, and never edit
+  an old handoff.
+- For every BRAIN-routed task, finish the repository flow with commit -> push ->
+  fetch/verify, then run `python3 FST_AI/tools/export_brain_return.py --task
+  "<task>" --result PASS` (or `FAIL`). The tool is the only authorized FST
+  Desktop writer and writes only `~/Desktop/03_FST_BRAIN.md`.
+- The Desktop bundle is non-canonical evidence containing FULL REPORT + RAW +
+  BRAIN OPERATOR. Repo/GitHub truth wins. No other FST report/handoff/RAW file
+  may be created or copied to Desktop.
+- Full rules: `handoffs/README.md` and
+  `FST_AI/skills/fst-brain-return-finalizer/SKILL.md`.
