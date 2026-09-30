@@ -68,7 +68,9 @@ public struct TransferControlsView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
 
-            progressPanel
+            if shouldShowProgressDetails {
+                progressPanel
+            }
         }
         .confirmationDialog("Cancel Transfer?", isPresented: $isShowingCancelConfirmation, titleVisibility: .visible) {
             Button("Cancel Transfer", role: .destructive) {
@@ -89,10 +91,12 @@ public struct TransferControlsView: View {
 
     private var progressPanel: some View {
         VStack(alignment: .leading, spacing: 12) {
-            heroMetricsRow
+            if let titles = TransferRuntimeMetricPresentation.heroTitles(for: viewModel.transferState) {
+                heroMetricsRow(titles: titles)
 
-            ProgressView(value: displayProgress, total: 100)
-                .progressViewStyle(.linear)
+                ProgressView(value: displayProgress, total: 100)
+                    .progressViewStyle(.linear)
+            }
 
             if shouldShowProgressDetails {
                 if !viewModel.workflowPhaseTitle.isEmpty {
@@ -128,10 +132,10 @@ public struct TransferControlsView: View {
         )
     }
 
-    private var heroMetricsRow: some View {
+    private func heroMetricsRow(titles: TransferRuntimeMetricPresentation.HeroTitles) -> some View {
         HStack(alignment: .bottom, spacing: 12) {
             VStack(alignment: .leading, spacing: 4) {
-                Text(TransferRuntimeMetricPresentation.progressTitle(for: viewModel.transferState).uppercased())
+                Text(titles.progress)
                     .font(.caption2)
                     .foregroundColor(.secondary)
                     .bold()
@@ -142,7 +146,7 @@ public struct TransferControlsView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
 
             VStack(alignment: .leading, spacing: 4) {
-                Text(viewModel.transferState == .verifying ? "VERIFY ETA" : "COPY ETA")
+                Text(titles.eta)
                     .font(.caption2)
                     .foregroundColor(.secondary)
                     .bold()
@@ -156,7 +160,7 @@ public struct TransferControlsView: View {
 
             VStack(alignment: .leading, spacing: 4) {
                 if viewModel.transferState == .verifying {
-                    Text("VERIFY ELAPSED")
+                    Text(titles.third)
                         .font(.caption2)
                         .foregroundColor(.secondary)
                         .bold()
@@ -166,7 +170,7 @@ public struct TransferControlsView: View {
                         .lineLimit(1)
                         .minimumScaleFactor(0.8)
                 } else {
-                    Text("CURRENT SPEED")
+                    Text(titles.third)
                         .font(.caption2)
                         .foregroundColor(.secondary)
                         .bold()
@@ -422,13 +426,19 @@ public struct TransferControlsView: View {
         Grid(horizontalSpacing: 12, verticalSpacing: 12) {
             GridRow {
                 runtimeMetric(title: "COPY ELAPSED", value: formatElapsed(copyElapsedSeconds))
+                if let title = TransferRuntimeMetricPresentation.averageCopySpeedTitle(for: viewModel.transferState) {
+                    runtimeMetric(
+                        title: title,
+                        value: TransferRuntimeMetricPresentation.averageCopySpeedValue(snapshot: viewModel.copyRuntimeSnapshot)
+                    )
+                }
                 runtimeMetric(title: "COPIED", value: copiedBytesValue)
                 runtimeMetric(title: "FILES", value: copiedFilesValue)
             }
 
             GridRow {
                 runtimeMetric(title: runtimeFileMetricTitle, value: displayCurrentFile)
-                    .gridCellColumns(3)
+                    .gridCellColumns(4)
             }
         }
     }

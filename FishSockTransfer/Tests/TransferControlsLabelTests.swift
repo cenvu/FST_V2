@@ -45,6 +45,8 @@ struct TransferControlsLabelTests {
         testActionPresentation()
         testActiveStateAndActionSeparation()
         testTerminalStateAndActionSeparation()
+        testPhaseMetricContract()
+        testDistinctCopySpeedValues()
         testCinemaDNGSuppression()
         try await MainActor.run {
             try testViewModelStartGateAndSelectionLock()
@@ -437,6 +439,46 @@ struct TransferControlsLabelTests {
             assertFalse(TransferControlsActionPresentation.stateTitle(for: state, canStartTransfer: true, errorMessage: raw).contains("SAFE TO EJECT"), "active state must not render safe banner from stale error")
             assertFalse(TransferControlsActionPresentation.stateSubtitle(for: state, canStartTransfer: true).contains("SAFE TO EJECT: NO"), "no active false-negative safety banner")
         }
+    }
+
+    private static func testPhaseMetricContract() {
+        let copy = TransferRuntimeMetricPresentation.heroTitles(for: .copying)
+        assertEqual(copy?.progress, "COPY PROGRESS", "copy progress hero")
+        assertEqual(copy?.eta, "COPY ETA", "copy ETA hero")
+        assertEqual(copy?.third, "CURRENT COPY SPEED", "copy speed hero")
+        assertEqual(TransferRuntimeMetricPresentation.averageCopySpeedTitle(for: .copying), "AVERAGE COPY SPEED", "secondary average title")
+        assertNotEqual(copy?.third, TransferRuntimeMetricPresentation.averageCopySpeedTitle(for: .copying), "current and average speed are distinct concepts")
+
+        let verify = TransferRuntimeMetricPresentation.heroTitles(for: .verifying)
+        assertEqual(verify?.progress, "VERIFY PROGRESS", "verify progress hero")
+        assertEqual(verify?.eta, "VERIFY ETA", "verify ETA hero")
+        assertEqual(verify?.third, "VERIFY ELAPSED", "verify third hero")
+        assertFalse([verify?.progress, verify?.eta, verify?.third].contains("CURRENT COPY SPEED"), "verify has no copy speed")
+        assertNil(TransferRuntimeMetricPresentation.averageCopySpeedTitle(for: .verifying), "verify has no average copy speed")
+
+        for state in [TransferState.ready, .validating, .copyComplete, .safeToFormat, .error, .cancelled] {
+            assertNil(TransferRuntimeMetricPresentation.heroTitles(for: state), "\(state.rawValue) has no active hero or phase bar")
+            assertNil(TransferRuntimeMetricPresentation.averageCopySpeedTitle(for: state), "\(state.rawValue) has no active average")
+        }
+    }
+
+    private static func testDistinctCopySpeedValues() {
+        let snapshot = CopyRuntimeSnapshot(
+            elapsedSeconds: 20, currentItem: "clip.mov", copiedBytes: 100, totalBytes: 200,
+            copiedFiles: 1, totalFiles: 2, progressFraction: 0.5,
+            currentSpeedBytesPerSecond: 12 * 1_048_576,
+            averageSpeedBytesPerSecond: 6 * 1_048_576,
+            etaSeconds: 10, signalSource: .destinationObserver, lastObservedAt: Date(),
+            activityState: .observingDestination
+        )
+        let current = TransferRuntimeMetricPresentation.speedValue(bytesPerSecond: snapshot.currentSpeedBytesPerSecond)
+        let average = TransferRuntimeMetricPresentation.averageCopySpeedValue(snapshot: snapshot)
+        assertEqual(current, "12.00 MB/s", "current uses existing formatter")
+        assertEqual(average, "6.00 MB/s", "average reads snapshot average using existing formatter")
+        assertNotEqual(current, average, "current and average can display distinct values")
+        assertEqual(TransferRuntimeMetricPresentation.averageCopySpeedValue(snapshot: nil), "-", "unknown average stays unavailable")
+        assertEqual(TransferRuntimeMetricPresentation.speedValue(bytesPerSecond: nil), "-", "unknown speed")
+        assertEqual(TransferRuntimeMetricPresentation.speedValue(bytesPerSecond: 0), "-", "zero speed")
     }
 
     private static func testCinemaDNGSuppression() {

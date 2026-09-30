@@ -1,5 +1,18 @@
 # FST Command Center Handover
 
+## Current Sprint Status — UI-6 Metrics Presentation Contract Repair (2026-09-30)
+
+- BRAIN classified prior UI-6 PASS as REPAIR and explicitly routed this bounded presentation repair. UI-7 remains unauthorized.
+- Initial clean main 07beddd fast-forwarded safely to 7fc804af050a09f602cb1907b697eb573116373e == origin/main. Control-plane Vietnamese language rule preserved.
+- View consumes pure active-phase hero titles: COPY PROGRESS / COPY ETA / CURRENT COPY SPEED and VERIFY PROGRESS / VERIFY ETA / VERIFY ELAPSED. Hero and linear bar render only for copying/verifying; ready/terminal no longer look like active Copy, validating retains truthful preparation details.
+- Secondary Copy grid restores AVERAGE COPY SPEED from copyRuntimeSnapshot.averageSpeedBytesPerSecond via the existing speed formatter. Current and average remain distinct; unknown average is '-'; Verify has neither Copy speed metric.
+- Case-insensitive .dng suppression unchanged; no filename/log/rsync event or broad media taxonomy changes. Runtime, progress2 Timing/live/checkpoint suppression, 99% active clamp/100% final completion, freshness/fallback and ETA algorithms are unchanged from starting HEAD.
+- Full/default standalone PASS; Debug BUILD SUCCEEDED (exit 0); focused 112 passed/0 failed/0 skipped; full canonical 247 passed/0 failed/0 skipped. Diff gate passed before handoff; publisher/final Git verification evidence follows finalization.
+- Physical UI QA NOT PHYSICALLY EXECUTED; no native macOS GUI interaction harness was exposed. ETA warm-up versus long-term unavailable remains indistinguishable without a new heuristic, so existing no-value presentation is preserved.
+- CodeGraph tools unavailable; direct View/helper/runtime/test inspection used. GitHub issue list returned no matching task. No issue mutation, release or UI-7 work.
+- Canonical handoff: handoffs/CURRENT_HANDOFF.md; coherent repair/handoff commit and upstream/clean proof in final BRAIN RAW.
+- Single Next Action: RETURN TO BRAIN FOR UI-6 REPAIR REVIEW.
+
 ## Current Sprint Status — Rsync Progress2 ETA Speed Semantics Repair (2026-09-30)
 
 - UI-5 accepted PASS_WITH_ADVISORY by BRAIN; native visual QA advisory remains. This repair is authorized before UI-6; UI-6 remains unauthorized.

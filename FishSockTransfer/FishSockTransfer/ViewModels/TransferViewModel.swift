@@ -1509,6 +1509,32 @@ nonisolated public enum TransferReportStatusPresentation {
 }
 
 nonisolated public enum TransferRuntimeMetricPresentation {
+    public struct HeroTitles: Equatable, Sendable {
+        public let progress: String
+        public let eta: String
+        public let third: String
+    }
+
+    /// A non-nil contract is also the View's eligibility gate for the phase progress bar.
+    public static func heroTitles(for state: TransferState) -> HeroTitles? {
+        switch state {
+        case .copying:
+            return HeroTitles(progress: "COPY PROGRESS", eta: "COPY ETA", third: "CURRENT COPY SPEED")
+        case .verifying:
+            return HeroTitles(progress: "VERIFY PROGRESS", eta: "VERIFY ETA", third: "VERIFY ELAPSED")
+        case .ready, .validating, .copyComplete, .safeToFormat, .error, .cancelled:
+            return nil
+        }
+    }
+
+    public static func averageCopySpeedTitle(for state: TransferState) -> String? {
+        state == .copying ? "AVERAGE COPY SPEED" : nil
+    }
+
+    public static func averageCopySpeedValue(snapshot: CopyRuntimeSnapshot?) -> String {
+        speedValue(bytesPerSecond: snapshot?.averageSpeedBytesPerSecond)
+    }
+
     public static func progressTitle(for state: TransferState) -> String {
         switch state {
         case .copying:

@@ -5,6 +5,38 @@ import Combine
 
 @MainActor
 final class TransferViewModelRuntimeXCTests: XCTestCase {
+    func testActivePhaseHeroTitlesAndSeparateSecondaryAverage() throws {
+        let copy = try XCTUnwrap(TransferRuntimeMetricPresentation.heroTitles(for: .copying))
+        XCTAssertEqual(copy.progress, "COPY PROGRESS")
+        XCTAssertEqual(copy.eta, "COPY ETA")
+        XCTAssertEqual(copy.third, "CURRENT COPY SPEED")
+        XCTAssertEqual(TransferRuntimeMetricPresentation.averageCopySpeedTitle(for: .copying), "AVERAGE COPY SPEED")
+        XCTAssertNotEqual(copy.third, TransferRuntimeMetricPresentation.averageCopySpeedTitle(for: .copying))
+
+        let verify = try XCTUnwrap(TransferRuntimeMetricPresentation.heroTitles(for: .verifying))
+        XCTAssertEqual(verify.progress, "VERIFY PROGRESS")
+        XCTAssertEqual(verify.eta, "VERIFY ETA")
+        XCTAssertEqual(verify.third, "VERIFY ELAPSED")
+        XCTAssertFalse([verify.progress, verify.eta, verify.third].contains { $0.contains("COPY SPEED") })
+        XCTAssertNil(TransferRuntimeMetricPresentation.averageCopySpeedTitle(for: .verifying))
+    }
+
+    func testNonActiveStatesHaveNoPhaseHeroOrProgressBarContract() {
+        for state in [TransferState.ready, .validating, .copyComplete, .safeToFormat, .error, .cancelled] {
+            XCTAssertNil(TransferRuntimeMetricPresentation.heroTitles(for: state), state.rawValue)
+            XCTAssertNil(TransferRuntimeMetricPresentation.averageCopySpeedTitle(for: state), state.rawValue)
+        }
+    }
+
+    func testCinemaDNGCompactPresentationPreservesOtherFilenames() {
+        for state in [TransferState.copying, .verifying] {
+            for file in ["clip/frame0001.dng", "clip/frame0002.DNG"] {
+                XCTAssertEqual(TransferRuntimeMetricPresentation.currentFileValue(currentFile: file, state: state), "Processing CinemaDNG frame sequence...")
+            }
+            XCTAssertEqual(TransferRuntimeMetricPresentation.currentFileValue(currentFile: "A001.mov", state: state), "A001.mov")
+        }
+    }
+
     func testProgress2CheckpointsPreserveLiveViewModelEstimatesUntilNextLiveOrStateClear() {
         for marker in ["to-chk=1/3", "ir-chk=1002/1005"] {
             let viewModel = makeViewModel()
@@ -37,6 +69,8 @@ final class TransferViewModelRuntimeXCTests: XCTestCase {
             viewModel.applyTransferState(.verifying)
             XCTAssertEqual(viewModel.speed, 0)
             XCTAssertEqual(viewModel.eta, 0)
+            XCTAssertEqual(TransferRuntimeMetricPresentation.heroTitles(for: viewModel.transferState)?.third, "VERIFY ELAPSED")
+            XCTAssertNil(TransferRuntimeMetricPresentation.averageCopySpeedTitle(for: viewModel.transferState))
         }
     }
     func testBandwidthUnlimitedPresetSequenceReachesRsyncArgumentsAndReport() async throws {
@@ -498,6 +532,9 @@ final class TransferViewModelRuntimeXCTests: XCTestCase {
         XCTAssertEqual(viewModel.currentFile, "MACOS-APP/observed.mov")
         XCTAssertEqual(viewModel.copyElapsedSeconds, 15)
         XCTAssertEqual(viewModel.copyRuntimeSignalSource, .destinationObserver)
+        XCTAssertEqual(TransferRuntimeMetricPresentation.speedValue(bytesPerSecond: viewModel.copyRuntimeSnapshot?.currentSpeedBytesPerSecond), "10.00 MB/s")
+        XCTAssertEqual(TransferRuntimeMetricPresentation.averageCopySpeedValue(snapshot: viewModel.copyRuntimeSnapshot), "5.00 MB/s")
+        XCTAssertEqual(TransferRuntimeMetricPresentation.averageCopySpeedValue(snapshot: nil), "-")
     }
 
     func testViewModelPrefersRsyncCurrentFileWhenObserverAlsoHasCurrentItem() {
@@ -583,6 +620,8 @@ final class TransferViewModelRuntimeXCTests: XCTestCase {
             "CURRENT VERIFY FILE"
         )
         XCTAssertFalse(TransferRuntimeMetricPresentation.shouldShowRsyncTime(for: .verifying))
+        XCTAssertEqual(TransferRuntimeMetricPresentation.heroTitles(for: viewModel.transferState)?.third, "VERIFY ELAPSED")
+        XCTAssertNil(TransferRuntimeMetricPresentation.averageCopySpeedTitle(for: viewModel.transferState))
     }
 
     func testVerifyETABeforeProgressIsEstimating() {

@@ -21,6 +21,18 @@ Each entry must include:
 
 ## Recent History
 
+### 2026-09-30 - UI-6 Metrics Presentation Contract Repair
+
+- Agent/model: Codex local Worker / exact model UNVERIFIED
+- Branch/start: clean main, safely fast-forwarded from 07beddd to 7fc804af050a09f602cb1907b697eb573116373e == fetched origin/main before mutation.
+- Files changed: TransferControlsView.swift; pure presentation helper additions in TransferViewModel.swift; full standalone labels harness; TransferViewModelRuntimeXCTests.swift; required memory records and one NORMAL handoff.
+- What changed: exact CURRENT COPY SPEED hero; separate secondary AVERAGE COPY SPEED from snapshot average; hero and linear progress bar gated by an optional active-phase title contract. READY/terminal have no active progress panel; VALIDATING retains preparation details without Copy metrics. VERIFY PROGRESS/VERIFY ETA/VERIFY ELAPSED remain distinct; DNG suppression unchanged.
+- Safety boundary: all Engine/Coordinator/Model/Service Swift and ViewModel runtime/ETA/freshness/fallback code byte-identical to starting HEAD. No UI-7, ETA algorithm, verification speed, taxonomy, project, report or terminal-result redesign.
+- Verification: full/default standalone compile/run exit 0, TransferControlsLabelTests passed; Debug exit 0, BUILD SUCCEEDED; focused 112 passed/0 failed/0 skipped; full canonical 247 passed/0 failed/0 skipped; pre-publication diff check PASS. Publisher and final repository proof captured by finalization.
+- Remaining limitations: physical UI QA NOT PHYSICALLY EXECUTED (no native macOS interaction harness); existing Copy ETA no-value representation retained without inventing warm-up/unavailable detection.
+- Commit/release: authorized coherent repair plus handoff commit; final SHA/push/fetch equality in BRAIN RAW; no tag/release.
+- Single Next Action: RETURN TO BRAIN FOR UI-6 REPAIR REVIEW. Do not start UI-7.
+
 ### 2026-09-30 - Progress2 repair finalization correction / Worker FAIL
 
 - Agent/model: Codex local Worker / GPT-6 (variant UNVERIFIED)

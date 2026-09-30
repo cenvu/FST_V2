@@ -29,6 +29,19 @@ This appears to have been run before as <entry>. Do you want to rerun it, contin
 
 ## Recent Tasks
 
+### 2026-09-30 - UI-6 Metrics Presentation Contract Repair
+
+- Date: 2026-09-30
+- Task ID: FST-UI-6-REPAIR
+- Task name: UI-6 Metrics Presentation Contract Repair
+- Agent: Codex local Worker / exact model UNVERIFIED
+- Status: implemented repair; BRAIN review pending
+- Files changed: TransferControlsView.swift; pure TransferRuntimeMetricPresentation additions in TransferViewModel.swift; TransferControlsLabelTests.swift; TransferViewModelRuntimeXCTests.swift; required memory and one NORMAL handoff
+- Commit/tag/release: one coherent repair plus handoff commit; final SHA/upstream proof in BRAIN RAW; no tag/release
+- Safety impact: View-only active hero/bar eligibility and exact Copy/Verify titles; separate secondary snapshot average speed. Runtime, ETA algorithms, progress2, state machine, source safety, terminal results and SAFE TO EJECT unchanged.
+- Checks: full/default standalone PASS; Debug BUILD SUCCEEDED (exit 0); focused 112 passed/0 failed/0 skipped; full canonical 247 passed/0 failed/0 skipped; pre-publication diff check PASS. Publication/final Git gates recorded by publisher/finalizer evidence.
+- Notes: prior UI-6 Worker PASS was classified REPAIR by BRAIN. Case-insensitive DNG suppression unchanged. Physical UI QA NOT PHYSICALLY EXECUTED; ETA warm-up/unavailable distinction not added. Single Next Action: RETURN TO BRAIN FOR UI-6 REPAIR REVIEW. UI-7 is not authorized.
+
 ### 2026-09-30 - Rsync Progress2 ETA Speed Semantics Repair
 
 - Date: 2026-09-30
