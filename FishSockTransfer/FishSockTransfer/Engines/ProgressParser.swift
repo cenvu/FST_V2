@@ -3,9 +3,13 @@
 import Foundation
 
 nonisolated public struct ProgressData: Equatable, Sendable {
+    public enum Timing: Equatable, Sendable {
+        case liveEstimate(speedMBps: Double, remainingSeconds: TimeInterval)
+        case checkpoint(averageSpeedMBps: Double, elapsedSeconds: TimeInterval)
+    }
+
     public let progress: Double
-    public let speedMBps: Double
-    public let eta: TimeInterval
+    public let timing: Timing
 }
 
 nonisolated public final class ProgressParser: Sendable {
@@ -69,11 +73,22 @@ nonisolated public final class ProgressParser: Sendable {
         }
 
         guard let speedMBps = parseSpeed(components[2]),
-              let eta = parseETA(components[3]) else {
+              let seconds = parseTime(components[3]) else {
             return nil
         }
 
-        return ProgressData(progress: progress, speedMBps: speedMBps, eta: eta)
+        let timing: ProgressData.Timing
+        if components.count == 4 {
+            timing = .liveEstimate(speedMBps: speedMBps, remainingSeconds: seconds)
+        } else {
+            let suffix = components.dropFirst(4).joined(separator: " ")
+            // rsync v3.4.4 progress.c: is_last uses average rate and elapsed time.
+            guard suffix.range(of: #"^\(xfr#[0-9]+, (to|ir)-chk=[0-9]+/[0-9]+\)$"#,
+                               options: .regularExpression) != nil else { return nil }
+            timing = .checkpoint(averageSpeedMBps: speedMBps, elapsedSeconds: seconds)
+        }
+
+        return ProgressData(progress: progress, timing: timing)
     }
     
     private func parseSpeed(_ string: String) -> Double? {
@@ -93,7 +108,7 @@ nonisolated public final class ProgressParser: Sendable {
         return nil
     }
     
-    private func parseETA(_ string: String) -> TimeInterval? {
+    private func parseTime(_ string: String) -> TimeInterval? {
         let rawParts = string.split(separator: ":")
         let parts = rawParts.compactMap { Double($0) }
         guard parts.count == rawParts.count else { return nil }

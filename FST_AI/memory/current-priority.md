@@ -4,12 +4,12 @@
 
 ## Authorized Phase
 
-- Phase: UI-5 TERMINAL STATES + ERROR PRESENTATION
-- Approval: BRAIN authorized UI-5 after independently accepting UI-4 as PASS_WITH_ADVISORY.
-- Status: Implemented; return to BRAIN for review.
-- Scope: compact terminal outcome/action separation, truthful error/report evidence, View-layer Technical Log navigation and one safety-status design page reconciliation; backend safety/workflow unchanged.
-- UI-6 and later phases remain unauthorized until BRAIN issues a new action.
-- Single next action: RETURN TO BRAIN FOR UI-5 REVIEW.
+- Phase: RUNTIME TELEMETRY CORRECTNESS — Rsync Progress2 ETA Speed Semantics Repair
+- Approval: BRAIN accepted UI-5 as PASS_WITH_ADVISORY and authorized this pre-UI-6 parser repair.
+- Status: Production repair/tests implemented; RESULT=FAIL because mandatory pre-commit diff check failed after raw-output handoff publication. Original immutable evidence preserved; full CORRECTION explains the failure.
+- Scope: exact bundled v3.4.4 live recent-rate/remaining-time vs checkpoint average-rate/elapsed-time interpretation; parser/processor and regression tests only.
+- No UI-6, ETA smoothing, traversal flag, rsync upgrade, safety/state/verification/report change.
+- Single next action: RETURN TO BRAIN FOR PROGRESS2 SEMANTICS REVIEW.
 
 ## Current Known Focus Areas
 

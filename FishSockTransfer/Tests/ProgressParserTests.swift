@@ -2,6 +2,13 @@
 
 import Foundation
 
+private func liveEstimate(_ data: ProgressData) -> (speedMBps: Double, eta: TimeInterval) {
+    guard case .liveEstimate(let speedMBps, let remainingSeconds) = data.timing else {
+        fatalError("Expected live estimate, got \(data.timing)")
+    }
+    return (speedMBps, remainingSeconds)
+}
+
 private func assertEqual<T: Equatable>(_ actual: T, _ expected: T, _ message: String) {
     guard actual == expected else {
         fatalError("\(message): expected \(expected), got \(actual)")
@@ -31,6 +38,9 @@ private func assertNotNil<T>(_ actual: T?, _ message: String) -> T {
 @main
 struct ProgressParserTests {
     static func main() {
+        testProgress2TimingKindsAndProcessorSequence()
+        testProgress2CheckpointHundredDoesNotCompleteOrPublishEstimates()
+        testRejectsMalformedProgress2Suffixes()
         testRsyncOutputFramerHandlesCarriageReturnRecords()
         testRsyncOutputFramerHandlesNewlineRecords()
         testRsyncOutputFramerHandlesCRLFRecords()
@@ -61,6 +71,46 @@ struct ProgressParserTests {
         testStdoutRecordProcessorIgnoresEmptyFilenameRecords()
 
         print("ProgressParserTests passed")
+    }
+
+    private static func testProgress2TimingKindsAndProcessorSequence() {
+        for marker in ["to-chk=1/3", "ir-chk=1002/1005"] {
+            // Official v3.4.4 rprint_progress() layout: live tail vs xfr#/check tail.
+            let live = "          4.19M  25%    2.00MB/s    0:00:06  "
+            let checkpoint = "          8.39M  50%    1.00MB/s    0:00:08 (xfr#1, \(marker))"
+            let nextLive = "         12.58M  75%    4.00MB/s    0:00:01"
+            let parser = ProgressParser()
+            assertEqual(assertNotNil(parser.parse(line: live), "live record").timing,
+                        .liveEstimate(speedMBps: 2, remainingSeconds: 6), "live recent/remaining")
+            assertEqual(assertNotNil(parser.parse(line: checkpoint), "checkpoint record").timing,
+                        .checkpoint(averageSpeedMBps: 1, elapsedSeconds: 8), "checkpoint average/elapsed")
+            assertNil(parser.parseFilename(line: checkpoint), "checkpoint is not a filename")
+            let recorder = StandaloneTransferEventRecorder()
+            var processor = RsyncStdoutRecordProcessor(diagnostics: RsyncCopyTimingDiagnostics(), minimumProgressDeliveryInterval: 0) { recorder.append($0) }
+            processor.process(live)
+            processor.process(checkpoint)
+            assertEqual(recorder.snapshot().filter { if case .log = $0 { return false }; return true },
+                        [.progress(25), .speed(2), .eta(6), .progress(50)], "checkpoint preserves live estimate")
+            processor.process(nextLive)
+            assertEqual(recorder.snapshot().filter { if case .log = $0 { return false }; return true },
+                        [.progress(25), .speed(2), .eta(6), .progress(50), .progress(75), .speed(4), .eta(1)], "next live updates")
+        }
+    }
+
+    private static func testProgress2CheckpointHundredDoesNotCompleteOrPublishEstimates() {
+        for marker in ["to-chk=0/3", "ir-chk=1002/1005"] {
+            let recorder = StandaloneTransferEventRecorder()
+            var processor = RsyncStdoutRecordProcessor(diagnostics: RsyncCopyTimingDiagnostics()) { recorder.append($0) }
+            processor.process("16.78M 100% 1.00MB/s 0:00:16 (xfr#2, \(marker))")
+            assertEqual(recorder.snapshot().filter { if case .log = $0 { return false }; return true },
+                        [.progress(99)], "checkpoint only active progress, never completion/speed/ETA")
+        }
+    }
+
+    private static func testRejectsMalformedProgress2Suffixes() {
+        for suffix in ["clip.mov", "(xfr#1, to-chk=1/3", "(xfr#1, unknown-chk=1/3)", "(xfr#1, to-chk=oops/3)", "(xfr#1, to-chk=1/3) clip.mov"] {
+            assertNil(ProgressParser().parse(line: "8.39M 50% 1.00MB/s 0:00:08 \(suffix)"), "invalid progress tail")
+        }
     }
 
     private static func testRsyncOutputFramerHandlesCarriageReturnRecords() {
@@ -173,8 +223,8 @@ struct ProgressParserTests {
         )
 
         assertApproximatelyEqual(data.progress, 1.0, "kB/s progress")
-        assertApproximatelyEqual(data.speedMBps, 0.5, "kB/s speed conversion")
-        assertApproximatelyEqual(data.eta, 10.0, "kB/s ETA")
+        assertApproximatelyEqual(liveEstimate(data).speedMBps, 0.5, "kB/s speed conversion")
+        assertApproximatelyEqual(liveEstimate(data).eta, 10.0, "kB/s ETA")
     }
 
     private static func testParsesCROnlyProgressRecord() {
@@ -184,8 +234,8 @@ struct ProgressParserTests {
         )
 
         assertApproximatelyEqual(data.progress, 0.0, "CR-only progress")
-        assertApproximatelyEqual(data.speedMBps, 0.0, "CR-only speed")
-        assertApproximatelyEqual(data.eta, 0.0, "CR-only ETA")
+        assertApproximatelyEqual(liveEstimate(data).speedMBps, 0.0, "CR-only speed")
+        assertApproximatelyEqual(liveEstimate(data).eta, 0.0, "CR-only ETA")
     }
 
     private static func testParsesMegabytesPerSecond() {
@@ -195,8 +245,8 @@ struct ProgressParserTests {
         )
 
         assertApproximatelyEqual(data.progress, 48.0, "MB/s progress")
-        assertApproximatelyEqual(data.speedMBps, 120.34, "MB/s speed conversion")
-        assertApproximatelyEqual(data.eta, 90.0, "MB/s ETA")
+        assertApproximatelyEqual(liveEstimate(data).speedMBps, 120.34, "MB/s speed conversion")
+        assertApproximatelyEqual(liveEstimate(data).eta, 90.0, "MB/s ETA")
     }
 
     private static func testParsesGigabytesPerSecond() {
@@ -206,8 +256,8 @@ struct ProgressParserTests {
         )
 
         assertApproximatelyEqual(data.progress, 75.0, "GB/s progress")
-        assertApproximatelyEqual(data.speedMBps, 1536.0, "GB/s speed conversion")
-        assertApproximatelyEqual(data.eta, 3.0, "GB/s ETA")
+        assertApproximatelyEqual(liveEstimate(data).speedMBps, 1536.0, "GB/s speed conversion")
+        assertApproximatelyEqual(liveEstimate(data).eta, 3.0, "GB/s ETA")
     }
 
     private static func testParsesHumanReadableKilobyteByteCounts() {
@@ -222,9 +272,9 @@ struct ProgressParserTests {
         )
 
         assertApproximatelyEqual(first.progress, 3.0, "32.77K progress")
-        assertApproximatelyEqual(first.speedMBps, 0.5, "32.77K speed")
+        assertApproximatelyEqual(liveEstimate(first).speedMBps, 0.5, "32.77K speed")
         assertApproximatelyEqual(second.progress, 7.0, "524.29K progress")
-        assertApproximatelyEqual(second.speedMBps, 1.0, "524.29K speed")
+        assertApproximatelyEqual(liveEstimate(second).speedMBps, 1.0, "524.29K speed")
     }
 
     private static func testParsesHumanReadableMegabyteByteCount() {
@@ -234,7 +284,7 @@ struct ProgressParserTests {
         )
 
         assertApproximatelyEqual(data.progress, 12.0, "1.23M progress")
-        assertApproximatelyEqual(data.speedMBps, 4.0, "1.23M speed")
+        assertApproximatelyEqual(liveEstimate(data).speedMBps, 4.0, "1.23M speed")
     }
 
     private static func testParsesHumanReadableGigabyteByteCount() {
@@ -244,7 +294,7 @@ struct ProgressParserTests {
         )
 
         assertApproximatelyEqual(data.progress, 88.0, "9.87G progress")
-        assertApproximatelyEqual(data.speedMBps, 1536.0, "9.87G speed")
+        assertApproximatelyEqual(liveEstimate(data).speedMBps, 1536.0, "9.87G speed")
     }
 
     private static func testParsesHumanReadableTerabyteByteCount() {
@@ -254,7 +304,7 @@ struct ProgressParserTests {
         )
 
         assertApproximatelyEqual(data.progress, 91.0, "1.00T progress")
-        assertApproximatelyEqual(data.speedMBps, 900.0, "1.00T speed")
+        assertApproximatelyEqual(liveEstimate(data).speedMBps, 900.0, "1.00T speed")
     }
 
     private static func testParsesIntegerHumanReadableByteCount() {
@@ -264,7 +314,7 @@ struct ProgressParserTests {
         )
 
         assertApproximatelyEqual(data.progress, 6.0, "512K progress")
-        assertApproximatelyEqual(data.speedMBps, 2.0, "512K speed")
+        assertApproximatelyEqual(liveEstimate(data).speedMBps, 2.0, "512K speed")
     }
 
     private static func testParsesCommaNumericByteCount() {
@@ -274,7 +324,7 @@ struct ProgressParserTests {
         )
 
         assertApproximatelyEqual(data.progress, 1.0, "comma numeric progress")
-        assertApproximatelyEqual(data.speedMBps, 0.5, "comma numeric speed")
+        assertApproximatelyEqual(liveEstimate(data).speedMBps, 0.5, "comma numeric speed")
     }
 
     private static func testParsesETAFields() {
@@ -283,7 +333,7 @@ struct ProgressParserTests {
             "hour ETA progress2 line"
         )
 
-        assertApproximatelyEqual(data.eta, 3723.0, "hour ETA conversion")
+        assertApproximatelyEqual(liveEstimate(data).eta, 3723.0, "hour ETA conversion")
     }
 
     private static func testParsesCarriageReturnDelimitedRecordsWithHumanReadableByteCounts() {
@@ -291,8 +341,8 @@ struct ProgressParserTests {
         let data = assertNotNil(ProgressParser().parse(line: line), "carriage-return progress records")
 
         assertApproximatelyEqual(data.progress, 20.0, "latest carriage-return progress")
-        assertApproximatelyEqual(data.speedMBps, 2.0, "latest carriage-return speed")
-        assertApproximatelyEqual(data.eta, 8.0, "latest carriage-return ETA")
+        assertApproximatelyEqual(liveEstimate(data).speedMBps, 2.0, "latest carriage-return speed")
+        assertApproximatelyEqual(liveEstimate(data).eta, 8.0, "latest carriage-return ETA")
     }
 
     private static func testRejectsArbitraryFilenameTextContainingPercent() {

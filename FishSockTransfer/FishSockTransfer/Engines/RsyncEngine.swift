@@ -318,9 +318,14 @@ nonisolated struct RsyncStdoutRecordProcessor: Sendable {
 
         onEvent(.log("[STDOUT] \(trimmed)"))
         onEvent(.progress(activeProgress))
-        onEvent(.speed(data.speedMBps))
-        onEvent(.eta(data.eta))
-        onEvent(.log(String(format: "Actual Runtime Speed: %.2f MB/s", data.speedMBps)))
+        switch data.timing {
+        case .liveEstimate(let speedMBps, let remainingSeconds):
+            onEvent(.speed(speedMBps))
+            onEvent(.eta(remainingSeconds))
+            onEvent(.log(String(format: "Actual Runtime Speed: %.2f MB/s", speedMBps)))
+        case .checkpoint:
+            break // Preserve the last live estimates; these columns are average/elapsed.
+        }
     }
 }
 
@@ -675,11 +680,10 @@ nonisolated final class RsyncCopyTimingDiagnostics: @unchecked Sendable {
             guard !state.didLogFirstProgress2 else { return nil }
             state.didLogFirstProgress2 = true
             return String(
-                format: "DIAG [RSYNC TIMING] First rsync progress after %ds: %.1f%% / %.2f MB/s / %@",
+                format: "DIAG [RSYNC TIMING] First rsync progress after %ds: %.1f%% / %@",
                 elapsedSecondsLocked(),
                 data.progress,
-                data.speedMBps,
-                Self.timeValue(seconds: data.eta)
+                Self.timingDescription(data.timing)
             )
         }
     }
@@ -697,12 +701,11 @@ nonisolated final class RsyncCopyTimingDiagnostics: @unchecked Sendable {
             guard !state.didLogFirstEngineProgressEvent else { return nil }
             state.didLogFirstEngineProgressEvent = true
             return String(
-                format: "DIAG [RSYNC EVENT] ENGINE EVENT progress after %ds: raw %.1f%% / active %.1f%% / %.2f MB/s / %@",
+                format: "DIAG [RSYNC EVENT] ENGINE EVENT progress after %ds: raw %.1f%% / active %.1f%% / %@",
                 elapsedSecondsLocked(),
                 data.progress,
                 activeProgress,
-                data.speedMBps,
-                Self.timeValue(seconds: data.eta)
+                Self.timingDescription(data.timing)
             )
         }
     }
@@ -724,6 +727,15 @@ nonisolated final class RsyncCopyTimingDiagnostics: @unchecked Sendable {
     private func elapsedSecondsLocked(now: Date = Date()) -> Int {
         guard let startedAt = state.startedAt else { return 0 }
         return max(0, Int(now.timeIntervalSince(startedAt).rounded(.down)))
+    }
+
+    private static func timingDescription(_ timing: ProgressData.Timing) -> String {
+        switch timing {
+        case .liveEstimate(let speedMBps, let remainingSeconds):
+            return String(format: "live %.2f MB/s / remaining %@", speedMBps, timeValue(seconds: remainingSeconds))
+        case .checkpoint(let averageSpeedMBps, let elapsedSeconds):
+            return String(format: "checkpoint average %.2f MB/s / elapsed %@", averageSpeedMBps, timeValue(seconds: elapsedSeconds))
+        }
     }
 
     private static func timeValue(seconds: TimeInterval) -> String {

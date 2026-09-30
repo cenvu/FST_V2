@@ -2,7 +2,75 @@
 
 import XCTest
 
+private func liveEstimate(_ data: ProgressData) -> (speedMBps: Double, eta: TimeInterval) {
+    guard case .liveEstimate(let speedMBps, let remainingSeconds) = data.timing else {
+        XCTFail("Expected live estimate, got \(data.timing)"); return (0, 0)
+    }
+    return (speedMBps, remainingSeconds)
+}
+
 final class ProgressParserXCTests: XCTestCase {
+    // Shapes from rsync v3.4.4 progress.c rprint_progress(), not per-file ETA guesses.
+    func testLiveProgress2CarriesRecentSpeedAndRemainingTime() throws {
+        let data = try XCTUnwrap(ProgressParser().parse(line: "          4.19M  25%    2.00MB/s    0:00:06  "))
+        XCTAssertEqual(data.progress, 25)
+        XCTAssertEqual(data.timing, .liveEstimate(speedMBps: 2, remainingSeconds: 6))
+    }
+
+    func testProgress2CheckpointsCarryAverageAndElapsedForBothListModes() throws {
+        for marker in ["to-chk=1/3", "ir-chk=1002/1005"] {
+            let line = "          8.39M  50%    1.00MB/s    0:00:08 (xfr#1, \(marker))"
+            let data = try XCTUnwrap(ProgressParser().parse(line: line))
+            XCTAssertEqual(data.progress, 50)
+            XCTAssertEqual(data.timing, .checkpoint(averageSpeedMBps: 1, elapsedSeconds: 8))
+            XCTAssertNil(ProgressParser().parseFilename(line: line))
+        }
+    }
+
+    func testProcessorEmitsOnlyProgressFromCheckpointsIncludingActiveHundred() {
+        for marker in ["to-chk=0/3", "ir-chk=1002/1005"] {
+            let recorder = TransferEventRecorder()
+            var processor = RsyncStdoutRecordProcessor(diagnostics: RsyncCopyTimingDiagnostics()) { recorder.append($0) }
+            processor.process("         16.78M 100%    1.00MB/s    0:00:16 (xfr#2, \(marker))")
+            let events = recorder.snapshot()
+            XCTAssertEqual(events.filter { if case .log = $0 { return false }; return true }, [.progress(99)])
+            XCTAssertFalse(events.contains(.completed))
+            XCTAssertFalse(events.contains { if case .log(let message) = $0 { return message.contains("Actual Runtime Speed") }; return false })
+            XCTAssertTrue(events.contains { if case .log(let message) = $0 { return message.contains("checkpoint average") && message.contains("elapsed") }; return false })
+        }
+    }
+
+    func testProcessorLiveCheckpointLiveSequencePreservesAndUpdatesEstimates() {
+        for marker in ["to-chk=1/3", "ir-chk=1002/1005"] {
+            let recorder = TransferEventRecorder()
+            var processor = RsyncStdoutRecordProcessor(diagnostics: RsyncCopyTimingDiagnostics(), minimumProgressDeliveryInterval: 0) { recorder.append($0) }
+            processor.process("          4.19M  25%    2.00MB/s    0:00:06")
+            let first = recorder.snapshot().filter { if case .log = $0 { return false }; return true }
+            XCTAssertEqual(first, [.progress(25), .speed(2), .eta(6)])
+            processor.process("          8.39M  50%    1.00MB/s    0:00:08 (xfr#1, \(marker))")
+            let middle = recorder.snapshot().filter { if case .log = $0 { return false }; return true }
+            XCTAssertEqual(middle, first + [.progress(50)])
+            processor.process("         12.58M  75%    4.00MB/s    0:00:01")
+            let last = recorder.snapshot().filter { if case .log = $0 { return false }; return true }
+            XCTAssertEqual(last, middle + [.progress(75), .speed(4), .eta(1)])
+        }
+    }
+
+    func testRejectsMalformedCheckpointAndProgressShapedFilenameSuffixes() {
+        let parser = ProgressParser()
+        for suffix in ["clip.mov", "(xfr#1, to-chk=1/3", "(xfr#1, unknown-chk=1/3)", "(xfr#1, to-chk=oops/3)", "(xfr#1, to-chk=1/3) clip.mov"] {
+            XCTAssertNil(parser.parse(line: "8.39M 50% 1.00MB/s 0:00:08 \(suffix)"))
+        }
+    }
+
+    func testProcessorLiveHundredRemainsActiveBelowCompletion() {
+        let recorder = TransferEventRecorder()
+        var processor = RsyncStdoutRecordProcessor(diagnostics: RsyncCopyTimingDiagnostics()) { recorder.append($0) }
+        processor.process("16.78M 100% 1.00MB/s 0:00:00")
+        XCTAssertEqual(recorder.snapshot().filter { if case .log = $0 { return false }; return true },
+                       [.progress(99), .speed(1), .eta(0)])
+    }
+
     func testRsyncOutputFramerHandlesCarriageReturnRecords() {
         var framer = RsyncOutputFramer()
         let records = framer.append(Data("32.77K  3%  1.00MB/s    0:00:10\r524.29K  7%  2.00MB/s    0:00:09\r".utf8))
@@ -93,8 +161,8 @@ final class ProgressParserXCTests: XCTestCase {
     func testParsesKilobytesPerSecond() throws {
         let data = try XCTUnwrap(ProgressParser().parse(line: "        1,024   1%  512.00kB/s    0:00:10"))
         XCTAssertEqual(data.progress, 1.0, accuracy: 0.0001)
-        XCTAssertEqual(data.speedMBps, 0.5, accuracy: 0.0001)
-        XCTAssertEqual(data.eta, 10.0, accuracy: 0.0001)
+        XCTAssertEqual(liveEstimate(data).speedMBps, 0.5, accuracy: 0.0001)
+        XCTAssertEqual(liveEstimate(data).eta, 10.0, accuracy: 0.0001)
     }
 
     func testParsesCROnlyProgressRecord() throws {
@@ -102,22 +170,22 @@ final class ProgressParserXCTests: XCTestCase {
         let data = try XCTUnwrap(ProgressParser().parse(line: records))
 
         XCTAssertEqual(data.progress, 0.0, accuracy: 0.0001)
-        XCTAssertEqual(data.speedMBps, 0.0, accuracy: 0.0001)
-        XCTAssertEqual(data.eta, 0.0, accuracy: 0.0001)
+        XCTAssertEqual(liveEstimate(data).speedMBps, 0.0, accuracy: 0.0001)
+        XCTAssertEqual(liveEstimate(data).eta, 0.0, accuracy: 0.0001)
     }
 
     func testParsesMegabytesPerSecond() throws {
         let data = try XCTUnwrap(ProgressParser().parse(line: "1,245,890,560  48%  120.34MB/s    0:01:30"))
         XCTAssertEqual(data.progress, 48.0, accuracy: 0.0001)
-        XCTAssertEqual(data.speedMBps, 120.34, accuracy: 0.0001)
-        XCTAssertEqual(data.eta, 90.0, accuracy: 0.0001)
+        XCTAssertEqual(liveEstimate(data).speedMBps, 120.34, accuracy: 0.0001)
+        XCTAssertEqual(liveEstimate(data).eta, 90.0, accuracy: 0.0001)
     }
 
     func testParsesGigabytesPerSecond() throws {
         let data = try XCTUnwrap(ProgressParser().parse(line: "9,876,543,210  75%  1.50GB/s    0:00:03"))
         XCTAssertEqual(data.progress, 75.0, accuracy: 0.0001)
-        XCTAssertEqual(data.speedMBps, 1536.0, accuracy: 0.0001)
-        XCTAssertEqual(data.eta, 3.0, accuracy: 0.0001)
+        XCTAssertEqual(liveEstimate(data).speedMBps, 1536.0, accuracy: 0.0001)
+        XCTAssertEqual(liveEstimate(data).eta, 3.0, accuracy: 0.0001)
     }
 
     func testParsesHumanReadableByteCounts() throws {
@@ -133,15 +201,15 @@ final class ProgressParserXCTests: XCTestCase {
 
     func testParsesETAFields() throws {
         let data = try XCTUnwrap(ProgressParser().parse(line: "10,000,000  25%  10.00MB/s    1:02:03"))
-        XCTAssertEqual(data.eta, 3723.0, accuracy: 0.0001)
+        XCTAssertEqual(liveEstimate(data).eta, 3723.0, accuracy: 0.0001)
     }
 
     func testParsesCarriageReturnDelimitedRecordsWithHumanReadableByteCounts() throws {
         let line = "32.77K  10%  1.00MB/s    0:00:09\r1.23M  20%  2.00MB/s    0:00:08"
         let data = try XCTUnwrap(ProgressParser().parse(line: line))
         XCTAssertEqual(data.progress, 20.0, accuracy: 0.0001)
-        XCTAssertEqual(data.speedMBps, 2.0, accuracy: 0.0001)
-        XCTAssertEqual(data.eta, 8.0, accuracy: 0.0001)
+        XCTAssertEqual(liveEstimate(data).speedMBps, 2.0, accuracy: 0.0001)
+        XCTAssertEqual(liveEstimate(data).eta, 8.0, accuracy: 0.0001)
     }
 
     func testRejectsArbitraryFilenameTextContainingPercent() {

@@ -21,6 +21,26 @@ Each entry must include:
 
 ## Recent History
 
+### 2026-09-30 - Progress2 repair finalization correction / Worker FAIL
+
+- Agent/model: Codex local Worker / GPT-6 (variant UNVERIFIED)
+- What changed: after successful source tests, NORMAL publication embedded actual stdout trailing spaces and final pre-commit git diff --check failed. Original timestamped handoff preserved immutable; a full CORRECTION records failure and readable trimmed sample without altering raw evidence.
+- Safety boundary: no production/test change after passing runs; parser repair remains tested; no historical handoff edit or whitespace-config override.
+- Verification: standalone/Debug/focused170/full244 all PASS; mandatory final whitespace gate FAIL. Auxiliary Handoff ID check fixed to add .md; canonical publisher verify PASS.
+- Commit/release: one coherent task commit contains implementation and honest FAIL finalization evidence; no release/tag. Final Git/upstream/clean proof follows, but cannot retroactively satisfy failed pre-commit gate.
+- Single Next Action: RETURN TO BRAIN FOR PROGRESS2 SEMANTICS REVIEW; UI-6 remains unauthorized. Mandatory transport refreshed with --result FAIL.
+
+### 2026-09-30 18:22+0700 - Rsync Progress2 ETA Speed Semantics Repair
+
+- Agent/model: Codex local Worker / GPT-6 (variant UNVERIFIED)
+- Branch/commit/tag: clean main FF-only synchronized from ee73d92c16727618cced3767893cadc80f2e6be3 to 0cfcff39567c3bf0f4ab8ee10b1140a8ce7acc0f == origin/main before mutation; final SHA in BRAIN RAW; no tag/release
+- Files changed: two production Engine files; three existing parser/runtime test files; required memory and one NORMAL handoff
+- What changed: researched exact official rsync v3.4.4 first (progress.c + tagged manpage + issue #392). Baseline processor falsely emitted checkpoint elapsed as ETA and average as speed. Typed ProgressData.Timing separates liveEstimate/recent/remaining from checkpoint/average/elapsed; exhaustive processor switch publishes only progress for checkpoint. Diagnostics explicitly name both meanings; malformed suffixes rejected.
+- Safety boundary confirmation: lifecycle/final100/active99 clamp, cancellation, observer estimator/fallback, ViewModel/UI, arguments/bandwidth, source data, verification/report/state/safety ownership unchanged. No --no-inc-recursive, version upgrade, smoothing or UI-6.
+- Build/test/package result: standalone parser PASS; Debug PASS; focused 170/170; full canonical 244/244, 0 failures/skips; diff check PASS. One actual bundled fixture captured 15 live + 4 checkpoints; source/destination SHA256 equal. Native GUI QA NOT PHYSICALLY EXECUTED; no package.
+- Whether committed/tagged/released: one coherent task commit including canonical handoff; no tag/release
+- Next recommended action: RETURN TO BRAIN FOR PROGRESS2 SEMANTICS REVIEW; do not start UI-6.
+
 ### 2026-09-30 17:45+07:00 - UI-5 Terminal States Error Presentation
 
 - Agent/model: Codex local Worker / GPT-6 (variant UNVERIFIED)

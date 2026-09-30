@@ -29,13 +29,26 @@ This appears to have been run before as <entry>. Do you want to rerun it, contin
 
 ## Recent Tasks
 
+### 2026-09-30 - Rsync Progress2 ETA Speed Semantics Repair
+
+- Date: 2026-09-30
+- Task ID: FST-Progress2-Semantics-1
+- Task name: Separate live remaining/current telemetry from checkpoint elapsed/average
+- Agent: Codex local Worker / GPT-6 (variant UNVERIFIED)
+- Status: implemented production repair; Worker FAIL at mandatory publication whitespace gate; BRAIN review pending
+- Files changed: ProgressParser.swift; RsyncEngine.swift parser-output/diagnostic interpretation only; three existing parser/runtime test files; required memory, one NORMAL and one required CORRECTION handoff
+- Commit/tag/release: one coherent task commit; final SHA in BRAIN RAW; no tag/release
+- Safety impact: operator telemetry only; checkpoint emits progress without speed/ETA; existing last live estimates and state clears preserved. Lifecycle, observer, command, source safety, verification, reports, cancellation and SAFE TO EJECT unchanged.
+- Checks: official v3.4.4 progress.c/manpage + upstream issue #392 researched before mutation; pre-fix actual event characterization confirms bug; one real bundled fixture/replay; standalone PASS; Debug PASS; focused 170/170; canonical 244/244, 0 failed/0 skipped; source diff check PASS, final publication diff check FAIL
+- Notes: no --no-inc-recursive or version/UI/ETA smoothing change. Native GUI QA NOT PHYSICALLY EXECUTED. Single Next Action: RETURN TO BRAIN FOR PROGRESS2 SEMANTICS REVIEW; UI-6 unauthorized.
+
 ### 2026-09-30 - UI-5 Terminal States Error Presentation
 
 - Date: 2026-09-30
 - Task ID: FST-UI-5
 - Task name: Separate terminal outcomes, error/report evidence and explicit actions
 - Agent: Codex local Worker / GPT-6 (variant UNVERIFIED)
-- Status: implemented; BRAIN review pending
+- Status: implemented; PASS_WITH_ADVISORY accepted by BRAIN
 - Files changed: TransferControlsView.swift; ContentView.swift callback integration; pure TransferActionPresentation contract in TransferViewModel.swift; two existing test files; safety-status.md; required memory and one NORMAL handoff
 - Commit/tag/release: one coherent task commit; final SHA in BRAIN RAW; no tag/release
 - Safety impact: outcome text never secretly starts/retries; Retry/restart gated by unchanged canStartTransfer. Manual-check remains .error plus real message; report truth, active UI-4, workflow/algorithms and SAFE TO EJECT unchanged.

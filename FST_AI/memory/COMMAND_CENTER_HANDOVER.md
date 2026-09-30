@@ -1,5 +1,18 @@
 # FST Command Center Handover
 
+## Current Sprint Status — Rsync Progress2 ETA Speed Semantics Repair (2026-09-30)
+
+- UI-5 accepted PASS_WITH_ADVISORY by BRAIN; native visual QA advisory remains. This repair is authorized before UI-6; UI-6 remains unauthorized.
+- Initial main ee73d92 clean; fetch/FF-only synchronized to 0cfcff39567c3bf0f4ab8ee10b1140a8ce7acc0f == origin/main before production mutation.
+- Official v3.4.4 progress.c, exact tagged manpage and upstream issue #392 inspected before any experiment/patch. Exact upstream behavior matches BRAIN: live recent rate/remaining time; xfr#/to-chk or ir-chk checkpoint average rate/elapsed time.
+- ProgressData.Timing has explicit liveEstimate and checkpoint payloads. Processor emits progress for both but speed/ETA only for live; checkpoint cannot clear/overwrite last live estimates. First-record diagnostics label average/elapsed distinctly. Existing progress clamp/completion, command, observer and core safety unchanged.
+- Production scope exactly ProgressParser.swift + bounded RsyncEngine.swift interpretation. ViewModel/UI/Coordinator/Verify/report/models/services/project/bundled binary untouched; no traversal flag/version/smoothing change.
+- Baseline characterization confirms previous incorrect events for both checkpoint markers. Real bundled 3.4.4 temporary fixture captured 15 live + 4 checkpoints in one run; source hashes unchanged and destination hashes equal. ir-chk not observed locally; exact upstream fixtures test it deterministically.
+- Standalone PASS; Debug PASS; focused 170/170; full canonical 244/244, 0 failed/0 skipped; source diff check PASS but final publication diff check FAIL (raw sample trailing spaces). Native physical GUI QA NOT PHYSICALLY EXECUTED.
+- CodeGraph tools unavailable; direct source/test impact fallback. Relevant GitHub issue search found NONE in FST; upstream #392 inspected. Final Git/transport evidence follows normal commit/push/fetch.
+- Worker RESULT=FAIL at mandatory publication whitespace gate. Original NORMAL retained unchanged; full CORRECTION is canonical CURRENT. No whitespace override or historical edit.
+- Canonical handoff: handoffs/CURRENT_HANDOFF.md. Single Next Action: RETURN TO BRAIN FOR PROGRESS2 SEMANTICS REVIEW.
+
 ## Current Sprint Status — UI-5 Terminal States Error Presentation (2026-09-30)
 
 - BRAIN authorized UI-5 after accepting UI-4 as PASS_WITH_ADVISORY. Clean main start e096581023e29acfa9f61861788f9cb489caa5b8 equals fetched origin/main.

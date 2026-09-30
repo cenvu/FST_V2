@@ -5,6 +5,40 @@ import Combine
 
 @MainActor
 final class TransferViewModelRuntimeXCTests: XCTestCase {
+    func testProgress2CheckpointsPreserveLiveViewModelEstimatesUntilNextLiveOrStateClear() {
+        for marker in ["to-chk=1/3", "ir-chk=1002/1005"] {
+            let viewModel = makeViewModel()
+            viewModel.applyTransferState(.copying)
+            let recorder = Progress2RuntimeEventRecorder()
+            var processor = RsyncStdoutRecordProcessor(diagnostics: RsyncCopyTimingDiagnostics(), minimumProgressDeliveryInterval: 0) { recorder.append($0) }
+            func apply(_ line: String) {
+                processor.process(line)
+                for event in recorder.drain() {
+                    switch event {
+                    case .progress(let progress): viewModel.applyTransferProgress(progress)
+                    case .speed(let speed): viewModel.applyTransferSpeed(speed)
+                    case .eta(let eta): viewModel.applyTransferTime(eta)
+                    default: break
+                    }
+                }
+            }
+            apply("4.19M 25% 2.00MB/s 0:00:06")
+            XCTAssertEqual(viewModel.progress, 25)
+            XCTAssertEqual(viewModel.speed, 2)
+            XCTAssertEqual(viewModel.eta, 6)
+            apply("8.39M 50% 1.00MB/s 0:00:08 (xfr#1, \(marker))")
+            XCTAssertEqual(viewModel.progress, 50)
+            XCTAssertEqual(viewModel.speed, 2)
+            XCTAssertEqual(viewModel.eta, 6)
+            apply("12.58M 75% 4.00MB/s 0:00:01")
+            XCTAssertEqual(viewModel.progress, 75)
+            XCTAssertEqual(viewModel.speed, 4)
+            XCTAssertEqual(viewModel.eta, 1)
+            viewModel.applyTransferState(.verifying)
+            XCTAssertEqual(viewModel.speed, 0)
+            XCTAssertEqual(viewModel.eta, 0)
+        }
+    }
     func testBandwidthUnlimitedPresetSequenceReachesRsyncArgumentsAndReport() async throws {
         let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
             .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
@@ -2059,6 +2093,22 @@ actor TerminalTailAsyncGate {
     func resume() {
         resumeWaiter?.resume()
         resumeWaiter = nil
+    }
+}
+
+private final class Progress2RuntimeEventRecorder: @unchecked Sendable {
+    private let lock = NSLock()
+    private var events: [TransferEvent] = []
+
+    func append(_ event: TransferEvent) {
+        lock.withLock { events.append(event) }
+    }
+
+    func drain() -> [TransferEvent] {
+        lock.withLock {
+            defer { events.removeAll() }
+            return events
+        }
     }
 }
 
