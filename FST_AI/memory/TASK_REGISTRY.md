@@ -29,13 +29,26 @@ This appears to have been run before as <entry>. Do you want to rerun it, contin
 
 ## Recent Tasks
 
+### 2026-09-30 - UI-2 Source Destination Storage Readiness
+
+- Date: 2026-09-30
+- Task ID: FST-UI-2
+- Task name: Refine Source and Destination cards and add truthful Storage Readiness presentation
+- Agent: Codex local Worker / GPT-6
+- Status: implemented; BRAIN review pending
+- Files changed: the four authorized production Views (`ContentView.swift`, `SourceCardView.swift`, `DestinationCardView.swift`, `StorageAnalysisView.swift`), FST memory records, one NORMAL canonical handoff, and one CORRECTION handoff fixing its publisher-assigned filename row
+- Commit/tag/release: one coherent task commit including the handoff; no tag or release
+- Safety impact: SwiftUI presentation only; selection/bookmark behavior, preflight authority, transfer settings, backend data, and runtime semantics unchanged
+- Checks: Debug build PASS; relevant XCTest suites PASS 112/112; canonical full XCTest suite PASS 233/233; `git diff --check` PASS
+- Notes: no unsupported device metadata was introduced; physical UI checks NOT PHYSICALLY EXECUTED. Single Next Action: RETURN TO BRAIN FOR UI-2 REVIEW; do not start UI-3.
+
 ### 2026-09-30 - UI-1A Main Window Structural Shell
 
 - Date: 2026-09-30
 - Task ID: FST-UI-1A
 - Task name: Implement the responsive vertical main window shell
 - Agent: Codex local Worker / GPT-6
-- Status: implemented; BRAIN review pending
+- Status: implemented; PASS_WITH_ADVISORY accepted by BRAIN
 - Files changed: `FishSockTransfer/FishSockTransfer/Views/ContentView.swift`, current priority and FST memory records, and one NORMAL canonical handoff
 - Commit/tag/release: one coherent task commit including the handoff; no tag or release
 - Safety impact: SwiftUI layout only; transfer, notification, technical-log, bandwidth, verification, and state semantics unchanged

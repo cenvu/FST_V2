@@ -137,6 +137,9 @@ public struct ContentView: View {
                 DestinationCardView(viewModel: viewModel)
                     .frame(maxWidth: .infinity)
 
+                StorageAnalysisView(viewModel: viewModel)
+                    .frame(maxWidth: .infinity)
+
                 TransferControlsView(viewModel: viewModel)
                     .frame(maxWidth: .infinity)
             }

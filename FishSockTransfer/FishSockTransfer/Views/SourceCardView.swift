@@ -11,79 +11,62 @@ public struct SourceCardView: View {
     }
     
     public var body: some View {
-        let hasAnyFolder = viewModel.sourceURL != nil || viewModel.destinationURL != nil
-        let innerPanelHeight: CGFloat = hasAnyFolder ? 148 : 100
-        let outerCardHeight: CGFloat = hasAnyFolder ? 236 : 188
-
-        return VStack(alignment: .leading, spacing: 0) {
+        VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 8) {
                 Image(systemName: "externaldrive")
-                Text("Source")
-                    .fontWeight(.semibold)
+                    .foregroundStyle(.secondary)
+                Text("SOURCE")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.secondary)
                 Spacer()
                 if viewModel.isTransferConfigurationLocked {
-                    Image(systemName: "lock.fill")
+                    Label("Selection locked during transfer", systemImage: "lock.fill")
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
                 }
             }
-            .font(.headline)
-            .foregroundColor(.primary)
-            .frame(height: 24)
-            
-            Color.clear.frame(height: 8)
-            
             VStack(alignment: .leading, spacing: 4) {
                 if let url = viewModel.sourceURL {
-                    Text(url.lastPathComponent)
-                        .font(.system(size: 16, weight: .bold, design: .rounded))
-                        .foregroundColor(.primary)
+                    Text(viewModel.sourceMetadata?.folderName ?? url.lastPathComponent)
+                        .font(.headline)
+                        .foregroundStyle(.primary)
                         .lineLimit(1)
-                    Text(url.path)
+                    let fullPath = viewModel.sourceMetadata?.fullPath ?? url.path
+                    Text(fullPath)
                         .font(.system(.footnote, design: .monospaced))
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(.secondary)
                         .lineLimit(1)
-                        .truncationMode(.head)
-                        .help(url.path)
+                        .truncationMode(.middle)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .help(fullPath)
+                        .accessibilityLabel("Source path: \(fullPath)")
 
                     if let sourceMetadata = viewModel.sourceMetadata {
-                        VStack(spacing: 2) {
-                            metadataRow(title: "Folder Size", value: formatBytes(sourceMetadata.totalSizeBytes))
-                            metadataRow(title: "File Count", value: formatCount(sourceMetadata.fileCount))
-                            metadataRow(title: "Folder Count", value: formatCount(sourceMetadata.folderCount))
+                        HStack(alignment: .top, spacing: 20) {
+                            metadataValue(title: "TOTAL SIZE", value: formatBytes(sourceMetadata.totalSizeBytes))
+                            metadataValue(title: "FILES", value: formatCount(sourceMetadata.fileCount))
+                            metadataValue(title: "FOLDERS", value: formatCount(sourceMetadata.folderCount))
+                            Spacer(minLength: 0)
                         }
-                        .padding(.top, 4)
                     } else {
-                        Text("Analyzing source metadata...")
+                        let metadataUnavailable = viewModel.errorMessage == "Unable to analyze source folder."
+                        Text(metadataUnavailable ? "Source metadata unavailable." : "Analyzing source metadata…")
                             .font(.footnote)
-                            .foregroundColor(.secondary)
-                            .padding(.top, 4)
+                            .foregroundStyle(metadataUnavailable ? Color.orange : Color.secondary)
                     }
                 } else {
                     VStack(alignment: .leading, spacing: 4) {
                         Text("Select Source")
-                            .font(.system(size: 16, weight: .bold, design: .rounded))
-                            .foregroundColor(.primary)
+                            .font(.headline)
+                            .foregroundStyle(.primary)
                         Text("Drop folder here")
                             .font(.subheadline)
-                            .foregroundColor(.secondary)
+                            .foregroundStyle(.secondary)
                     }
                 }
-
-                if viewModel.isTransferConfigurationLocked {
-                    Label("Selection locked during transfer", systemImage: "lock.fill")
-                        .font(.system(.caption, design: .rounded))
-                        .foregroundColor(.secondary)
-                        .padding(.top, 4)
-                }
             }
-            .frame(maxWidth: .infinity, alignment: .topLeading)
-            .frame(height: innerPanelHeight, alignment: .topLeading)
-            .padding(10)
-            .background(Color.black.opacity(0.16))
-            .cornerRadius(8)
-
-            Color.clear.frame(height: 8)
+            .frame(maxWidth: .infinity, alignment: .leading)
 
             HStack(spacing: 8) {
                 Button {
@@ -94,9 +77,8 @@ public struct SourceCardView: View {
                     Label("Choose Folder", systemImage: "folder")
                 }
                 .buttonStyle(.bordered)
+                .controlSize(.small)
                 .disabled(viewModel.isTransferConfigurationLocked)
-                .opacity(viewModel.isTransferConfigurationLocked ? 0.25 : 1.0)
-                .controlSize(.regular)
                 .fixedSize()
 
                 Button {
@@ -105,25 +87,23 @@ public struct SourceCardView: View {
                     Label("Clear Folder", systemImage: "xmark.square")
                 }
                 .buttonStyle(.bordered)
+                .controlSize(.small)
                 .disabled(viewModel.sourceURL == nil || viewModel.isTransferConfigurationLocked)
-                .opacity(viewModel.sourceURL == nil || viewModel.isTransferConfigurationLocked ? 0.25 : 1.0)
-                .controlSize(.regular)
                 .fixedSize()
                 .accessibilityLabel("Clear Folder")
                 .help("Removes this source selection from FST only. The folder on disk is never deleted or modified.")
 
-                Spacer(minLength: 0).frame(width: 0)
+                Spacer(minLength: 0)
             }
         }
         .padding(12)
-        .frame(maxWidth: .infinity, alignment: .top)
-        .frame(height: outerCardHeight)
+        .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color(NSColor.controlBackgroundColor).opacity(0.58))
-        .cornerRadius(10)
+        .clipShape(RoundedRectangle(cornerRadius: 10))
         .overlay(
             RoundedRectangle(cornerRadius: 10)
                 .stroke(
-                    isDropTargeted ? Color.blue.opacity(0.50) : Color.secondary.opacity(viewModel.isTransferConfigurationLocked ? 0.28 : 0.16),
+                    isDropTargeted ? Color.accentColor.opacity(0.50) : Color.secondary.opacity(viewModel.isTransferConfigurationLocked ? 0.28 : 0.16),
                     style: StrokeStyle(lineWidth: isDropTargeted ? 2 : 1, dash: isDropTargeted ? [5] : [])
                 )
         )
@@ -144,17 +124,16 @@ public struct SourceCardView: View {
         count.formatted(.number)
     }
 
-    private func metadataRow(title: String, value: String) -> some View {
-        HStack {
+    private func metadataValue(title: String, value: String) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
             Text(title)
-                .foregroundColor(.secondary)
-            Spacer(minLength: 8)
+                .font(.caption2.weight(.semibold))
+                .foregroundStyle(.secondary)
             Text(value)
                 .font(.system(.footnote, design: .monospaced))
                 .fontWeight(.semibold)
-                .foregroundColor(.primary)
+                .foregroundStyle(.primary)
+                .lineLimit(1)
         }
-        .font(.system(.footnote, design: .rounded))
-        .frame(maxWidth: .infinity)
     }
 }

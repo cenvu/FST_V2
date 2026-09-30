@@ -11,88 +11,75 @@ public struct DestinationCardView: View {
     }
     
     public var body: some View {
-        let hasAnyFolder = viewModel.sourceURL != nil || viewModel.destinationURL != nil
-        let innerPanelHeight: CGFloat = hasAnyFolder ? 148 : 100
-        let outerCardHeight: CGFloat = hasAnyFolder ? 236 : 188
-
-        return VStack(alignment: .leading, spacing: 0) {
+        VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 8) {
                 Image(systemName: "tray.and.arrow.down")
-                Text("Destination")
-                    .fontWeight(.semibold)
+                    .foregroundStyle(.secondary)
+                Text("DESTINATION")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.secondary)
                 Spacer()
                 if viewModel.isTransferConfigurationLocked {
-                    Image(systemName: "lock.fill")
+                    Label("Selection locked during transfer", systemImage: "lock.fill")
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
                 }
             }
-            .font(.headline)
-            .foregroundColor(.primary)
-            .frame(height: 24)
-            
-            Color.clear.frame(height: 8)
-            
             VStack(alignment: .leading, spacing: 4) {
                 if let url = viewModel.destinationURL {
                     Text(url.lastPathComponent)
-                        .font(.system(size: 16, weight: .bold, design: .rounded))
-                        .foregroundColor(.primary)
+                        .font(.headline)
+                        .foregroundStyle(.primary)
                         .lineLimit(1)
                     Text(url.path)
                         .font(.system(.footnote, design: .monospaced))
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(.secondary)
                         .lineLimit(1)
-                        .truncationMode(.head)
+                        .truncationMode(.middle)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                         .help(url.path)
+                        .accessibilityLabel("Destination path: \(url.path)")
 
                     if let destinationMetadata = viewModel.destinationMetadata {
-                        VStack(spacing: 2) {
-                            metadataRow(title: "Filesystem", value: destinationMetadata.filesystem)
-                            metadataRow(title: "Free Space", value: formatBytes(destinationMetadata.freeSpaceBytes))
-                            metadataRow(title: "Writable Status", value: destinationMetadata.isWritable ? "YES" : "NO")
+                        HStack(alignment: .top, spacing: 20) {
+                            metadataValue(title: "FILESYSTEM", value: destinationMetadata.filesystem)
+                            metadataValue(title: "FREE SPACE", value: formatBytes(destinationMetadata.freeSpaceBytes))
+                            metadataValue(
+                                title: "WRITABLE",
+                                value: destinationMetadata.isWritable ? "YES" : "NO",
+                                isWarning: !destinationMetadata.isWritable
+                            )
+                            Spacer(minLength: 0)
                         }
-                        .padding(.top, 4)
                     } else {
-                        Text("Analyzing destination metadata...")
+                        let metadataUnavailable = viewModel.errorMessage == "Unable to analyze destination folder."
+                        Text(metadataUnavailable ? "Destination metadata unavailable." : "Analyzing destination metadata…")
                             .font(.footnote)
-                            .foregroundColor(.secondary)
-                            .padding(.top, 4)
+                            .foregroundStyle(metadataUnavailable ? Color.orange : Color.secondary)
                     }
 
                     if let destinationTargetPreview = viewModel.destinationTargetPreview {
-                        Text(destinationTargetPreview)
+                        Label(destinationTargetPreview, systemImage: "arrow.turn.down.right")
                             .font(.system(.footnote, design: .monospaced))
-                            .foregroundColor(.secondary)
+                            .foregroundStyle(.secondary)
                             .lineLimit(1)
                             .truncationMode(.middle)
-                            .padding(.top, 4)
+                            .help(destinationTargetPreview)
+                            .accessibilityLabel("Destination target preview: \(destinationTargetPreview)")
                     }
                 } else {
                     VStack(alignment: .leading, spacing: 4) {
                         Text("Select Destination")
-                            .font(.system(size: 16, weight: .bold, design: .rounded))
-                            .foregroundColor(.primary)
+                            .font(.headline)
+                            .foregroundStyle(.primary)
                         Text("Drop folder here")
                             .font(.subheadline)
-                            .foregroundColor(.secondary)
+                            .foregroundStyle(.secondary)
                     }
                 }
-
-                if viewModel.isTransferConfigurationLocked {
-                    Label("Selection locked during transfer", systemImage: "lock.fill")
-                        .font(.system(.caption, design: .rounded))
-                        .foregroundColor(.secondary)
-                        .padding(.top, 4)
-                }
             }
-            .frame(maxWidth: .infinity, alignment: .topLeading)
-            .frame(height: innerPanelHeight, alignment: .topLeading)
-            .padding(10)
-            .background(Color.black.opacity(0.16))
-            .cornerRadius(8)
-
-            Color.clear.frame(height: 8)
+            .frame(maxWidth: .infinity, alignment: .leading)
 
             HStack(spacing: 8) {
                 Button {
@@ -103,9 +90,8 @@ public struct DestinationCardView: View {
                     Label("Choose Folder", systemImage: "folder")
                 }
                 .buttonStyle(.bordered)
+                .controlSize(.small)
                 .disabled(viewModel.isTransferConfigurationLocked)
-                .opacity(viewModel.isTransferConfigurationLocked ? 0.25 : 1.0)
-                .controlSize(.regular)
                 .fixedSize()
 
                 Button {
@@ -114,25 +100,23 @@ public struct DestinationCardView: View {
                     Label("Clear Folder", systemImage: "xmark.square")
                 }
                 .buttonStyle(.bordered)
+                .controlSize(.small)
                 .disabled(viewModel.destinationURL == nil || viewModel.isTransferConfigurationLocked)
-                .opacity(viewModel.destinationURL == nil || viewModel.isTransferConfigurationLocked ? 0.25 : 1.0)
-                .controlSize(.regular)
                 .fixedSize()
                 .accessibilityLabel("Clear Folder")
                 .help("Removes this destination selection from FST only. The folder or drive on disk is never deleted or modified.")
 
-                Spacer(minLength: 0).frame(width: 0)
+                Spacer(minLength: 0)
             }
         }
         .padding(12)
-        .frame(maxWidth: .infinity, alignment: .top)
-        .frame(height: outerCardHeight)
+        .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color(NSColor.controlBackgroundColor).opacity(0.58))
-        .cornerRadius(10)
+        .clipShape(RoundedRectangle(cornerRadius: 10))
         .overlay(
             RoundedRectangle(cornerRadius: 10)
                 .stroke(
-                    isDropTargeted ? Color.blue.opacity(0.50) : Color.secondary.opacity(viewModel.isTransferConfigurationLocked ? 0.28 : 0.16),
+                    isDropTargeted ? Color.accentColor.opacity(0.50) : Color.secondary.opacity(viewModel.isTransferConfigurationLocked ? 0.28 : 0.16),
                     style: StrokeStyle(lineWidth: isDropTargeted ? 2 : 1, dash: isDropTargeted ? [5] : [])
                 )
         )
@@ -149,17 +133,18 @@ public struct DestinationCardView: View {
         ByteCountFormatter.string(fromByteCount: bytes, countStyle: .file)
     }
 
-    private func metadataRow(title: String, value: String) -> some View {
-        HStack {
+    private func metadataValue(title: String, value: String, isWarning: Bool = false) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
             Text(title)
-                .foregroundColor(.secondary)
-            Spacer(minLength: 8)
+                .font(.caption2.weight(.semibold))
+                .foregroundStyle(.secondary)
             Text(value)
                 .font(.system(.footnote, design: .monospaced))
                 .fontWeight(.semibold)
-                .foregroundColor(.primary)
+                .foregroundStyle(isWarning ? Color.orange : Color.primary)
+                .lineLimit(1)
+                .truncationMode(.middle)
+                .help(value)
         }
-        .font(.system(.footnote, design: .rounded))
-        .frame(maxWidth: .infinity)
     }
 }

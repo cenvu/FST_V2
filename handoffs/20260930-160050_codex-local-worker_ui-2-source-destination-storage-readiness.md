@@ -2,11 +2,11 @@
 
 ## 1. Handoff Identity
 
-- Handoff ID: 20260930-160313_codex-local-worker_ui-2-source-destination-storage-readiness-correc
-- Created At: 2026-09-30T16:03:13+07:00
-- Handoff Type: CORRECTION
-- Corrects Handoff: 20260930-160050_codex-local-worker_ui-2-source-destination-storage-readiness.md
-- Previous Handoff: 20260930-160050_codex-local-worker_ui-2-source-destination-storage-readiness.md
+- Handoff ID: 20260930-160050_codex-local-worker_ui-2-source-destination-storage-readiness
+- Created At: 2026-09-30T16:00:50+07:00
+- Handoff Type: NORMAL
+- Corrects Handoff: NONE
+- Previous Handoff: 20260930-151405_codex-local-worker_ui-1a-main-window-structural-shell.md
 
 ## 2. Task and Phase
 
@@ -58,7 +58,6 @@
 - CONFIRMED Unsupported design metadata was not added or displayed: volume name, total capacity, connection type, source filesystem, and source free capacity remain unsupported.
 - CONFIRMED Removed the misleading `APFS STORAGE ANALYSIS` title and hard-coded white/gray text. Readiness/error uses visible text, icons, and semantic colors.
 - CONFIRMED UI-1A's vertical main-window hierarchy remains intact. `TransferControlsView`, bandwidth UI, verification labels/modes, terminal wording, state semantics, ETA/speed/progress, ViewModel, Coordinator, Engines, Services, Models, Xcode project, bookmarks, and backend/runtime behavior were not changed.
-- CONFIRMED Correction: the original NORMAL handoff's file table used the dry-run timestamp `20260930-160025...`, but the publisher created `20260930-160050_codex-local-worker_ui-2-source-destination-storage-readiness.md`. That timestamped NORMAL handoff remains immutable; this CORRECTION supplies the exact filename.
 
 ## 7. Files Changed
 
@@ -72,10 +71,9 @@
 | `FST_AI/memory/TASK_REGISTRY.md` | modified | Record UI-2 and update UI-1A acceptance status | NO |
 | `FST_AI/memory/WORK_HISTORY.md` | modified | Record implementation and verification | NO |
 | `FST_AI/memory/COMMAND_CENTER_HANDOVER.md` | modified | Record current UI-2 baseline and next action | NO |
-| `handoffs/20260930-160050_codex-local-worker_ui-2-source-destination-storage-readiness.md` | created by publisher | Original NORMAL UI-2 evidence; its file table is corrected here | NO |
-| `handoffs/CURRENT_HANDOFF.md` | modified by publisher | Point CURRENT to the complete CORRECTION handoff | NO |
-| `handoffs/INDEX.md` | appended by publisher | Append one CORRECTION entry; preserve the original NORMAL entry | NO |
-| `handoffs/<this correction's Handoff ID from Section 1>.md` | created by publisher | Immutable corrected UI-2 evidence | NO |
+| `handoffs/CURRENT_HANDOFF.md` | modified by publisher | Publish canonical UI-2 handoff | NO |
+| `handoffs/INDEX.md` | appended by publisher | Append exactly one NORMAL handoff entry | NO |
+| `handoffs/20260930-160025_codex-local-worker_ui-2-source-destination-storage-readiness.md` | created by publisher | Immutable UI-2 evidence | NO |
 
 Files inspected but not changed: `TransferControlsView.swift`, `TransferViewModel.swift`, `StorageMetadata.swift`, `DriveService.swift`, plus coordinator/engine/service/model code confirmed absent from the diff.
 

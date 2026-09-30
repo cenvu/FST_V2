@@ -21,6 +21,17 @@ Each entry must include:
 
 ## Recent History
 
+### 2026-09-30 15:57+07:00 - UI-2 Source Destination Storage Readiness
+
+- Agent/model: Codex local Worker / GPT-6
+- Branch/commit/tag: `main` starting at `d634fdba12f9d20181e97b285937d4952d76ad1a`; one coherent task commit includes the canonical handoff; no tag/release
+- Files changed: `ContentView.swift`, `SourceCardView.swift`, `DestinationCardView.swift`, `StorageAnalysisView.swift`, current-priority and FST memory records, one NORMAL canonical handoff, and one CORRECTION handoff for the publisher-assigned filename row
+- What changed: removed Source/Destination fixed inner and outer heights, rendered only current source/destination metadata with one-line inspectable paths, added storage readiness states after Destination, and preserved UI-1A's vertical Transfer scroll shell.
+- Safety boundary confirmation: View-layer presentation only. No ViewModel, Coordinator, Engine, Service, model, Xcode project, bookmark, preflight, transfer, report, notification, or source behavior changed. Unsupported volume name, total capacity, connection type, source filesystem/free capacity were not added. Bandwidth and verification modes/labels are unchanged.
+- Build/test/package result: Debug build PASS; targeted suites `TransferViewModelRuntimeXCTests`, `MetadataOnlySourceSafetyXCTests`, and `VerificationHashStrategyXCTests` PASS 112/112; canonical full XCTest PASS 233/233, 0 failed, 0 skipped; `git diff --check` PASS. Native physical UI checks NOT PHYSICALLY EXECUTED.
+- Whether committed/tagged/released: one coherent commit will include Views, records, and canonical handoff; no tag/release
+- Next recommended action: RETURN TO BRAIN FOR UI-2 REVIEW; do not start UI-3.
+
 ### 2026-09-30 15:07+07:00 - UI-1A Main Window Structural Shell
 
 - Agent/model: Codex local Worker / GPT-6

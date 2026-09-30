@@ -1,5 +1,16 @@
 # FST Command Center Handover
 
+## Current Sprint Status — UI-2 Source Destination Storage Readiness (2026-09-30)
+
+- BRAIN authorized UI-2 after independently accepting UI-1A as PASS_WITH_ADVISORY; task began from clean `main@d634fdba12f9d20181e97b285937d4952d76ad1a`, equal to fetched `origin/main`.
+- Production scope is exactly four SwiftUI Views: `ContentView.swift`, `SourceCardView.swift`, `DestinationCardView.swift`, and `StorageAnalysisView.swift`.
+- Source/Destination fixed card heights were removed. Current source fields (identity/path/size/file/folder counts) and destination fields (path/filesystem/free space/writable/target preview) are displayed from existing metadata. Storage Readiness follows Destination and uses existing ViewModel metadata, insufficiency flag, and warning message; transfer preflight remains authoritative.
+- No unsupported device metadata, ViewModel, Coordinator, Engine, Service, model, bookmark, transfer, report, notification, bandwidth, verification, or state semantics changed.
+- Debug build PASS; targeted suites PASS 112/112; full XCTest PASS 233/233, 0 failed/0 skipped; `git diff --check` PASS. Native physical UI checks NOT PHYSICALLY EXECUTED because no native macOS GUI interaction harness was available.
+- CodeGraph MCP was unavailable; direct source inspection was used. GitHub issue search found no UI-2 issue.
+- Canonical evidence: `handoffs/CURRENT_HANDOFF.md`; final repository/upstream snapshot is in `~/Desktop/03_FST_BRAIN.md` after finalization.
+- Single Next Action: RETURN TO BRAIN FOR UI-2 REVIEW. Do not start UI-3.
+
 ## Current Sprint Status — UI-1A Main Window Structural Shell (2026-09-30)
 
 - BRAIN and Owner approved this bounded UI-1A implementation plan; the local task began from `main@24259dde198ae1d17114ed14e2f709b3a559df96`, equal to fetched `origin/main`.

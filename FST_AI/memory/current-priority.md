@@ -4,12 +4,12 @@
 
 ## Authorized Phase
 
-- Phase: UI-1A MAIN WINDOW STRUCTURAL SHELL
-- Approval: BRAIN and Owner approved the bounded implementation plan on 2026-09-30.
+- Phase: UI-2 SOURCE + DESTINATION + STORAGE READINESS
+- Approval: BRAIN authorized UI-2 after independently accepting UI-1A as PASS_WITH_ADVISORY.
 - Status: Implemented; return to BRAIN for review.
-- Scope: main window shell in `ContentView.swift` only; preserve all child views and runtime behavior.
-- Later UI phases remain unauthorized until BRAIN issues a new action.
-- Single next action: RETURN TO BRAIN FOR UI-1A REVIEW.
+- Scope: Source, Destination, Storage Readiness, and the smallest Transfer hierarchy integration; no backend metadata or behavior changes.
+- UI-3 and later phases remain unauthorized until BRAIN issues a new action.
+- Single next action: RETURN TO BRAIN FOR UI-2 REVIEW.
 
 ## Current Known Focus Areas
 
