@@ -29,6 +29,19 @@ This appears to have been run before as <entry>. Do you want to rerun it, contin
 
 ## Recent Tasks
 
+### 2026-09-30 - M2M Brain Return V2
+
+- Date: 2026-09-30
+- Task ID: M2M_BRAIN_RETURN_V2
+- Task name: M2M Brain Return V2
+- Agent: Codex local Worker / exact model UNVERIFIED
+- Status: implemented; NORMAL handoff published; publisher dry-run/verify PASS; BRAIN review follows return
+- Files changed: AGENTS.md; FST_AI/skills/fst-brain-return-finalizer/SKILL.md; FST_AI/tools/export_brain_return.py; FST_AI/tools/test_export_brain_return.py; handoffs/README.md; BRAIN compact/Command Center policy; task/work records; one NORMAL handoff
+- Commit/tag/release: one coherent control-plane commit; no tag/release
+- Safety impact: metadata-only Desktop transport; repository remains canonical; no production Swift/Xcode or workflow behavior
+- Checks: exporter unittest 12/12 PASS; Python compile PASS; publisher dry-run/verify PASS; pre/post-publish diff check PASS; prior Desktop V1 33,185 bytes; V2 1,239-byte target; final commit/export gates recorded in V2 packet
+- Notes: default packet contains pointers, hashes, gate state and explicit handoff facts only. Single Next Action: RETURN_TO_BRAIN.
+
 ### 2026-09-30 - UI-6 Metrics Presentation Contract Repair
 
 - Date: 2026-09-30

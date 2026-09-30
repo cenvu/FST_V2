@@ -1,5 +1,16 @@
 # FST Command Center Handover
 
+## Current Control Plane — M2M Brain Return V2 (2026-09-30)
+
+- Status: implementation and NORMAL handoff complete; exporter suite 12/12 PASS; publisher dry-run and post-publish verify PASS; BRAIN review pending.
+- Published handoff: handoffs/20260930-215015_codex-local-worker_m2m-brain-return-v2.md; CURRENT matches; INDEX added exactly one row.
+- Contract source: BRAIN_OPERATOR_COMPACT.md and BRAIN ↔ WORKER Transport Policy below.
+- Packet sizing: V1 prior packet 33,185 bytes; V2 target 1,239 bytes; no default verbatim bodies or handoff interpretation.
+- PASS remains fail-closed on handoff verification, worktree, upstream equality, and Git observation. FAIL remains exportable.
+- Size gate: previous V1 Desktop packet 33,185 bytes; V2 packet target 1,239 bytes; final export confirms packet length.
+- No production Swift/Xcode changes; no historical handoff edits; UI-7 unauthorized.
+- Canonical continuation: handoffs/CURRENT_HANDOFF.md. Single Next Action: RETURN_TO_BRAIN.
+
 ## Current Sprint Status — UI-6 Metrics Presentation Contract Repair (2026-09-30)
 
 - BRAIN classified prior UI-6 PASS as REPAIR and explicitly routed this bounded presentation repair. UI-7 remains unauthorized.
@@ -95,16 +106,12 @@ Primary users:
 - Assistant DIT
 - Assistant Editor / small production teams
 
-## Current Sprint Status — FST BRAIN Return Bridge v1 (2026-09-30)
+## Superseded Record — FST BRAIN Return Bridge v1 (2026-09-30)
 
-- Implemented one mandatory Worker-to-BRAIN return path for meaningful BRAIN-routed tasks: `~/Desktop/03_FST_BRAIN.md`.
-- The Desktop file is the only Agent-authorized FST Desktop write and is a non-canonical transport projection; local/GitHub repository truth still wins.
-- Bundle order is fixed: FULL REPORT -> RAW EVIDENCE -> BRAIN OPERATOR. FULL defaults to `handoffs/CURRENT_HANDOFF.md`; RAW always contains fresh Git/handoff verification and may contain explicit repo-local UTF-8 evidence; BRAIN OPERATOR is `FST_AI/memory/BRAIN_OPERATOR_COMPACT.md` verbatim.
-- Added `FST_AI/tools/export_brain_return.py` with no arbitrary output path. Requested PASS is downgraded to FAIL unless handoff verification passes, the worktree is clean, and local HEAD equals configured upstream.
-- Worker terminal/chat final output for BRAIN-routed tasks is compact PASS/FAIL only; the final line tells Hùng to send `~/Desktop/03_FST_BRAIN.md` to ChatGPT Web BRAIN.
-- No Swift/runtime/Xcode/entitlement/rsync/transfer/verify/report/SAFE TO EJECT behavior changed.
-- Operational gap: ChatGPT Web cannot physically write the Owner Mac Desktop. First local Worker completion after this publication must exercise the exporter and prove the physical single-file Desktop contract.
-- Single Next Action: BRAIN verifies this publication, then requires the next local FST Worker to exercise the finalizer once before treating the physical Desktop bridge as operationally proven.
+- V1 established the single Desktop path and fail-closed PASS gates.
+- V1 embedded handoff, RAW, and BRAIN Operator bodies verbatim. M2M Brain Return V2 above supersedes that payload contract with repository pointers and hashes.
+- Desktop remains transport-only; GitHub remains canonical. The path stays ~/Desktop/03_FST_BRAIN.md.
+- V1 did not change Swift/runtime/Xcode/entitlement/rsync/transfer/verify/report/SAFE TO EJECT behavior.
 ## Current Baseline After v1.3.4
 
 ## Current Sprint Status — consolidated pre-commit review Sprint (2026-08-01)
@@ -576,7 +583,10 @@ AI roles: Mi/Command Center is technical lead/safety gate/prompt architect. Code
 
 ## BRAIN ↔ WORKER Transport Policy
 
-- Owner-facing surface: only BRAIN review/adjudication in Vietnamese is human-readable.
-- Worker prompts: machine-to-machine dense protocol; optimize tokens, precision, constraints, gates; no explanatory prose for Owner.
-- ~/Desktop/03_FST_BRAIN.md: machine-to-machine fallback transport, optimized for BRAIN parsing; repository/GitHub remains canonical; avoid unnecessary verbatim duplication of canonical repo text.
-- Minimum transport semantics: task/result, canonical repo/branch/HEAD/upstream equality, gate failures, changed-scope/evidence locators, blockers/risks/not-executed, exactly one next action.
+OWNER_VISIBLE=BRAIN_VI_REVIEW_ONLY
+WORKER_PROMPT=M2M_DENSE
+03_FST_BRAIN=M2M_DENSE_FALLBACK;TRANSPORT_ONLY
+REPO_CANONICAL=GITHUB
+PACKET=FST_BRAIN_RETURN_V2;POINTERS+SHA256+GATES+RAW_MANIFEST+EXPLICIT_HANDOFF_FACTS
+DEFAULT_PAYLOAD=NO_VERBATIM;NO_SUMMARY_OR_INFERENCE
+NEXT_ACTION_COUNT=1

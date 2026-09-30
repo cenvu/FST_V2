@@ -33,15 +33,17 @@ The only FST path an Agent may create, write, export, copy, or replace on Deskto
 
 Do not create alternate Desktop reports, RAW files, handoff copies, prompts, screenshots, packets, or convenience filenames. Do not enumerate or clean Desktop. Repository artifacts remain in repository-authorized locations.
 
-## Bundle Contract
+## V2 Packet Contract
 
-`03_FST_BRAIN.md` always contains these sections in this order:
+`03_FST_BRAIN.md` begins with `PACKET=FST_BRAIN_RETURN_V2` and contains machine-dense key/value fields:
 
-1. FULL REPORT — verbatim canonical full report/handoff, default `handoffs/CURRENT_HANDOFF.md`.
-2. RAW EVIDENCE — fresh Git/handoff verification snapshot plus any explicit repo-local UTF-8 evidence passed with `--raw`.
-3. BRAIN OPERATOR — verbatim `FST_AI/memory/BRAIN_OPERATOR_COMPACT.md`.
+- repository, branch, HEAD, upstream, sync and worktree state;
+- canonical handoff and BRAIN Operator paths plus SHA256;
+- handoff verification, gate failures, and a sorted RAW manifest (repo-relative path, byte size, SHA256);
+- NOT_EXECUTED and BLOCKER values only when explicitly keyed in the handoff, with no semantic inference;
+- the fixed next-action pointer and Desktop path.
 
-The bundle records hashes and repo identity for review. It never promotes Worker evidence to project truth.
+Canonical handoff, RAW, and BRAIN Operator bodies are not embedded by default. The packet is a transport pointer, not a summary or authority; GitHub remains canonical.
 
 ## Finalization Flow
 
@@ -71,7 +73,7 @@ python3 FST_AI/tools/export_brain_return.py \
   --result PASS
 ```
 
-Optional additional repo-local RAW evidence:
+Optional repo-local RAW evidence (metadata only):
 
 ```bash
 python3 FST_AI/tools/export_brain_return.py \

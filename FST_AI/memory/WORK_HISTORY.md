@@ -21,6 +21,17 @@ Each entry must include:
 
 ## Recent History
 
+### 2026-09-30 - M2M Brain Return V2
+
+- Agent/model: Codex local Worker / exact model UNVERIFIED
+- Branch/start: clean main fast-forwarded from ab35063 to 1452704c225db2d219b081b930552f4dbde95338, equal to fetched origin/main.
+- Files changed: AGENTS.md; finalizer skill; handoff README; exporter and new stdlib tests; BRAIN compact/Command Center transport policy; task/work records; one NORMAL handoff.
+- What changed: replaced V1 verbatim bundle with FST_BRAIN_RETURN_V2, metadata-only pointers, SHA256 values, explicit gates, sorted RAW metadata and explicit handoff facts without interpretation. Desktop output stays fixed to ~/Desktop/03_FST_BRAIN.md; stdout stays five lines.
+- Safety boundary: control-plane only; no Swift/Xcode/runtime changes, no historical handoff edits, no network access by exporter, no UI-7.
+- Verification: exporter unittest 12/12 PASS; publisher dry-run/verify and pre/post-publish diff checks PASS; previous V1 Desktop packet 33,185 bytes; V2 packet target 1,239 bytes; final Git/export gates are in V2 packet.
+- Commit/release: one coherent task/handoff commit; final pushed SHA and clean upstream proof recorded in final packet; no release/tag.
+- Single Next Action: RETURN_TO_BRAIN.
+
 ### 2026-09-30 - UI-6 Metrics Presentation Contract Repair
 
 - Agent/model: Codex local Worker / exact model UNVERIFIED
