@@ -21,6 +21,17 @@ Each entry must include:
 
 ## Recent History
 
+### 2026-09-30 - FST BRAIN Return Bridge v1
+
+- Agent/model: ChatGPT Web / GPT-5.6 Sol
+- Branch/commit/tag: technical commit `082a07e07f8ffce3d7cf539b8098c6f9a7224f13` built from `main@34724188740ebd8ee2500f6ee1363e0deb5f11e4`; no app tag/release
+- Files changed: FST agent instructions, AI README, new compact BRAIN Operator contract, new `fst-brain-return-finalizer` skill, new `export_brain_return.py`, handoff README/template, FST memory records, and one new canonical handoff
+- What changed: standardized every BRAIN-routed Worker completion around exactly one Desktop bridge `~/Desktop/03_FST_BRAIN.md`; the bridge contains verbatim FULL REPORT + fresh RAW repository/handoff evidence + verbatim BRAIN OPERATOR. Worker terminal/chat output is reduced to compact PASS/FAIL plus the exact file-to-send line. All canonical reports/handoffs remain in the repository.
+- Safety boundary confirmation: control-plane/tooling/docs only; no app source/runtime behavior, source-media access, TransferState, rsync, verification, report safety, notification/update-check, or SAFE TO EJECT logic changed
+- Build/test/package result: exporter `py_compile` PASS; synthetic clean/upstream PASS dry-run; dirty worktree requested PASS -> effective FAIL; outside-repo RAW input rejected; application build/test/package NOT RUN under Lean Mode because no application file changed
+- Whether committed/tagged/released: technical commit created; metadata/handoff publication follows; no application release
+- Next recommended action: BRAIN verifies the published control-plane commits; on the next local FST Worker run, execute the finalizer once to prove the physical Desktop file and no-extra-Desktop-artifact contract on the Owner Mac.
+
 ### 2026-08-02 - v1.3.5 Release Sprint
 
 - Agent/model: Antigravity IDE / Gemini 3.6 Flash

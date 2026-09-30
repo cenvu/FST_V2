@@ -29,6 +29,19 @@ This appears to have been run before as <entry>. Do you want to rerun it, contin
 
 ## Recent Tasks
 
+### 2026-09-30 - FST BRAIN Return Bridge v1
+
+- Date: 2026-09-30
+- Task ID: FST-Brain-Return-Bridge-1
+- Task name: Implement the single-file `03_FST_BRAIN.md` Worker-to-BRAIN return contract
+- Agent: ChatGPT Web / GPT-5.6 Sol
+- Status: implemented
+- Files changed: `AGENTS.md`, `CLAUDE.md`, `FST_AI/README.md`, `FST_AI/memory/BRAIN_OPERATOR_COMPACT.md`, `FST_AI/skills/fst-brain-return-finalizer/SKILL.md`, `FST_AI/tools/export_brain_return.py`, `handoffs/README.md`, `handoffs/HANDOFF_TEMPLATE.md`, plus FST memory and handoff records
+- Commit/tag/release: technical commit `082a07e07f8ffce3d7cf539b8098c6f9a7224f13`; no app tag or release
+- Safety impact: control-plane/tooling/docs only; no Swift, Xcode, entitlement, bundled-rsync, transfer, verify, report, notification, update-check, or SAFE TO EJECT runtime behavior changed
+- Checks: exporter `py_compile` PASS; synthetic clean repo/upstream PASS dry-run; dirty worktree downgraded requested PASS to FAIL; repo-escape RAW input rejected; GitHub tree/commit contents reviewed; no Xcode suite rerun under Lean Mode because application behavior did not change
+- Notes: `~/Desktop/03_FST_BRAIN.md` is the only authorized FST Desktop file and is a non-canonical transport envelope containing FULL REPORT + RAW EVIDENCE + BRAIN OPERATOR. PASS requires verified handoff, clean worktree, and local HEAD equal configured upstream. ChatGPT Web cannot physically write the Owner Mac Desktop; first local Worker use must provide that physical-path proof. Single Next Action: BRAIN verifies this publication, then the next local FST Worker must exercise the finalizer once and return the physical `03_FST_BRAIN.md` bridge evidence.
+
 ### 2026-08-02 - v1.3.5 Release Sprint
 
 - Date: 2026-08-02

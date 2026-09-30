@@ -18,6 +18,16 @@ Primary users:
 - Assistant DIT
 - Assistant Editor / small production teams
 
+## Current Sprint Status — FST BRAIN Return Bridge v1 (2026-09-30)
+
+- Implemented one mandatory Worker-to-BRAIN return path for meaningful BRAIN-routed tasks: `~/Desktop/03_FST_BRAIN.md`.
+- The Desktop file is the only Agent-authorized FST Desktop write and is a non-canonical transport projection; local/GitHub repository truth still wins.
+- Bundle order is fixed: FULL REPORT -> RAW EVIDENCE -> BRAIN OPERATOR. FULL defaults to `handoffs/CURRENT_HANDOFF.md`; RAW always contains fresh Git/handoff verification and may contain explicit repo-local UTF-8 evidence; BRAIN OPERATOR is `FST_AI/memory/BRAIN_OPERATOR_COMPACT.md` verbatim.
+- Added `FST_AI/tools/export_brain_return.py` with no arbitrary output path. Requested PASS is downgraded to FAIL unless handoff verification passes, the worktree is clean, and local HEAD equals configured upstream.
+- Worker terminal/chat final output for BRAIN-routed tasks is compact PASS/FAIL only; the final line tells Hùng to send `~/Desktop/03_FST_BRAIN.md` to ChatGPT Web BRAIN.
+- No Swift/runtime/Xcode/entitlement/rsync/transfer/verify/report/SAFE TO EJECT behavior changed.
+- Operational gap: ChatGPT Web cannot physically write the Owner Mac Desktop. First local Worker completion after this publication must exercise the exporter and prove the physical single-file Desktop contract.
+- Single Next Action: BRAIN verifies this publication, then requires the next local FST Worker to exercise the finalizer once before treating the physical Desktop bridge as operationally proven.
 ## Current Baseline After v1.3.4
 
 ## Current Sprint Status — consolidated pre-commit review Sprint (2026-08-01)
