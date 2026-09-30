@@ -1,9 +1,92 @@
 // FST / CenVu | (+84) 842 841 222
 
 import XCTest
+import Combine
 
 @MainActor
 final class TransferViewModelRuntimeXCTests: XCTestCase {
+    func testBandwidthUnlimitedPresetSequenceReachesRsyncArgumentsAndReport() async throws {
+        let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
+            .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+            .appendingPathComponent("build/p0-bandwidth/runtime-\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let source = root.appendingPathComponent("source", isDirectory: true)
+        let destination = root.appendingPathComponent("destination", isDirectory: true)
+        try FileManager.default.createDirectory(at: source, withIntermediateDirectories: true)
+        try FileManager.default.createDirectory(at: destination, withIntermediateDirectories: true)
+        let media = source.appendingPathComponent("A001_C001.mov")
+        let mediaData = Data("bandwidth regression media".utf8)
+        try mediaData.write(to: media)
+        let fakeRsync = root.appendingPathComponent("fake-rsync")
+        try writeSucceedingFakeRsyncScript(at: fakeRsync)
+        let viewModel = makeViewModelWithBundledRsync(fakeRsyncURL: fakeRsync)
+        viewModel.sourceURL = source
+        viewModel.destinationURL = destination
+        viewModel.verificationMode = .none
+
+        let steps: [(megabytesPerSecond: Int?, argument: String?, description: String)] = [
+            (nil, nil, "Unlimited"), (50, "--bwlimit=51200", "50 MB/s"),
+            (120, "--bwlimit=122880", "120 MB/s"), (240, "--bwlimit=245760", "240 MB/s"),
+            (nil, nil, "Unlimited")
+        ]
+        for (index, step) in steps.enumerated() {
+            // Each workflow needs an unused job path under the existing no-overwrite policy.
+            let runDestination = destination.appendingPathComponent("run-\(index)", isDirectory: true)
+            try FileManager.default.createDirectory(at: runDestination, withIntermediateDirectories: true)
+            viewModel.destinationURL = runDestination
+            viewModel.bandwidthLimit = step.megabytesPerSecond
+            XCTAssertEqual(viewModel.bandwidthLimit, step.megabytesPerSecond, "UI state must stay in MB/s")
+            XCTAssertTrue(viewModel.canStartTransfer)
+            XCTAssertNil(viewModel.startBlockedReason)
+            viewModel.logs.removeAll()
+            let completed = expectation(description: "Copy completes for \(step.description)")
+            let subscription = viewModel.$transferState.dropFirst()
+                .filter { $0 == .copyComplete }.prefix(1).sink { _ in completed.fulfill() }
+            viewModel.startTransfer()
+            await fulfillment(of: [completed], timeout: 5)
+            withExtendedLifetime(subscription) {}
+            XCTAssertNil(viewModel.errorMessage)
+            let argvLog = try XCTUnwrap(viewModel.logs.first { $0.message.hasPrefix("Rsync Args: ") }?.message)
+            let bwlimitArguments = argvLog.split(separator: " ").filter { $0.hasPrefix("--bwlimit=") }.map(String.init)
+            XCTAssertEqual(bwlimitArguments, step.argument.map { [$0] } ?? [])
+            let diagnostic = try XCTUnwrap(viewModel.logs.first { $0.message.hasPrefix("Selected Limit: ") }?.message)
+            XCTAssertTrue(diagnostic.contains("Selected Limit: \(step.description) |"))
+            let reportStatus = try XCTUnwrap(viewModel.reportStatusMessage)
+            XCTAssertTrue(reportStatus.hasPrefix("Report saved: "))
+            let report = try String(contentsOfFile: String(reportStatus.dropFirst("Report saved: ".count)), encoding: .utf8)
+            XCTAssertTrue(report.contains("Bandwidth Limit:     \(step.description)"))
+            XCTAssertEqual(try Data(contentsOf: media), mediaData, "Source content must remain unchanged")
+            print("BANDWIDTH PROOF: UI=\(step.description); \(diagnostic); \(argvLog)")
+        }
+    }
+
+    func testInvalidOperatorBandwidthBlocksStartWithoutTrapping() {
+        let viewModel = makeViewModel()
+        viewModel.sourceURL = URL(fileURLWithPath: "/test/source")
+        viewModel.destinationURL = URL(fileURLWithPath: "/test/destination")
+        viewModel.bundledRsyncInfo = BundledRsyncInfo(
+            executableURL: URL(fileURLWithPath: "/test/rsync"), version: "3.4.4", diagnostics: []
+        )
+        let cases: [(value: Int, error: RsyncBandwidthLimitError)] = [
+            (Int.min, .belowMinimum), (1, .belowMinimum), (19, .belowMinimum),
+            (301, .aboveMaximum), (51_200, .aboveMaximum), (122_880, .aboveMaximum),
+            (245_760, .aboveMaximum), (Int.max, .aboveMaximum)
+        ]
+        for entry in cases {
+            viewModel.bandwidthLimit = entry.value
+            XCTAssertFalse(viewModel.canStartTransfer)
+            XCTAssertEqual(viewModel.startBlockedReason, entry.error.localizedDescription)
+            viewModel.startTransfer()
+            XCTAssertEqual(viewModel.errorMessage, entry.error.localizedDescription)
+            XCTAssertEqual(viewModel.transferState, .ready)
+            XCTAssertFalse(viewModel.logs.contains { $0.message == "Starting transfer workflow" })
+        }
+        viewModel.bandwidthLimit = nil
+        XCTAssertTrue(viewModel.canStartTransfer)
+        XCTAssertNil(viewModel.startBlockedReason)
+    }
+
     // MARK: - Prompt 5 deterministic Retry admission ordering
 
     /// Proves the required terminal-ordering invariant directly: while the

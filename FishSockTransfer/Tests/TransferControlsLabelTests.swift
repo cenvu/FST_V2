@@ -35,12 +35,53 @@ private func assertNil<T>(_ value: T?, _ message: String) {
 @main
 struct TransferControlsLabelTests {
     static func main() async throws {
+        try await MainActor.run {
+            try testBandwidthPickerUsesMegabytesPerSecond()
+        }
+        if CommandLine.arguments.contains("--bandwidth-only") {
+            print("TransferControlsLabelTests bandwidth regression passed")
+            return
+        }
         testActionPresentation()
         try await MainActor.run {
             try testViewModelStartGateAndSelectionLock()
         }
 
         print("TransferControlsLabelTests passed")
+    }
+
+    @MainActor
+    private static func testBandwidthPickerUsesMegabytesPerSecond() throws {
+        let viewModel = TransferViewModel(bundledRsyncService: BundledRsyncService(bundledExecutableURL: nil))
+        viewModel.sourceURL = URL(fileURLWithPath: "/test/source")
+        viewModel.destinationURL = URL(fileURLWithPath: "/test/destination")
+        viewModel.bundledRsyncInfo = BundledRsyncInfo(
+            executableURL: URL(fileURLWithPath: "/test/rsync"), version: "3.4.4", diagnostics: []
+        )
+        // Read the actual private table used by Picker/ForEach without adding a production test API.
+        let view = TransferControlsView(viewModel: viewModel)
+        guard let options = Mirror(reflecting: view).children.first(where: { $0.label == "bandwidthOptions" })?.value
+            as? [(label: String, value: Int?)] else {
+            fatalError("Cannot inspect the production bandwidth Picker options")
+        }
+        let sequence: [(label: String, megabytesPerSecond: Int?, kibPerSecond: Int?)] = [
+            ("Unlimited", nil, nil), ("50 MB/s", 50, 51_200),
+            ("120 MB/s", 120, 122_880), ("240 MB/s", 240, 245_760), ("Unlimited", nil, nil)
+        ]
+        assertEqual(options.count, 4, "bandwidth option count")
+        for step in sequence {
+            guard let option = options.first(where: { $0.label == step.label }) else {
+                fatalError("Missing bandwidth option: \(step.label)")
+            }
+            assertEqual(option.value, step.megabytesPerSecond, "Picker \(step.label) must bind MB/s")
+            viewModel.bandwidthLimit = option.value
+            assertTrue(viewModel.canStartTransfer, "Picker \(step.label) must not trap or block Start")
+            assertNil(viewModel.startBlockedReason, "Picker \(step.label) validation")
+            let converted = try option.value.map {
+                try RsyncBandwidthLimit.kibPerSecond(forMegabytesPerSecond: Double($0))
+            }
+            assertEqual(converted, step.kibPerSecond, "Picker \(step.label) conversion")
+        }
     }
 
     private static func testActionPresentation() {

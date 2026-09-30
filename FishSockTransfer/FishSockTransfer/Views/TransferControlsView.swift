@@ -8,11 +8,11 @@ public struct TransferControlsView: View {
     @State private var isShowingCancelConfirmation = false
     @State private var cancelRequestGuard = TransferCancelRequestGuard()
 
-    // Limits represented in KiB/s for rsync 3.x --bwlimit semantics.
+    // Picker values match the ViewModel's MB/s contract; nil means Unlimited.
     private let bandwidthOptions: [(label: String, value: Int?)] = [
-        ("50 MB/s", RsyncBandwidthLimit.kibPerSecond(for: 50)),
-        ("120 MB/s", RsyncBandwidthLimit.kibPerSecond(for: 120)),
-        ("240 MB/s", RsyncBandwidthLimit.kibPerSecond(for: 240)),
+        ("50 MB/s", 50),
+        ("120 MB/s", 120),
+        ("240 MB/s", 240),
         ("Unlimited", nil)
     ]
     

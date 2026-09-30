@@ -167,6 +167,7 @@ public actor BookmarkAccessCoordinator {
 public final class TransferViewModel: ObservableObject {
     @Published public var sourceURL: URL?
     @Published public var destinationURL: URL?
+    /// Operator-facing MB/s; nil means Unlimited. Convert once when submitting to the Coordinator.
     @Published public var bandwidthLimit: Int? = nil
     @Published public var verificationMode: VerificationMode = .random33
 
@@ -729,15 +730,15 @@ public final class TransferViewModel: ObservableObject {
             return
         }
 
-        if let bandwidthLimit {
-            do {
-                let kibPerSecond = RsyncBandwidthLimit.kibPerSecond(for: bandwidthLimit)
-                _ = try RsyncBandwidthLimit.validate(kibPerSecond: kibPerSecond)
-            } catch {
-                errorMessage = error.localizedDescription
-                addLog(category: .error, message: error.localizedDescription)
-                return
+        let bandwidthLimitKiB: Int?
+        do {
+            bandwidthLimitKiB = try bandwidthLimit.map {
+                try RsyncBandwidthLimit.kibPerSecond(forMegabytesPerSecond: Double($0))
             }
+        } catch {
+            errorMessage = error.localizedDescription
+            addLog(category: .error, message: error.localizedDescription)
+            return
         }
 
         resetTransferMetrics()
@@ -750,7 +751,6 @@ public final class TransferViewModel: ObservableObject {
         addLog(category: .info, message: "Destination: \(destinationURL.lastPathComponent)")
         notifyJobStarted()
 
-        let bandwidthLimitKiB = bandwidthLimit.map { RsyncBandwidthLimit.kibPerSecond(for: $0) }
         let callbacksConfiguredTask = callbacksConfiguredTask
 
         // TransferState is Coordinator-owned. No state is asserted here: the
@@ -1256,8 +1256,7 @@ public final class TransferViewModel: ObservableObject {
     private var bandwidthLimitValidationMessage: String? {
         guard let bandwidthLimit else { return nil }
         do {
-            let kibPerSecond = RsyncBandwidthLimit.kibPerSecond(for: bandwidthLimit)
-            _ = try RsyncBandwidthLimit.validate(kibPerSecond: kibPerSecond)
+            _ = try RsyncBandwidthLimit.kibPerSecond(forMegabytesPerSecond: Double(bandwidthLimit))
             return nil
         } catch {
             return error.localizedDescription
