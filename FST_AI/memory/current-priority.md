@@ -2,13 +2,14 @@
 
 # Current FST Priority
 
-Current priority order:
+## Authorized Phase
 
-1. REDESIGN DOCUMENTATION BASELINE
-2. OPENDESIGN MOCKUPS
-3. BRAIN + OWNER DESIGN REVIEW
-4. ONLY THEN IMPLEMENTATION PLANNING
-(No UI implementation is currently authorized)
+- Phase: UI-1A MAIN WINDOW STRUCTURAL SHELL
+- Approval: BRAIN and Owner approved the bounded implementation plan on 2026-09-30.
+- Status: Implemented; return to BRAIN for review.
+- Scope: main window shell in `ContentView.swift` only; preserve all child views and runtime behavior.
+- Later UI phases remain unauthorized until BRAIN issues a new action.
+- Single next action: RETURN TO BRAIN FOR UI-1A REVIEW.
 
 ## Current Known Focus Areas
 
@@ -32,4 +33,3 @@ Do not expand to:
 - Parallel copy
 - Cloud integration
 - Project dashboard
-

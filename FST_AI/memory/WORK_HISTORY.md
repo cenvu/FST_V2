@@ -21,6 +21,17 @@ Each entry must include:
 
 ## Recent History
 
+### 2026-09-30 15:07+07:00 - UI-1A Main Window Structural Shell
+
+- Agent/model: Codex local Worker / GPT-6
+- Branch/commit/tag: `main` starting at `24259dde198ae1d17114ed14e2f709b3a559df96`; one coherent task commit includes this handoff; no tag/release
+- Files changed: `ContentView.swift`, current-priority and FST memory records, plus one NORMAL canonical handoff
+- What changed: removed the 600 pt tab-content height and 860 pt content-height cap; removed fixed header side/tab widths; changed Transfer to vertically stack Source, Destination, then TransferControls in a Transfer-only ScrollView; retained the 900x660 pt minimum window.
+- Safety boundary confirmation: view layout only. Child views, all three tabs' actions, notification/update-check behavior, technical-log filtering, TransferState, verification labels/modes, bandwidth options, ETA/progress, and backend behavior remain unchanged.
+- Build/test/package result: Debug build PASS; `TransferViewModelRuntimeXCTests` and `VerificationHashStrategyXCTests` PASS 82/82; `git diff --check` PASS. Native-window size/tab checks NOT PHYSICALLY EXECUTED because this session has no macOS GUI interaction harness.
+- Whether committed/tagged/released: one coherent commit includes the source, records, and canonical handoff; no tag/release
+- Next recommended action: RETURN TO BRAIN FOR UI-1A REVIEW; do not start UI-2.
+
 ### 2026-09-30 - FST BRAIN Return Bridge v1
 
 - Agent/model: ChatGPT Web / GPT-5.6 Sol

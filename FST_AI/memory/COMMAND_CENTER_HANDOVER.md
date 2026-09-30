@@ -1,5 +1,15 @@
 # FST Command Center Handover
 
+## Current Sprint Status — UI-1A Main Window Structural Shell (2026-09-30)
+
+- BRAIN and Owner approved this bounded UI-1A implementation plan; the local task began from `main@24259dde198ae1d17114ed14e2f709b3a559df96`, equal to fetched `origin/main`.
+- Production change is limited to `FishSockTransfer/FishSockTransfer/Views/ContentView.swift`: Transfer is Source -> Destination -> TransferControls in a vertical ScrollView; rigid 600 pt tab content and fixed header widths are removed; the 900x660 pt minimum remains.
+- Existing top-level tabs and their actions remain; child views and all backend/runtime behavior remain unchanged. Bandwidth options, verification modes/labels, and state semantics remain unchanged.
+- Debug build PASS; relevant XCTest suites PASS 82/82; `git diff --check` PASS. Native macOS window checks were NOT PHYSICALLY EXECUTED because no native GUI interaction harness was available.
+- CodeGraph MCP was unavailable; direct source inspection was used. GitHub issue search found no UI-1A issue.
+- Canonical evidence: `handoffs/CURRENT_HANDOFF.md`; final repository/upstream snapshot is in `~/Desktop/03_FST_BRAIN.md` after finalization.
+- Single Next Action: RETURN TO BRAIN FOR UI-1A REVIEW. No later UI phase is authorized here.
+
 ## Project Identity
 
 FST / FishSock Transfer is a native macOS SwiftUI app for DIT / Data Wrangler media offload workflows.

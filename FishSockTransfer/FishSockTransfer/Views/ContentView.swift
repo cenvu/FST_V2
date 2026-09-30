@@ -9,8 +9,6 @@ public struct ContentView: View {
         case logs
     }
 
-    private let tabContentHeight: CGFloat = 600
-
     // TransferViewModel cannot default this to a concrete BookmarkService()
     // itself: BookmarkService.swift is compiled only into the app target, not
     // the canonical XCTest target's explicit source list, so the default has
@@ -42,7 +40,7 @@ public struct ContentView: View {
                 }
             }
             .frame(maxWidth: .infinity, alignment: .top)
-            .frame(height: tabContentHeight, alignment: .top)
+            .frame(maxHeight: .infinity, alignment: .top)
         }
         .frame(
             minWidth: 900,
@@ -50,7 +48,6 @@ public struct ContentView: View {
             maxWidth: .infinity,
             minHeight: 660,
             idealHeight: 760,
-            maxHeight: 860,
             alignment: .top
         )
         .background(Color(NSColor.windowBackgroundColor))
@@ -68,16 +65,15 @@ public struct ContentView: View {
                     .padding(.vertical, 4)
                     .background(Color.secondary.opacity(0.12))
                     .clipShape(Capsule())
-                    .frame(width: 220, alignment: .leading)
 
-                Spacer(minLength: 0)
+                Spacer(minLength: 16)
 
                 HeaderSocialLinksView()
-                    .frame(width: 150, alignment: .trailing)
             }
+            .frame(maxWidth: .infinity)
 
             tabSelector
-                .frame(width: 560, alignment: .center)
+                .fixedSize(horizontal: true, vertical: false)
         }
         .frame(height: 44)
         .layoutPriority(1)
@@ -133,20 +129,22 @@ public struct ContentView: View {
     }
 
     private var transferTabContent: some View {
-        VStack(spacing: 12) {
-            HStack(alignment: .top, spacing: 16) {
+        ScrollView {
+            VStack(spacing: 12) {
                 SourceCardView(viewModel: viewModel)
                     .frame(maxWidth: .infinity)
+
                 DestinationCardView(viewModel: viewModel)
                     .frame(maxWidth: .infinity)
+
+                TransferControlsView(viewModel: viewModel)
+                    .frame(maxWidth: .infinity)
             }
-            
-            TransferControlsView(viewModel: viewModel)
-                .frame(maxWidth: .infinity)
+            .padding(.horizontal, 16)
+            .padding(.bottom, 16)
+            .frame(maxWidth: .infinity, alignment: .top)
         }
-        .padding(.horizontal, 16)
-        .padding(.bottom, 16)
-        .frame(maxWidth: .infinity, alignment: .top)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
     }
 
     private var notificationTabContent: some View {

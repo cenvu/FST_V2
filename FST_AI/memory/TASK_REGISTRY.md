@@ -29,6 +29,19 @@ This appears to have been run before as <entry>. Do you want to rerun it, contin
 
 ## Recent Tasks
 
+### 2026-09-30 - UI-1A Main Window Structural Shell
+
+- Date: 2026-09-30
+- Task ID: FST-UI-1A
+- Task name: Implement the responsive vertical main window shell
+- Agent: Codex local Worker / GPT-6
+- Status: implemented; BRAIN review pending
+- Files changed: `FishSockTransfer/FishSockTransfer/Views/ContentView.swift`, current priority and FST memory records, and one NORMAL canonical handoff
+- Commit/tag/release: one coherent task commit including the handoff; no tag or release
+- Safety impact: SwiftUI layout only; transfer, notification, technical-log, bandwidth, verification, and state semantics unchanged
+- Checks: Debug build PASS; relevant XCTest suites PASS 82/82; `git diff --check` PASS
+- Notes: retained 900x660 pt minimum; Transfer scrolls vertically; native UI checks NOT PHYSICALLY EXECUTED. Single Next Action: RETURN TO BRAIN FOR UI-1A REVIEW.
+
 ### 2026-09-30 - FST BRAIN Return Bridge v1
 
 - Date: 2026-09-30
