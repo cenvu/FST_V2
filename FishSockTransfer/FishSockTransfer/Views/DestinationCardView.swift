@@ -109,16 +109,10 @@ public struct DestinationCardView: View {
                 Spacer(minLength: 0)
             }
         }
-        .padding(12)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color(NSColor.controlBackgroundColor).opacity(0.58))
-        .clipShape(RoundedRectangle(cornerRadius: 10))
-        .overlay(
-            RoundedRectangle(cornerRadius: 10)
-                .stroke(
-                    isDropTargeted ? Color.accentColor.opacity(0.50) : Color.secondary.opacity(viewModel.isTransferConfigurationLocked ? 0.28 : 0.16),
-                    style: StrokeStyle(lineWidth: isDropTargeted ? 2 : 1, dash: isDropTargeted ? [5] : [])
-                )
+        .standardPanel(
+            strokeColor: isDropTargeted ? Color.accentColor.opacity(0.50) : Color.secondary.opacity(viewModel.isTransferConfigurationLocked ? 0.28 : 0.15),
+            strokeWidth: isDropTargeted ? 2 : 1,
+            strokeDash: isDropTargeted ? [5] : []
         )
         .dropDestination(for: URL.self) { urls, _ in
             guard !viewModel.isTransferConfigurationLocked else { return false }

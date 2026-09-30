@@ -86,8 +86,8 @@ public struct ContentView: View {
                     .fontWeight(selectedTab == .transfer ? .bold : .semibold)
                     .padding(.horizontal, 24)
                     .padding(.vertical, 6)
-                    .background(selectedTab == .transfer ? Color(NSColor.controlAccentColor).opacity(0.15) : Color.clear)
-                    .foregroundColor(selectedTab == .transfer ? Color(NSColor.controlAccentColor) : .secondary)
+                    .background(selectedTab == .transfer ? Color.secondary.opacity(0.15) : Color.clear)
+                    .foregroundColor(selectedTab == .transfer ? .primary : .secondary)
             }
             .buttonStyle(.plain)
 
@@ -96,8 +96,8 @@ public struct ContentView: View {
                     .fontWeight(selectedTab == .notification ? .bold : .semibold)
                     .padding(.horizontal, 24)
                     .padding(.vertical, 6)
-                    .background(selectedTab == .notification ? Color(NSColor.controlAccentColor).opacity(0.15) : Color.clear)
-                    .foregroundColor(selectedTab == .notification ? Color(NSColor.controlAccentColor) : .secondary)
+                    .background(selectedTab == .notification ? Color.secondary.opacity(0.15) : Color.clear)
+                    .foregroundColor(selectedTab == .notification ? .primary : .secondary)
             }
             .buttonStyle(.plain)
             
@@ -114,8 +114,8 @@ public struct ContentView: View {
                 .fontWeight(selectedTab == .logs ? .bold : .semibold)
                 .padding(.horizontal, 24)
                 .padding(.vertical, 6)
-                .background(selectedTab == .logs ? Color(NSColor.controlAccentColor).opacity(0.15) : Color.clear)
-                .foregroundColor(selectedTab == .logs ? Color(NSColor.controlAccentColor) : .secondary)
+                .background(selectedTab == .logs ? Color.secondary.opacity(0.15) : Color.clear)
+                .foregroundColor(selectedTab == .logs ? .primary : .secondary)
             }
             .buttonStyle(.plain)
         }
@@ -269,9 +269,8 @@ struct SocialIconLink: View {
                 .frame(width: 24, height: 24)
                 .background(
                     RoundedRectangle(cornerRadius: 6)
-                        .fill(isHovered ? Color.accentColor.opacity(0.12) : Color.clear)
+                        .fill(isHovered ? Color.secondary.opacity(0.12) : Color.clear)
                 )
-                .shadow(color: isHovered ? Color.accentColor.opacity(0.2) : .clear, radius: 2)
         }
         .buttonStyle(.plain)
         .accessibilityLabel(accessibilityLabel)

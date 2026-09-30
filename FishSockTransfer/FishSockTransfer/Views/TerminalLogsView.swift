@@ -145,7 +145,7 @@ private struct TerminalLogTextView: NSViewRepresentable {
             case .success:
                 return .systemGreen.withSystemEffect(.disabled)
             case .stdout, .file:
-                return NSColor.white.withAlphaComponent(0.7)
+                return NSColor.textColor.withAlphaComponent(0.8)
             case .progress:
                 return .systemCyan.withSystemEffect(.disabled)
             case .verify:

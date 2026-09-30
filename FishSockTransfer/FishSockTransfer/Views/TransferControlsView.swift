@@ -122,14 +122,7 @@ public struct TransferControlsView: View {
                 }
             }
         }
-        .padding(12)
-        .frame(maxWidth: .infinity)
-        .background(Color(NSColor.controlBackgroundColor).opacity(0.55))
-        .cornerRadius(10)
-        .overlay(
-            RoundedRectangle(cornerRadius: 10)
-                .stroke(Color.secondary.opacity(0.16), lineWidth: 1)
-        )
+        .standardPanel()
     }
 
     private func heroMetricsRow(titles: TransferRuntimeMetricPresentation.HeroTitles) -> some View {
@@ -244,14 +237,8 @@ public struct TransferControlsView: View {
         }
         .disabled(viewModel.isTransferConfigurationLocked)
         .opacity(viewModel.isTransferConfigurationLocked ? 0.70 : 1)
-        .padding(12)
-        .frame(maxWidth: .infinity, minHeight: 72, alignment: .leading)
-        .background(Color(NSColor.controlBackgroundColor).opacity(0.55))
-        .cornerRadius(10)
-        .overlay(
-            RoundedRectangle(cornerRadius: 10)
-                .stroke(Color.secondary.opacity(0.16), lineWidth: 1)
-        )
+        .standardPanel()
+        .frame(minHeight: 72)
     }
 
     private var activeControlBar: some View {
@@ -304,14 +291,7 @@ public struct TransferControlsView: View {
                 .accessibilityLabel(accessibilityActionLabel)
             }
         }
-        .padding(12)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color(NSColor.controlBackgroundColor).opacity(0.55))
-        .cornerRadius(10)
-        .overlay(
-            RoundedRectangle(cornerRadius: 10)
-                .stroke(Color.secondary.opacity(0.16), lineWidth: 1)
-        )
+        .standardPanel()
     }
 
     private var terminalControlBar: some View {
@@ -367,14 +347,7 @@ public struct TransferControlsView: View {
                 }
             }
         }
-        .padding(12)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color(NSColor.controlBackgroundColor).opacity(0.55))
-        .cornerRadius(10)
-        .overlay(
-            RoundedRectangle(cornerRadius: 10)
-                .stroke(stateColor.opacity(0.25), lineWidth: 1)
-        )
+        .standardPanel(strokeColor: stateColor.opacity(0.25))
     }
 
     // The same callback supplied by ContentView is used directly by the native Button.

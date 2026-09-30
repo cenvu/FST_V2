@@ -47,7 +47,7 @@ public struct NotificationTabView: View {
                     statusRow("Last error", viewModel.notificationStatus.lastErrorSummary ?? "-")
                 }
             }
-            .frame(minWidth: 220, maxWidth: 300, alignment: .top)
+            .frame(maxWidth: .infinity, alignment: .top)
 
             Divider()
 
@@ -81,13 +81,7 @@ public struct NotificationTabView: View {
             }
             .frame(maxWidth: .infinity, alignment: .top)
         }
-        .padding(12)
-        .background(Color(NSColor.controlBackgroundColor).opacity(0.55))
-        .clipShape(RoundedRectangle(cornerRadius: 10))
-        .overlay(
-            RoundedRectangle(cornerRadius: 10)
-                .stroke(Color.secondary.opacity(0.16), lineWidth: 1)
-        )
+        .standardPanel()
     }
 
     private var eventsAndHeartbeatSection: some View {
@@ -143,13 +137,7 @@ public struct NotificationTabView: View {
             }
             .frame(maxWidth: .infinity, alignment: .topLeading)
         }
-        .padding(12)
-        .background(Color(NSColor.controlBackgroundColor).opacity(0.55))
-        .clipShape(RoundedRectangle(cornerRadius: 10))
-        .overlay(
-            RoundedRectangle(cornerRadius: 10)
-                .stroke(Color.secondary.opacity(0.16), lineWidth: 1)
-        )
+        .standardPanel()
     }
 
     private var messagePreviewSection: some View {
@@ -172,19 +160,12 @@ public struct NotificationTabView: View {
             .background(Color(NSColor.textBackgroundColor).opacity(0.6))
             .clipShape(RoundedRectangle(cornerRadius: 8))
         }
-        .padding(12)
-        .frame(maxWidth: .infinity, alignment: .topLeading)
-        .background(Color(NSColor.controlBackgroundColor).opacity(0.55))
-        .clipShape(RoundedRectangle(cornerRadius: 10))
-        .overlay(
-            RoundedRectangle(cornerRadius: 10)
-                .stroke(Color.secondary.opacity(0.16), lineWidth: 1)
-        )
+        .standardPanel()
     }
 
     private var statusColumns: [GridItem] {
         [
-            GridItem(.fixed(150), alignment: .leading),
+            GridItem(.flexible(minimum: 120, maximum: 150), alignment: .leading),
             GridItem(.flexible(), alignment: .leading)
         ]
     }

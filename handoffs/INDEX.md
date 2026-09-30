@@ -66,3 +66,4 @@ new handoffs that reference the older handoff; history is never erased.
 | 2026-09-30T18:55:40+07:00 | 20260930-185540_unverified_ui-6-progress-metrics-and-current-item-presentat.md | NORMAL | UNVERIFIED/UNVERIFIED | UI-6 Progress Metrics and Current Item Presentation/phase | main@bb6b561 | modified | NONE |
 | 2026-09-30T21:03:32+07:00 | 20260930-210332_codex-local-worker_ui-6-metrics-presentation-contract-repair.md | NORMAL | Codex local Worker/UNVERIFIED | UI-6 Metrics Presentation Contract Repair/UI-6 REPAIR | main@7fc804a | modified | NONE |
 | 2026-09-30T21:50:15+07:00 | 20260930-215015_codex-local-worker_m2m-brain-return-v2.md | NORMAL | Codex local Worker/UNVERIFIED | M2M Brain Return V2/CONTROL_PLANE_ONLY | main@1452704 | modified | NONE |
+| 2026-09-30T22:14:51+07:00 | 20260930-221451_antigravity_ui-7-final-visual-polish.md | NORMAL | Antigravity/Gemini-2.0 | UI-7 Final Visual Polish/COMPLETED | main@2fba7a8 | modified | NONE |

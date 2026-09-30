@@ -21,14 +21,7 @@ public struct StorageAnalysisView: View {
 
             readinessContent
         }
-        .padding(12)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color(NSColor.controlBackgroundColor).opacity(0.58))
-        .clipShape(RoundedRectangle(cornerRadius: 10))
-        .overlay(
-            RoundedRectangle(cornerRadius: 10)
-                .stroke(Color.secondary.opacity(0.16), lineWidth: 1)
-        )
+        .standardPanel()
     }
 
     @ViewBuilder
