@@ -151,6 +151,21 @@ def validate_handoff(text):
         die("draft section ## 14. Resume Prompt must contain a fenced ``` block")
     return True
 
+def validate_whitespace(text):
+    """Fail if text contains trailing whitespace or whitespace-only lines (except empty lines)."""
+    lines = text.splitlines()
+    for idx, line in enumerate(lines, start=1):
+        if not line:
+            continue
+        if line.isspace():
+            die("draft contains whitespace-only line at line %d" % idx)
+        if line.endswith(' ') or line.endswith('\t'):
+            if line.endswith('\t'):
+                die("draft contains trailing tab at line %d" % idx)
+            else:
+                die("draft contains trailing whitespace at line %d" % idx)
+    return True
+
 def fill_identity(text, filename, now, handoff_type, corrects, previous):
     """Replace the five identity lines with publisher-authoritative values."""
     iso = iso_timestamp(now)
@@ -262,6 +277,7 @@ def publish(args):
     with open(draft_path, "r", encoding="utf-8") as fh:
         draft_text = fh.read()
     validate_handoff(draft_text)
+    validate_whitespace(draft_text)
 
     handoff_type = args.type.upper()
     if handoff_type not in VALID_TYPES:
@@ -280,6 +296,7 @@ def publish(args):
     final_text = fill_identity(draft_text, filename, now, handoff_type,
                                args.corrects or "NONE", previous)
     validate_handoff(final_text)
+    validate_whitespace(final_text)
 
     # Branch@commit + status from read-only Git.
     branch = git_readonly(["rev-parse", "--abbrev-ref", "HEAD"]) or "unknown"
