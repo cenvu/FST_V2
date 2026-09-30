@@ -29,6 +29,19 @@ This appears to have been run before as <entry>. Do you want to rerun it, contin
 
 ## Recent Tasks
 
+### 2026-10-01 - UI-7 Final Verification Repair
+
+- Date: 2026-10-01
+- Task ID: UI7_FINAL_VERIFICATION_REPAIR
+- Task name: UI-7 Final Verification Repair
+- Agent: Codex local Worker / exact model UNVERIFIED
+- Status: implemented; canonical verification handoff published; final Git/export evidence in BRAIN return
+- Files changed: StorageAnalysisView.swift (one presentation frame); deleted noncanonical handoffs/UI-7_Final_Visual_Polish.md; Command Center, task and work records; CURRENT_HANDOFF, `handoffs/20261001-005243_codex-local-worker_ui-7-final-verification-repair.md`, and one INDEX entry
+- Commit/tag/release: one coherent repair/evidence commit; SHA and push/fetch equality in BRAIN return; no tag/release
+- Safety impact: physical QA proved the Storage Readiness panel was intrinsic-width at the minimum window; a View-only max-width frame aligns it with Source, Destination and Transfer. No Models, ViewModel runtime semantics, Coordinator, Engine, Service, Xcode project, transfer, verification, report or SAFE TO EJECT changes.
+- Checks: standalone full/default TransferControlsLabelTests PASS; Debug BUILD SUCCEEDED; focused 80 passed/0 failed/0 skipped; full 247 passed/0 failed/0 skipped; dark native QA at 900x660, 1120x760 and 1600x900 covered READY, COPYING, VERIFYING, SAFE TO EJECT, TRANSFER COMPLETE, TRANSFER ERROR and CANCELLED. Light appearance not available without changing system settings.
+- Notes: extra worker draft removed; immutable 20260930-221451 handoff preserved. Exact model UNVERIFIED. Out-of-scope observation: the pre-existing allocated-byte storage estimate displayed 16 KB for a synthetic 1 GiB sparse fixture; no core change authorized. Single Next Action: RETURN_TO_BRAIN_FOR_FINAL_REDESIGN_ACCEPTANCE.
+
 ### 2026-09-30 - M2M Brain Return V2
 
 - Date: 2026-09-30

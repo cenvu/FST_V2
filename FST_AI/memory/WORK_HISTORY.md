@@ -21,6 +21,18 @@ Each entry must include:
 
 ## Recent History
 
+### 2026-10-01 - UI-7 Final Verification Repair
+
+- Agent/model: Codex local Worker / exact model UNVERIFIED
+- Branch/start: clean `main` at `ba4e7ec8cc1280c5b2535f2156bd6cc9bbfb6f8f`, equal to fetched `origin/main`; final commit and remote equality are recorded in the BRAIN return packet.
+- Files changed: `StorageAnalysisView.swift` (one View-only width frame); deleted noncanonical `handoffs/UI-7_Final_Visual_Polish.md`; Command Center/task/work records; `handoffs/CURRENT_HANDOFF.md`, `handoffs/20261001-005243_codex-local-worker_ui-7-final-verification-repair.md`, and one INDEX entry.
+- What changed: native dark-mode QA at 900x660, 1120x760 and 1600x900 found Storage Readiness retaining intrinsic width while Source, Destination and Transfer spanned the content column. Added `.frame(maxWidth: .infinity, alignment: .leading)` before `.standardPanel()`; verified consistent panel width. No other UI patch.
+- Safety boundary: no Models, ViewModel runtime semantics, Coordinator, Engine, Service, Xcode project, transfer/verify/report/state/cancellation behavior, or SAFE TO EJECT gate change. Owner's original app/source bookmarks were not used for transfer; all completed GUI runs used an isolated QA bundle with temporary read-only fixtures and temporary destinations.
+- Verification: full/default standalone `TransferControlsLabelTests` PASS; Debug `BUILD SUCCEEDED`; focused 80 passed/0 failed/0 skipped; full 247 passed/0 failed/0 skipped. Native dark GUI reached READY, COPYING, VERIFYING, SAFE TO EJECT, TRANSFER COMPLETE, TRANSFER ERROR and CANCELLED. Notification and Technical Log inspected at minimum width; populated stdout/file rows used semantic text color. Light appearance was unavailable without changing system settings.
+- Remaining limitations: exact runtime model UNVERIFIED. A synthetic 1 GiB logical sparse file allocated 16 KB and appeared as 16 KB in Storage Readiness; direct source confirms `DriveService.scanFolder` prefers `totalFileAllocatedSize`. This is a pre-existing Services/core observation outside this task's no-core scope; no code change. GitHub issue search required reauthentication; CodeGraph tools were unavailable. All temporary app, fixture and screenshot files were cleaned.
+- Commit/release: one coherent repair/evidence commit; pushed and fetch-verified against `origin/main`; no tag/release. Final SHA is in `03_FST_BRAIN.md`.
+- Single Next Action: RETURN_TO_BRAIN_FOR_FINAL_REDESIGN_ACCEPTANCE.
+
 ### 2026-09-30 - M2M Brain Return V2
 
 - Agent/model: Codex local Worker / exact model UNVERIFIED

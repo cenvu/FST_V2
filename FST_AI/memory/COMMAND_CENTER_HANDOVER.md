@@ -8,8 +8,18 @@
 - Packet sizing: V1 prior packet 33,185 bytes; V2 target 1,239 bytes; no default verbatim bodies or handoff interpretation.
 - PASS remains fail-closed on handoff verification, worktree, upstream equality, and Git observation. FAIL remains exportable.
 - Size gate: previous V1 Desktop packet 33,185 bytes; V2 packet target 1,239 bytes; final export confirms packet length.
-- No production Swift/Xcode changes; no historical handoff edits; UI-7 unauthorized.
+- No production Swift/Xcode changes and no historical handoff edits in this M2M batch; UI-7 was unauthorized at that point.
 - Canonical continuation: handoffs/CURRENT_HANDOFF.md. Single Next Action: RETURN_TO_BRAIN.
+
+## Current Sprint Status — UI-7 Final Verification Repair (2026-10-01)
+
+- Owner explicitly routed the bounded UI-7 final verification repair from clean `main` at `ba4e7ec8cc1280c5b2535f2156bd6cc9bbfb6f8f`, equal to fetched `origin/main`.
+- Physical macOS dark-mode QA at 900x660, 1120x760 and 1600x900 confirmed one Storage Readiness panel width defect. `StorageAnalysisView` now expands to the shared content width before `.standardPanel()`; no other UI changes were made.
+- Full/default standalone PASS; Debug BUILD SUCCEEDED; focused XCTest 80/80; full XCTest 247/247, 0 failed/0 skipped. Native states observed: READY, COPYING, VERIFYING, SAFE TO EJECT, TRANSFER COMPLETE, TRANSFER ERROR and CANCELLED. Notification and Technical Log layouts were inspected at minimum width. Light mode remains unverified because the host was in dark appearance and a QA-only override did not produce a visible native window; no system appearance setting was changed.
+- No Models, ViewModel runtime semantics, Coordinator, Engine, Service, Xcode project, state machine, copy/verify/report, cancellation or SAFE TO EJECT gate changes. Immutable prior UI-7 handoff preserved; the noncanonical worker draft was deleted; `handoffs/20261001-005243_codex-local-worker_ui-7-final-verification-repair.md` records exact evidence.
+- Out-of-scope core observation for BRAIN triage: `DriveService.scanFolder` prefers allocated bytes; a synthetic 1 GiB logical sparse file allocated 16 KB and Storage Readiness displayed 16 KB. No core change was authorized or made.
+- Exact model UNVERIFIED. CodeGraph MCP unavailable; GitHub issue search returned UNAUTHORIZED and required reauthentication. Direct source, tests and Git remain authoritative.
+- Current handoff: `handoffs/CURRENT_HANDOFF.md`. Single Next Action: RETURN_TO_BRAIN_FOR_FINAL_REDESIGN_ACCEPTANCE. UI-8 is not authorized.
 
 ## Current Sprint Status — UI-6 Metrics Presentation Contract Repair (2026-09-30)
 

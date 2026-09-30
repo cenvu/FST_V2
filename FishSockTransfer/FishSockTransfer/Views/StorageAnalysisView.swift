@@ -21,6 +21,7 @@ public struct StorageAnalysisView: View {
 
             readinessContent
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .standardPanel()
     }
 
