@@ -53,3 +53,4 @@ new handoffs that reference the older handoff; history is never erased.
 | 2026-09-30T10:52:10+07:00 | 20260930-105210_unverified_task.md | NORMAL | UNVERIFIED/UNVERIFIED | task/phase | main@2c15ff9 | modified | NONE |
 | 2026-09-30T10:53:13+07:00 | 20260930-105313_unverified_task.md | VERIFICATION | UNVERIFIED/UNVERIFIED | task/phase | main@271310f | modified | 20260930-105210_unverified_task.md |
 | 2026-09-30T11:15:36+07:00 | 20260930-111536_codex_p0-bandwidth-unlimited-to-preset-crash-fix.md | NORMAL | Codex/GPT-6-variant-unverified | P0 Bandwidth Unlimited-to-Preset Crash Fix/P0 bounded crash fix | main@9cbaf20 | modified | NONE |
+| 2026-09-30T12:40:54+07:00 | 20260930-124054_antigravity_redesign-vnext-documentation-baseline.md | NORMAL | Antigravity/UNVERIFIED | REDESIGN VNEXT DOCUMENTATION BASELINE/PLANNING | main@4227614 | modified | NONE |
