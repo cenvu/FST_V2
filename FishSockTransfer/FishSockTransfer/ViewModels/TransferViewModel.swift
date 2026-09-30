@@ -1537,19 +1537,21 @@ nonisolated public enum TransferRuntimeMetricPresentation {
     }
 
     public static func currentFileValue(currentFile: String, state: TransferState) -> String {
-        guard currentFile.isEmpty else {
-            return currentFile
+        guard !currentFile.isEmpty else {
+            if state == .copying {
+                return "Waiting for first file..."
+            }
+            if state == .verifying {
+                return "Preparing verification..."
+            }
+            return "-"
         }
 
-        if state == .copying {
-            return "Waiting for first file..."
+        if currentFile.lowercased().hasSuffix(".dng") {
+            return "Processing CinemaDNG frame sequence..."
         }
 
-        if state == .verifying {
-            return "Preparing verification..."
-        }
-
-        return "-"
+        return currentFile
     }
 
     public static func shouldShowRsyncTime(for state: TransferState) -> Bool {

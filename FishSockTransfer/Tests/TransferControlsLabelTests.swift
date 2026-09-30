@@ -45,6 +45,7 @@ struct TransferControlsLabelTests {
         testActionPresentation()
         testActiveStateAndActionSeparation()
         testTerminalStateAndActionSeparation()
+        testCinemaDNGSuppression()
         try await MainActor.run {
             try testViewModelStartGateAndSelectionLock()
             testTechnicalLogCallback()
@@ -436,6 +437,30 @@ struct TransferControlsLabelTests {
             assertFalse(TransferControlsActionPresentation.stateTitle(for: state, canStartTransfer: true, errorMessage: raw).contains("SAFE TO EJECT"), "active state must not render safe banner from stale error")
             assertFalse(TransferControlsActionPresentation.stateSubtitle(for: state, canStartTransfer: true).contains("SAFE TO EJECT: NO"), "no active false-negative safety banner")
         }
+    }
+
+    private static func testCinemaDNGSuppression() {
+        let normalFile = "A001_C001_010101.mov"
+        let dngFile1 = "A001_C001_010101_00000.dng"
+        let dngFile2 = "A001_C001_010101_00001.DNG"
+
+        assertEqual(
+            TransferRuntimeMetricPresentation.currentFileValue(currentFile: normalFile, state: .copying),
+            normalFile,
+            "Normal files should display their name"
+        )
+
+        assertEqual(
+            TransferRuntimeMetricPresentation.currentFileValue(currentFile: dngFile1, state: .copying),
+            "Processing CinemaDNG frame sequence...",
+            "Lowercase .dng should be suppressed"
+        )
+
+        assertEqual(
+            TransferRuntimeMetricPresentation.currentFileValue(currentFile: dngFile2, state: .copying),
+            "Processing CinemaDNG frame sequence...",
+            "Uppercase .DNG should be suppressed"
+        )
     }
 
     @MainActor

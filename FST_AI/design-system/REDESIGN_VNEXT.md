@@ -75,11 +75,11 @@ Technical Log remains a dedicated diagnostic surface (may later gain a preferenc
   - TRANSFER ERROR
 - Keep UI minimal: terminal outcome should be clear through control/action state + text badge. Do not require a giant celebratory final card. CANCELLED remains a legitimate runtime terminal state.
 
-## Whole-Job Hero Metrics
-The three primary hero metrics have equal hierarchy:
-- PROGRESS
-- WHOLE-JOB ETA
-- CURRENT SPEED
+## Active-Phase Hero Metrics
+The three primary hero metrics have equal hierarchy and are phase-specific:
+- PROGRESS (Copy/Verify)
+- ETA (Copy/Verify)
+- CURRENT SPEED / PHASE METRIC (Current Copy Speed / Verify Elapsed)
 
 Secondary metrics may include elapsed time, copied bytes/total bytes, copied files/total files, average speed, verification progress, current item.
 
@@ -88,9 +88,9 @@ Secondary metrics may include elapsed time, copied bytes/total bytes, copied fil
 - Preferred display: `~18 min remaining`
 - Warm-up display: `Estimating...`
 - **Product targets:** normal estimation warm-up <= 120 seconds. After a material sustained throughput change, target useful ETA adaptation within <= 10 seconds.
-- **Rules:** Never show per-file ETA as whole-job ETA. Never leave stale ETA presented as current. Never invent numeric ETA before sufficient evidence. Never allow an ETA estimate to affect copy success, verify success, report safety, or SAFE TO EJECT.
+- **Rules:** Never show per-file ETA as phase ETA. Never leave stale ETA presented as current. Never invent numeric ETA before sufficient evidence. Never allow an ETA estimate to affect copy success, verify success, report safety, or SAFE TO EJECT.
 - If unable to estimate, allow a truthful degraded state (e.g. ETA unavailable) rather than indefinite Estimating.
-- **Future direction:** a bounded WholeJobETAEstimator/presentation component may own smoothing, recent throughput history, stale detection and adaptation.
+- **Future direction:** a bounded ETA estimator/presentation component may own smoothing, recent throughput history, stale detection and adaptation.
 
 ## High-File-Count / CinemaDNG Behavior
 - FST must remain readable for cinema jobs containing roughly 40k–50k files.

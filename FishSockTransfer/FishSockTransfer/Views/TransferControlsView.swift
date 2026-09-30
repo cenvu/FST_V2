@@ -89,15 +89,7 @@ public struct TransferControlsView: View {
 
     private var progressPanel: some View {
         VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Text(TransferRuntimeMetricPresentation.progressTitle(for: viewModel.transferState))
-                    .font(.headline)
-                    .foregroundColor(.primary)
-                Spacer()
-                Text("\(Int(displayProgress.rounded()))%")
-                    .font(.system(.title3, design: .monospaced, weight: .semibold))
-                    .foregroundColor(viewModel.transferState == .verifying ? .orange : (viewModel.transferState == .copying ? .blue : viewModel.transferState.statusColor))
-            }
+            heroMetricsRow
 
             ProgressView(value: displayProgress, total: 100)
                 .progressViewStyle(.linear)
@@ -134,6 +126,59 @@ public struct TransferControlsView: View {
             RoundedRectangle(cornerRadius: 10)
                 .stroke(Color.secondary.opacity(0.16), lineWidth: 1)
         )
+    }
+
+    private var heroMetricsRow: some View {
+        HStack(alignment: .bottom, spacing: 12) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(TransferRuntimeMetricPresentation.progressTitle(for: viewModel.transferState).uppercased())
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+                    .bold()
+                Text("\(Int(displayProgress.rounded()))%")
+                    .font(.system(.title3, design: .monospaced, weight: .semibold))
+                    .foregroundColor(viewModel.transferState == .verifying ? .orange : (viewModel.transferState == .copying ? .blue : viewModel.transferState.statusColor))
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text(viewModel.transferState == .verifying ? "VERIFY ETA" : "COPY ETA")
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+                    .bold()
+                Text(viewModel.transferState == .verifying ? verifyEtaValue : copyEtaValue)
+                    .font(.system(.title3, design: .monospaced, weight: .semibold))
+                    .foregroundColor(.primary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+
+            VStack(alignment: .leading, spacing: 4) {
+                if viewModel.transferState == .verifying {
+                    Text("VERIFY ELAPSED")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                        .bold()
+                    Text(formatElapsed(viewModel.verifyElapsedSeconds))
+                        .font(.system(.title3, design: .monospaced, weight: .semibold))
+                        .foregroundColor(.primary)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.8)
+                } else {
+                    Text("CURRENT SPEED")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                        .bold()
+                    Text(currentSpeedValue)
+                        .font(.system(.title3, design: .monospaced, weight: .semibold))
+                        .foregroundColor(.primary)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.8)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
     }
 
     private var settingsPanel: some View {
@@ -377,33 +422,19 @@ public struct TransferControlsView: View {
         Grid(horizontalSpacing: 12, verticalSpacing: 12) {
             GridRow {
                 runtimeMetric(title: "COPY ELAPSED", value: formatElapsed(copyElapsedSeconds))
-                runtimeMetric(title: "ETA", value: copyEtaValue)
-                runtimeMetric(title: "CURRENT SPEED", value: currentSpeedValue)
                 runtimeMetric(title: "COPIED", value: copiedBytesValue)
+                runtimeMetric(title: "FILES", value: copiedFilesValue)
             }
 
             GridRow {
                 runtimeMetric(title: runtimeFileMetricTitle, value: displayCurrentFile)
                     .gridCellColumns(3)
-                runtimeMetric(title: "FILES", value: copiedFilesValue)
             }
         }
     }
 
     private var verifyRuntimeMetrics: some View {
-        Grid(horizontalSpacing: 12, verticalSpacing: 0) {
-            GridRow {
-                Color.clear.frame(maxWidth: .infinity, maxHeight: 0)
-                Color.clear.frame(maxWidth: .infinity, maxHeight: 0)
-                Color.clear.frame(maxWidth: .infinity, maxHeight: 0)
-                Color.clear.frame(maxWidth: .infinity, maxHeight: 0)
-            }
-            GridRow {
-                runtimeMetric(title: runtimeFileMetricTitle, value: displayCurrentFile)
-                    .gridCellColumns(3)
-                runtimeMetric(title: "ETA", value: verifyEtaValue)
-            }
-        }
+        runtimeMetric(title: runtimeFileMetricTitle, value: displayCurrentFile)
     }
 
     private var verifyEtaValue: String {
