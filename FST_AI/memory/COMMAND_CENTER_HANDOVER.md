@@ -573,3 +573,10 @@ Architecture: SwiftUI Views -> TransferViewModel -> TransferCoordinator -> Engin
 Safety model: safety truth is copy success + verification result + report/final state. Transfer truth is bundled rsync lifecycle, exit status, stderr, cancellation/failure. Operator truth is UI progress, destination observer metrics, speed, ETA, current item, verify ETA, logs, Telegram/update-check visibility. Destination observer and verify ETA are UI-only and must never decide copy success, verify success, report result, or SAFE TO EJECT. Verification modes: `none` copy-only; `random33` sample SHA256; `full` xxHash64 full verification.
 
 AI roles: Mi/Command Center is technical lead/safety gate/prompt architect. Codex handles core engineering, release engineering, repo audits. Antigravity handles SwiftUI/UI. Gemini Pro can do small UI/ViewModel experiments if routed. Claude reviews QA/safety. Roo/RooCode is dropped unless reintroduced. `FST_AI/roles/` is the only active role-doc home. Agents check `TASK_REGISTRY.md` and `WORK_HISTORY.md` before repeated tasks. Standard checks: `git diff --check`; Xcode Debug build; full `xcodebuild test`; `bash scripts/package-local-arm64.sh`. Next priorities: second-Mac package QA, failure/cancel QA, destination existing-folder policy, report evidence review, permission UX, release automation, docs cleanup, UI clarity, signing/notarization decision.
+
+## BRAIN ↔ WORKER Transport Policy
+
+- Owner-facing surface: only BRAIN review/adjudication in Vietnamese is human-readable.
+- Worker prompts: machine-to-machine dense protocol; optimize tokens, precision, constraints, gates; no explanatory prose for Owner.
+- ~/Desktop/03_FST_BRAIN.md: machine-to-machine fallback transport, optimized for BRAIN parsing; repository/GitHub remains canonical; avoid unnecessary verbatim duplication of canonical repo text.
+- Minimum transport semantics: task/result, canonical repo/branch/HEAD/upstream equality, gate failures, changed-scope/evidence locators, blockers/risks/not-executed, exactly one next action.
