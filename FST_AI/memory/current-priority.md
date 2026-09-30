@@ -4,13 +4,11 @@
 
 Current priority order:
 
-1. Core safety/state/verify correctness
-2. Runtime QA after rsync and report changes
-3. Progress parser validation
-4. Whole-job ETA correctness
-5. Detailed TXT Report V1 truthfulness
-6. Optional full file manifest, only if explicitly approved
-7. UI/language polish after safety is stable
+1. REDESIGN DOCUMENTATION BASELINE
+2. OPENDESIGN MOCKUPS
+3. BRAIN + OWNER DESIGN REVIEW
+4. ONLY THEN IMPLEMENTATION PLANNING
+(No UI implementation is currently authorized)
 
 ## Current Known Focus Areas
 

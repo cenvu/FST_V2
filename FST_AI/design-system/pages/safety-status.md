@@ -29,6 +29,8 @@ The UI must support:
 - Blocked states must be visually stronger than neutral metadata.
 - Success state must not appear before verify pass.
 - Unknown state must not look like success.
+- Terminal outcomes: TRANSFER COMPLETE, SAFE TO EJECT, MANUAL CHECK REQUIRED, TRANSFER ERROR.
+- Keep the UI minimal for terminal outcomes (control/action state + text badge). Do not require a giant celebratory final card.
 
 ## Wording
 

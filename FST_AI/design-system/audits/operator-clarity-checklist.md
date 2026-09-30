@@ -26,6 +26,20 @@ The UI should help answer:
 - [ ] Is it safe to eject?
 - [ ] Is there a report?
 
+## Error Presentation
+- [ ] Layer 1: human-readable problem/action.
+- [ ] Layer 2: technical detail / diagnostic code + route to Tech Log.
+- [ ] Warnings and blocking errors must appear inline on Transfer.
+
+## Responsive Window Contract
+- [ ] Defines a minimum usable window size.
+- [ ] Layout remains valid at minimum size.
+- [ ] Above minimum, widths and spacing adapt naturally without fixed content heights for primary panels.
+- [ ] No clipping/disappearing controls.
+- [ ] Long paths truncate safely while remaining inspectable.
+- [ ] Main hierarchy does not radically reflow on resize.
+- [ ] Note: Current SwiftUI uses fixed tabContentHeight 600, fixed side regions, fixed card heights. Avoid this fixed geometry in vNext.
+
 ## Failure Clarity Test
 
 When something fails:

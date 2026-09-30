@@ -335,15 +335,19 @@ Required conversions:
 
 ```text
 50 MB/s  -> 51200
-120 MB/s -> 122880
-240 MB/s -> 245760
+75 MB/s  -> 76800
+100 MB/s -> 102400
+125 MB/s -> 128000
+150 MB/s -> 153600
+175 MB/s -> 179200
+200 MB/s -> 204800
 Unlimited -> omit --bwlimit
 ```
 
 Custom range:
 
 ```text
-20...300 MB/s
+NONE (NO CUSTOM BANDWIDTH CONTROL)
 ```
 
 Conversion must be covered by tests.

@@ -31,6 +31,11 @@ Required behavior:
 - Current file ETA may exist only as secondary/debug detail.
 - UI must not present per-file ETA as project ETA.
 
+## UI and Layout Issues
+- Fixed geometry / resize fragility (e.g., fixed tabContentHeight 600, fixed side regions, fixed card heights).
+- High-file-count Current Item noise (e.g., DNG/CinemaDNG frame churn).
+- Stale/slow ETA adaptation concern.
+
 ## fileCountMismatch
 
 Needs investigation:

@@ -263,8 +263,8 @@ Owns:
 
 Owns:
 
-- presets: 50 MB/s, 120 MB/s, 240 MB/s, Unlimited
-- custom range: 20 MB/s to 300 MB/s
+- presets: 50, 75, 100, 125, 150, 175, 200 MB/s, Unlimited
+- custom range: NONE (NO CUSTOM BANDWIDTH CONTROL)
 - conversion to rsync `--bwlimit` value
 
 Critical:
@@ -546,6 +546,8 @@ Audit priorities:
 2. Current speed must not be confused with average speed.
 3. ETA must be optional when unknown.
 4. UI must not fake 100% until process exit is confirmed.
+5. ETA Trust Contract: ETA is a responsive truthful estimate. Warm-up <= 120s, adaptation <= 10s. Never show per-file ETA as whole-job ETA. Never leave stale ETA presented as current. Future architecture may include a bounded WholeJobETAEstimator.
+6. High-File-Count: Suppress DNG/CinemaDNG frame churn from compact Current Item presentation. Do not invent full extension taxonomy without real production samples.
 
 ---
 
@@ -554,13 +556,17 @@ Audit priorities:
 UI presets:
 
 - 50 MB/s
-- 120 MB/s
-- 240 MB/s
+- 75 MB/s
+- 100 MB/s
+- 125 MB/s
+- 150 MB/s
+- 175 MB/s
+- 200 MB/s
 - Unlimited
 
 Custom range:
 
-- 20 MB/s to 300 MB/s
+- NO CUSTOM BANDWIDTH CONTROL
 
 Rules:
 
@@ -586,7 +592,7 @@ Convert to KiB/s for rsync --bwlimit.
 
 ## 9. Verification Engine Spec
 
-Verification modes:
+Verification modes (Backend):
 
 ```swift
 enum VerificationMode {
@@ -595,6 +601,12 @@ enum VerificationMode {
     case full
 }
 ```
+
+Presentation labels:
+- none: COPY ONLY — Fastest
+- random33: SAMPLE 33% — Balanced
+- full: FULL 100% — Maximum confidence
+
 
 Mode behavior:
 
@@ -874,8 +886,8 @@ Use this checklist before asking Codex to write more code.
 ### Speed limiter
 
 - [ ] Unlimited omits `--bwlimit`.
-- [ ] 50/120/240 MB/s convert correctly.
-- [ ] Custom 20-300 MB/s clamps or rejects correctly.
+- [ ] preset MB/s convert correctly
+- [ ] NO CUSTOM BANDWIDTH CONTROL
 - [ ] Logs/report show chosen limit.
 
 ### `.DS_Store` hang

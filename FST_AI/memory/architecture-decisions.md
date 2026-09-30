@@ -40,3 +40,19 @@ Operator-facing UI, logs, reports, and docs must use SAFE TO EJECT for verified 
 
 The internal state name `safeToFormat` is legacy and should not leak into operator-facing wording.
 
+## AD-007: Progressive Disclosure & Backend Truth
+
+Advanced information targets (e.g. filesystem, free capacity) should use a right-side inspector or inline disclosure. Do not invent or fake device metadata if not provided by backend.
+
+## AD-008: Responsive Window Contract
+
+The layout must define a minimum usable window size and adapt naturally without fixed heights for primary panels or disappearing controls. Main hierarchy remains stable on resize.
+
+## AD-009: ETA Trust Contract
+
+ETA is a responsive truthful estimate for the operator, not safety truth. It must never affect safe-to-eject gating. ETA should adapt to sustained throughput changes and avoid leaving stale values presented as current.
+
+## AD-010: Intel Mac Support
+
+Intel is a target requiring proof of safety, not a currently asserted support status. Apple Silicon and Intel Mac support must only be claimed when the complete bundled runtime is proven safe and repeatable.
+

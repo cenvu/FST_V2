@@ -45,6 +45,13 @@ FST should not feel:
 
 ## Recommended Style Direction
 
+DESIGN DIRECTION NAME: FST Hybrid Progressive Control Panel
+- FST is a professional cinema/media offload utility.
+- Visual personality: 70% macOS native utility, 30% cinema/offload control panel.
+- Dark-first reference design using semantic design tokens (do not hard-code to dark-only).
+- Default UI: compact, low-noise, professional, technical enough for diagnosis, understandable for first-time operator.
+- Backend truth always wins over mockup aesthetics.
+
 Primary styles:
 
 - Minimalism / Swiss Style
@@ -73,17 +80,25 @@ Avoid:
 
 ## Visual Hierarchy
 
-The hierarchy must be:
+MAIN INFORMATION FLOW (Stable vertical hierarchy):
+HEADER + EXISTING THREE TABS
+-> SOURCE
+-> DESTINATION
+-> TRANSFER SETUP
+-> CONTROL BAR
+-> WHOLE-JOB STATUS
+-> INLINE WARNING/ERROR WHEN PRESENT
+-> SECONDARY RUNTIME INFORMATION
 
-1. Current phase
-2. Overall job progress
-3. Project ETA / Whole Job ETA
-4. SAFE TO EJECT status
-5. Source and destination identity
-6. Warnings/errors
-7. Current file details
-8. Report availability
-9. Secondary metadata
+Do not specify responsive breakpoint reordering into unrelated layouts. Hierarchy remains stable as width changes.
+
+Tabs: TRANSFER, NOTIFICATION, TECHNICAL LOG. (Technical Log remains a dedicated diagnostic surface).
+
+## Source / Destination Rules
+Compact must expose at minimum: identity/name, path, free-space information when backend truth supports it.
+Advanced information target: full path, filesystem, volume name, total capacity, free capacity, file count, total bytes, connection type.
+Preferred Advanced presentation: right-side inspector when practical, inline disclosure is an allowed narrow-layout fallback.
+Backend truth rule: do not instruct mockups to fake unavailable device metadata.
 
 ## Color Principles
 

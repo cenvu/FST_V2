@@ -144,6 +144,8 @@ Meaningful work includes:
 - speed limit
 - logs
 - TXT report
+- Apple Silicon arm64 target
+- Intel Mac target (requires proof of bundled runtime safety)
 
 v1.3.5 packages the Clear Folder controls, safe Start-to-Cancel behavior, full-workflow Retry, persistent security-scoped folder access, and fixes misleading external-volume free space reporting.
 
@@ -307,10 +309,15 @@ Forbidden:
 Bandwidth:
 
 - 50 MB/s
-- 120 MB/s
-- 240 MB/s
+- 75 MB/s
+- 100 MB/s
+- 125 MB/s
+- 150 MB/s
+- 175 MB/s
+- 200 MB/s
 - Unlimited
-- custom 20...300 MB/s
+
+(No custom bandwidth control)
 
 Unlimited means no `--bwlimit`.
 

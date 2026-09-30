@@ -276,15 +276,15 @@ Current audit:
 Presets:
 
 - 50 MB/s
-- 120 MB/s
-- 240 MB/s
+- 75 MB/s
+- 100 MB/s
+- 125 MB/s
+- 150 MB/s
+- 175 MB/s
+- 200 MB/s
 - Unlimited
 
-Custom:
-
-```text
-20...300 MB/s
-```
+NO CUSTOM BANDWIDTH CONTROL.
 
 Rules:
 
@@ -307,6 +307,23 @@ Display:
 
 Progress must be based on real rsync output and process status. Do not fake success.
 
+High-File-Count / CinemaDNG Behavior:
+- FST must remain readable for cinema jobs containing roughly 40k–50k files.
+- DNG/CinemaDNG frame churn should be suppressed from compact Current Item presentation.
+- Video/clip-style media and useful clip-level RAW may remain eligible for compact current-item display.
+- Exact media-extension policy is an implementation decision requiring real production samples (do not invent taxonomy without evidence).
+- Advanced/technical surfaces may expose exact current filenames.
+
+ETA Trust Contract:
+- ETA is a responsive truthful estimate, not an exact future truth.
+- Normal estimation warm-up <= 120 seconds.
+- Adaptation <= 10 seconds after a material sustained throughput change.
+- Never show per-file ETA as whole-job ETA.
+- Never leave stale ETA presented as current.
+- ETA estimate must never affect safety truth or SAFE TO EJECT.
+- Preferred display: ~18 min remaining. Warm-up display: Estimating...
+- If unable to estimate, use a truthful degraded state (e.g. ETA unavailable) rather than indefinite Estimating.
+
 ### FR-008 Cancellation
 
 User can cancel active copy or verification.
@@ -321,7 +338,12 @@ Must:
 
 ### FR-009 Verification
 
-Modes:
+Presentation labels:
+- COPY ONLY — Fastest
+- SAMPLE 33% — Balanced
+- FULL 100% — Maximum confidence
+
+Backend Modes:
 
 ```text
 none, random33, full
@@ -366,6 +388,12 @@ Operator-facing terminal language:
 - Verification failure = MANUAL CHECK REQUIRED
 - Transfer, preflight, or rsync failure = TRANSFER ERROR
 - Cancelled = CANCELLED
+
+Error Presentation (Two-layer model):
+- Layer 1: human-readable problem/action.
+- Layer 2: technical detail / diagnostic code + route to Technical Log.
+- Warnings and blocking errors must appear inline on Transfer.
+- Do not hide blocking information behind tabs.
 
 ### FR-011 Logging
 
@@ -476,7 +504,9 @@ Compatibility:
 
 - v1.2 release candidate: macOS 13.5+
 - v1.2 release candidate: Apple Silicon arm64 only
-- Intel optional unless explicitly required
+- Apple Silicon arm64 target
+- Intel Mac target (requires proof of bundled runtime safety and repeatability before claiming support)
+- Never achieve Intel support by silent fallback
 
 Maintainability:
 

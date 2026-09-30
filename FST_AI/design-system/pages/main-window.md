@@ -19,15 +19,15 @@ It must answer these questions immediately:
 
 ## Layout Priority
 
-Recommended hierarchy:
-
-1. Header / job status
-2. Source + Destination panels
-3. Main progress panel
-4. Safety status panel
-5. Warnings/errors
-6. Report summary
-7. Secondary technical details
+MAIN INFORMATION FLOW:
+1. HEADER + EXISTING THREE TABS
+2. SOURCE
+3. DESTINATION
+4. TRANSFER SETUP
+5. CONTROL BAR
+6. WHOLE-JOB STATUS
+7. INLINE WARNING/ERROR WHEN PRESENT
+8. SECONDARY RUNTIME INFORMATION
 
 ## Main Window Rules
 
@@ -37,6 +37,8 @@ Recommended hierarchy:
 - Keep source/destination visible during active job.
 - Keep SAFE TO EJECT visible at final state.
 - Do not hide warnings/errors behind tabs.
+- A dedicated compact Control Bar owns the primary operational action/presentation (START TRANSFER, CANCEL, RETRY).
+- The three primary hero metrics have equal hierarchy: PROGRESS, WHOLE-JOB ETA, CURRENT SPEED.
 
 ## Review Checklist
 

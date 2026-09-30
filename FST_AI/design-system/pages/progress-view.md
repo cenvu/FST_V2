@@ -8,14 +8,18 @@ The progress view must help the operator understand current job progress and com
 
 ## Primary Information
 
-Show:
+The three primary hero metrics have equal hierarchy:
+1. PROGRESS
+2. WHOLE-JOB ETA
+3. CURRENT SPEED
 
-1. Current phase
-2. Overall job progress
-3. Project ETA / Whole Job ETA
-4. Transfer speed if reliable
-5. Files completed / total files if reliable
-6. Bytes copied / total bytes if reliable
+Secondary metrics may include:
+- elapsed time
+- copied bytes / total bytes
+- copied files / total files
+- average speed
+- verification progress
+- current item when useful
 
 ## Secondary Information
 
