@@ -29,13 +29,26 @@ This appears to have been run before as <entry>. Do you want to rerun it, contin
 
 ## Recent Tasks
 
+### 2026-09-30 - UI-3 Bandwidth Verification Controls
+
+- Date: 2026-09-30
+- Task ID: FST-UI-3
+- Task name: Align Transfer Setup menus and preset tests with the approved vNext contract
+- Agent: Codex local Worker / GPT-6 (variant UNVERIFIED)
+- Status: implemented; BRAIN review pending
+- Files changed: `TransferControlsView.swift`, `RsyncBandwidthLimit.swift`, `VerificationMode.swift`, wording-only `TransferEvent.swift`, seven reconciled test files, FST memory records, and one NORMAL handoff
+- Commit/tag/release: one coherent task commit; final SHA in BRAIN RAW; no tag or release
+- Safety impact: canonical finite presets now 50/75/100/125/150/175/200; Unlimited remains nil. Converter/20..300 defensive bounds, workflow, algorithms, technical report labels, locking, and SAFE TO EJECT unchanged.
+- Checks: Debug build PASS; focused XCTest 105/105; canonical XCTest 235/235, 0 failed/0 skipped; standalone bandwidth, actual Picker bandwidth regression, and report MVP tests PASS; stale product-spec search clean; `git diff --check` PASS
+- Notes: native GUI QA NOT PHYSICALLY EXECUTED. Single Next Action: RETURN TO BRAIN FOR UI-3 REVIEW; do not start UI-4.
+
 ### 2026-09-30 - UI-2 Source Destination Storage Readiness
 
 - Date: 2026-09-30
 - Task ID: FST-UI-2
 - Task name: Refine Source and Destination cards and add truthful Storage Readiness presentation
 - Agent: Codex local Worker / GPT-6
-- Status: implemented; BRAIN review pending
+- Status: implemented; PASS_WITH_ADVISORY accepted by BRAIN
 - Files changed: the four authorized production Views (`ContentView.swift`, `SourceCardView.swift`, `DestinationCardView.swift`, `StorageAnalysisView.swift`), FST memory records, one NORMAL canonical handoff, and one CORRECTION handoff fixing its publisher-assigned filename row
 - Commit/tag/release: one coherent task commit including the handoff; no tag or release
 - Safety impact: SwiftUI presentation only; selection/bookmark behavior, preflight authority, transfer settings, backend data, and runtime semantics unchanged

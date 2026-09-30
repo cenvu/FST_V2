@@ -66,9 +66,13 @@ struct TransferControlsLabelTests {
         }
         let sequence: [(label: String, megabytesPerSecond: Int?, kibPerSecond: Int?)] = [
             ("Unlimited", nil, nil), ("50 MB/s", 50, 51_200),
-            ("120 MB/s", 120, 122_880), ("240 MB/s", 240, 245_760), ("Unlimited", nil, nil)
+            ("75 MB/s", 75, 76_800), ("100 MB/s", 100, 102_400),
+            ("125 MB/s", 125, 128_000), ("150 MB/s", 150, 153_600),
+            ("175 MB/s", 175, 179_200), ("200 MB/s", 200, 204_800), ("Unlimited", nil, nil)
         ]
-        assertEqual(options.count, 4, "bandwidth option count")
+        assertEqual(options.count, 8, "bandwidth option count")
+        assertEqual(options.map(\.label), ["50 MB/s", "75 MB/s", "100 MB/s", "125 MB/s", "150 MB/s", "175 MB/s", "200 MB/s", "Unlimited"], "actual Picker labels")
+        assertEqual(options.map(\.value), [50, 75, 100, 125, 150, 175, 200, nil], "actual Picker MB/s values")
         for step in sequence {
             guard let option = options.first(where: { $0.label == step.label }) else {
                 fatalError("Missing bandwidth option: \(step.label)")
@@ -113,7 +117,7 @@ struct TransferControlsLabelTests {
         )
         assertEqual(
             VerificationMode.random33.operatorDescription,
-            "SHA256 sample verification. 33% coverage.",
+            "SHA256 sample verification. Approximately 33% coverage.",
             "random33 verification description"
         )
         assertTrue(
@@ -129,8 +133,11 @@ struct TransferControlsLabelTests {
             VerificationMode.full.operatorDescription.localizedCaseInsensitiveContains("non-cryptographic"),
             "full description must disclose xxHash64 is non-cryptographic"
         )
-        assertEqual(VerificationMode.random33.operatorLabel, "SHA256 Sample 33%", "random33 picker label")
-        assertEqual(VerificationMode.full.operatorLabel, "xxHash64 Full 100%", "full picker label")
+        assertEqual(VerificationMode.none.selectionLabel, "COPY ONLY — Fastest", "copy-only picker label")
+        assertEqual(VerificationMode.random33.selectionLabel, "SAMPLE 33% — Balanced", "random33 picker label")
+        assertEqual(VerificationMode.full.selectionLabel, "FULL 100% — Maximum confidence", "full picker label")
+        assertEqual(VerificationMode.random33.operatorLabel, "SHA256 Sample 33%", "random33 technical label")
+        assertEqual(VerificationMode.full.operatorLabel, "xxHash64 Full 100%", "full technical label")
 
         assertEqual(
             TransferReportStatusPresentation.message(forLogMessage: "Report saved: /tmp/FST_Report.txt"),

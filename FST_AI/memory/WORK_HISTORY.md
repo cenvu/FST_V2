@@ -21,6 +21,17 @@ Each entry must include:
 
 ## Recent History
 
+### 2026-09-30 16:30+07:00 - UI-3 Bandwidth Verification Controls
+
+- Agent/model: Codex local Worker / GPT-6 (variant UNVERIFIED)
+- Branch/commit/tag: clean `main` safely fast-forwarded from `11bda11c9da458a0995bba9024e68886ab163a2e` to `7625e6996d7606ffed590ea67111b34cc69e702f`, equal to fetched origin/main; final task SHA in BRAIN RAW; no tag/release
+- Files changed: four production files (TransferControlsView, RsyncBandwidthLimit, VerificationMode, wording-only TransferEvent), seven test files, required memory records and one NORMAL handoff
+- What changed: one canonical finite preset list feeds the menu; all seven MB/s -> KiB/s mappings are pinned; Unlimited stays nil. Verification menus use new selectionLabel while operatorLabel/reportLabel retain technical identity. Menus use available width; SHA256 description says approximately 33%; the stale Custom-range invitation is removed from TransferError wording.
+- Safety boundary confirmation: no ViewModel/Coordinator/RsyncEngine/VerifyEngine/ReportEngine algorithm or behavior change. Defensive converter range 20..300, single submission conversion, source read-only, configuration lock, technical report scope/hash notes, terminal semantics, and SAFE TO EJECT preserved. UI-2 Views untouched.
+- Build/test/package result: Debug build PASS; focused XCTest 105/105; full XCTest 235/235 with 0 failures/skips; standalone bandwidth, actual Picker bandwidth regression, and report MVP checks PASS. Native GUI QA NOT PHYSICALLY EXECUTED. No package built.
+- Whether committed/tagged/released: single task commit includes code/tests/records/handoff; no tag/release
+- Next recommended action: RETURN TO BRAIN FOR UI-3 REVIEW; do not start UI-4.
+
 ### 2026-09-30 15:57+07:00 - UI-2 Source Destination Storage Readiness
 
 - Agent/model: Codex local Worker / GPT-6

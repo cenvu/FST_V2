@@ -27,7 +27,9 @@ final class TransferViewModelRuntimeXCTests: XCTestCase {
 
         let steps: [(megabytesPerSecond: Int?, argument: String?, description: String)] = [
             (nil, nil, "Unlimited"), (50, "--bwlimit=51200", "50 MB/s"),
-            (120, "--bwlimit=122880", "120 MB/s"), (240, "--bwlimit=245760", "240 MB/s"),
+            (75, "--bwlimit=76800", "75 MB/s"), (100, "--bwlimit=102400", "100 MB/s"),
+            (125, "--bwlimit=128000", "125 MB/s"), (150, "--bwlimit=153600", "150 MB/s"),
+            (175, "--bwlimit=179200", "175 MB/s"), (200, "--bwlimit=204800", "200 MB/s"),
             (nil, nil, "Unlimited")
         ]
         for (index, step) in steps.enumerated() {
@@ -70,8 +72,9 @@ final class TransferViewModelRuntimeXCTests: XCTestCase {
         )
         let cases: [(value: Int, error: RsyncBandwidthLimitError)] = [
             (Int.min, .belowMinimum), (1, .belowMinimum), (19, .belowMinimum),
-            (301, .aboveMaximum), (51_200, .aboveMaximum), (122_880, .aboveMaximum),
-            (245_760, .aboveMaximum), (Int.max, .aboveMaximum)
+            (301, .aboveMaximum), (51_200, .aboveMaximum), (76_800, .aboveMaximum),
+            (102_400, .aboveMaximum), (128_000, .aboveMaximum), (153_600, .aboveMaximum),
+            (179_200, .aboveMaximum), (204_800, .aboveMaximum), (Int.max, .aboveMaximum)
         ]
         for entry in cases {
             viewModel.bandwidthLimit = entry.value

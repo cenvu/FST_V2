@@ -58,7 +58,7 @@ struct ReportEngineMVPReportTests {
                 passedFiles: 10,
                 failedFiles: 0
             ),
-            bandwidthLimit: RsyncBandwidthLimit.kibPerSecond(for: 120)
+            bandwidthLimit: RsyncBandwidthLimit.kibPerSecond(for: 125)
         )
         assertContains(verified, "Final Status:        SAFE TO EJECT DESTINATION", "verified final status")
         assertContains(verified, "Copy Duration:       00:00:20", "verified copy duration")
@@ -74,13 +74,13 @@ struct ReportEngineMVPReportTests {
         assertContains(verified, "Failed Files:        0", "failed count")
         assertContains(verified, "SAFE TO EJECT DESTINATION: YES", "verified safe eject destination")
         assertContains(verified, "Transfer Engine:     rsync 3.4.4", "minimal rsync engine detail")
-        assertContains(verified, "Bandwidth Limit:     120 MB/s", "operator bandwidth display")
+        assertContains(verified, "Bandwidth Limit:     125 MB/s", "operator bandwidth display")
         assertNotContains(verified, "Rsync Binary Path:", "operator report must not include rsync path")
         assertNotContains(verified, "Rsync Version:", "operator report must not include old rsync version field")
         assertNotContains(verified, infoFlag, "operator report must not include rsync flags")
         assertNotContains(verified, outbufFlag, "operator report must not include rsync flags")
         assertNotContains(verified, bwlimitFlag, "operator report must not include rsync bwlimit arg")
-        assertNotContains(verified, "122880", "operator report must not include internal KiB/s value")
+        assertNotContains(verified, "128000", "operator report must not include internal KiB/s value")
         assertNotContains(verified, formerFormatLabel, "verified report must not use old format wording")
 
         let timing = await engine.generateReportText(

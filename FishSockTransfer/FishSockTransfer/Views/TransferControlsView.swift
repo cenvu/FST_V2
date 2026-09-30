@@ -9,12 +9,10 @@ public struct TransferControlsView: View {
     @State private var cancelRequestGuard = TransferCancelRequestGuard()
 
     // Picker values match the ViewModel's MB/s contract; nil means Unlimited.
-    private let bandwidthOptions: [(label: String, value: Int?)] = [
-        ("50 MB/s", 50),
-        ("120 MB/s", 120),
-        ("240 MB/s", 240),
-        ("Unlimited", nil)
-    ]
+    private let bandwidthOptions: [(label: String, value: Int?)] =
+        RsyncBandwidthLimit.presetMegabytesPerSecond.map {
+            (label: "\($0) MB/s", value: Optional($0))
+        } + [(label: "Unlimited", value: nil)]
     
     public init(viewModel: TransferViewModel) {
         self.viewModel = viewModel
@@ -135,14 +133,14 @@ public struct TransferControlsView: View {
                     .foregroundColor(.secondary)
                     .fontWeight(.semibold)
 
-                Picker("", selection: $viewModel.bandwidthLimit) {
+                Picker("Bandwidth Limit", selection: $viewModel.bandwidthLimit) {
                     ForEach(bandwidthOptions, id: \.label) { option in
                         Text(option.label).tag(option.value)
                     }
                 }
                 .pickerStyle(.menu)
                 .labelsHidden()
-                .frame(maxWidth: 220, alignment: .leading)
+                .frame(maxWidth: .infinity, alignment: .leading)
 
                 Text("Copy speed cap")
                     .font(.caption)
@@ -159,16 +157,17 @@ public struct TransferControlsView: View {
                     .foregroundColor(.secondary)
                     .fontWeight(.semibold)
 
-                Picker("", selection: $viewModel.verificationMode) {
-                    Text(VerificationMode.none.operatorLabel).tag(VerificationMode.none)
-                    Text(VerificationMode.random33.operatorLabel).tag(VerificationMode.random33)
-                    Text(VerificationMode.full.operatorLabel).tag(VerificationMode.full)
+                Picker("Verification Mode", selection: $viewModel.verificationMode) {
+                    Text(VerificationMode.none.selectionLabel).tag(VerificationMode.none)
+                    Text(VerificationMode.random33.selectionLabel).tag(VerificationMode.random33)
+                    Text(VerificationMode.full.selectionLabel).tag(VerificationMode.full)
                 }
                 .pickerStyle(.menu)
                 .labelsHidden()
-                .frame(maxWidth: 220, alignment: .leading)
+                .frame(maxWidth: .infinity, alignment: .leading)
 
                 Text(viewModel.verificationMode.operatorDescription)
+                    .help(viewModel.verificationMode.operatorDescription)
                     .font(.system(.footnote, design: .rounded))
                     .foregroundColor(.secondary)
                     .opacity(0.6)
@@ -476,7 +475,7 @@ public extension VerificationMode {
         case .none:
             return "Copy only. No hash verification by FST."
         case .random33:
-            return "SHA256 sample verification. 33% coverage."
+            return "SHA256 sample verification. Approximately 33% coverage."
         case .full:
             return "xxHash64 full verification. Fast, non-cryptographic."
         }

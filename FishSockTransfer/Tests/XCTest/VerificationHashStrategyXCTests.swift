@@ -3,6 +3,21 @@
 import XCTest
 
 final class VerificationHashStrategyXCTests: XCTestCase {
+    func testVerificationSelectionLabelsPreserveTechnicalIdentity() {
+        let labels: [(VerificationMode, String, String)] = [
+            (.none, "COPY ONLY — Fastest", "None"),
+            (.random33, "SAMPLE 33% — Balanced", "SHA256 Sample 33%"),
+            (.full, "FULL 100% — Maximum confidence", "xxHash64 Full 100%")
+        ]
+        for (mode, selection, technical) in labels {
+            XCTAssertEqual(mode.selectionLabel, selection)
+            XCTAssertEqual(mode.operatorLabel, technical)
+            XCTAssertEqual(mode.reportLabel, technical)
+            XCTAssertNotEqual(mode.selectionLabel, mode.reportLabel)
+        }
+        XCTAssertEqual(labels.map { $0.0.rawValue }, ["none", "random33", "full"])
+    }
+
     func testXXHash64StandardVectorsSeedZero() {
         XCTAssertEqual(XXHash64.hexDigest(for: ""), "ef46db3751d8e999")
         XCTAssertEqual(XXHash64.hexDigest(for: "a"), "d24ec4f1a98c6e5b")
@@ -58,6 +73,15 @@ final class VerificationHashStrategyXCTests: XCTestCase {
     func testReportDisclosesSelectedHashAlgorithmAndStrength() async {
         let engine = ReportEngine()
 
+        let copyOnlyReport = await engine.generateReportText(
+            report: report(mode: .none, status: nil, finalStatus: .copyComplete),
+            bandwidthLimit: nil
+        )
+        XCTAssertTrue(copyOnlyReport.contains("Verification Mode:   None"))
+        XCTAssertTrue(copyOnlyReport.contains("Verification Scope:  NONE"))
+        XCTAssertTrue(copyOnlyReport.contains("Hash Algorithm:      None"))
+        XCTAssertFalse(copyOnlyReport.contains(VerificationMode.none.selectionLabel))
+
         let randomReport = await engine.generateReportText(
             report: report(mode: .random33, status: .failed, finalStatus: .error),
             bandwidthLimit: nil
@@ -66,6 +90,7 @@ final class VerificationHashStrategyXCTests: XCTestCase {
         XCTAssertTrue(randomReport.contains("Verification Scope:  RANDOM SAMPLE"))
         XCTAssertTrue(randomReport.contains("Hash Algorithm:      SHA256"))
         XCTAssertTrue(randomReport.contains("Strong cryptographic hash verification"))
+        XCTAssertFalse(randomReport.contains(VerificationMode.random33.selectionLabel))
 
         let fullReport = await engine.generateReportText(
             report: report(mode: .full, status: .passed, finalStatus: .safeToFormat),
@@ -75,6 +100,7 @@ final class VerificationHashStrategyXCTests: XCTestCase {
         XCTAssertTrue(fullReport.contains("Verification Scope:  FULL 100%"))
         XCTAssertTrue(fullReport.contains("Hash Algorithm:      xxHash64"))
         XCTAssertTrue(fullReport.contains("Fast non-cryptographic hash verification"))
+        XCTAssertFalse(fullReport.contains(VerificationMode.full.selectionLabel))
         XCTAssertFalse(fullReport.contains(["SAFE", "TO", "FORMAT"].joined(separator: " ")))
     }
 

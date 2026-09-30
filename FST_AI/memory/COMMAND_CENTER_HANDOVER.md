@@ -1,5 +1,15 @@
 # FST Command Center Handover
 
+## Current Sprint Status — UI-3 Bandwidth Verification Controls (2026-09-30)
+
+- BRAIN authorized UI-3 after accepting UI-2 as PASS_WITH_ADVISORY. Starting synchronized main: `7625e6996d7606ffed590ea67111b34cc69e702f`; unknown local state was preserved (initial worktree clean).
+- `RsyncBandwidthLimit.presetMegabytesPerSecond` is the sole finite preset source: `[50, 75, 100, 125, 150, 175, 200]`. The View derives its choices and appends nil Unlimited; no Custom UI. The converter and defensive 20..300 range are unchanged.
+- VerificationMode.selectionLabel supplies friendly menu labels; operatorLabel/reportLabel, raw modes, hash mapping, and technical report identity remain unchanged. TransferError invalid-bandwidth change is wording-only.
+- Debug build PASS; focused XCTest 105/105; canonical XCTest 235/235 with 0 failures/skips. Standalone bandwidth, actual Picker bandwidth regression, and report MVP tests PASS. Full native GUI checks NOT PHYSICALLY EXECUTED.
+- No UI-2 card/storage changes, action/status redesign, progress/ETA, workflow, algorithm, source-safety, report semantics, notification, bookmark, state-machine, or Xcode-project changes. CodeGraph unavailable; direct source used. GitHub issue search found no matching UI-3 issue.
+- Canonical continuation: handoffs/CURRENT_HANDOFF.md. Final commit/upstream evidence and refreshed transport: ~/Desktop/03_FST_BRAIN.md.
+- Single Next Action: RETURN TO BRAIN FOR UI-3 REVIEW. Do not start UI-4.
+
 ## Current Sprint Status — UI-2 Source Destination Storage Readiness (2026-09-30)
 
 - BRAIN authorized UI-2 after independently accepting UI-1A as PASS_WITH_ADVISORY; task began from clean `main@d634fdba12f9d20181e97b285937d4952d76ad1a`, equal to fetched `origin/main`.

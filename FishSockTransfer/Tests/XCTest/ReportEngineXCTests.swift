@@ -43,18 +43,18 @@ final class ReportEngineXCTests: XCTestCase {
     func testOperatorFacingRsyncDetailIsMinimalAndBandwidthIsHumanReadable() async {
         let text = await ReportEngine().generateReportText(
             report: report(finalStatus: .safeToFormat, mode: .full, verificationStatus: .passed),
-            bandwidthLimit: RsyncBandwidthLimit.kibPerSecond(for: 120)
+            bandwidthLimit: RsyncBandwidthLimit.kibPerSecond(for: 125)
         )
 
         XCTAssertTrue(text.contains("Transfer Engine:     rsync 3.4.4"))
-        XCTAssertTrue(text.contains("Bandwidth Limit:     120 MB/s"))
+        XCTAssertTrue(text.contains("Bandwidth Limit:     125 MB/s"))
         XCTAssertFalse(text.contains("Rsync Binary Path:"))
         XCTAssertFalse(text.contains("Rsync Version:"))
         XCTAssertFalse(text.contains("/App/Contents/Resources/rsync"))
         XCTAssertFalse(text.contains(infoFlag))
         XCTAssertFalse(text.contains(outbufFlag))
         XCTAssertFalse(text.contains(bwlimitFlag))
-        XCTAssertFalse(text.contains("122880"))
+        XCTAssertFalse(text.contains("128000"))
     }
 
     func testCopyOnlyReportIsTransferCompleteAndNotSafeToEject() async {

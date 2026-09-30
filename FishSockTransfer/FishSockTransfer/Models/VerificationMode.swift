@@ -52,6 +52,18 @@ nonisolated public enum VerificationMode: String, Equatable, Sendable {
         }
     }
 
+    /// Menu presentation only; technical report and log labels remain separate.
+    public var selectionLabel: String {
+        switch self {
+        case .none:
+            return "COPY ONLY — Fastest"
+        case .random33:
+            return "SAMPLE 33% — Balanced"
+        case .full:
+            return "FULL 100% — Maximum confidence"
+        }
+    }
+
     public var operatorLabel: String {
         switch self {
         case .none:

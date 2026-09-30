@@ -32,7 +32,7 @@ nonisolated public enum TransferError: Error, Equatable, LocalizedError, Sendabl
         case .rsyncNotFound:
             return "Bundled rsync is missing, not executable, or not version 3.4.4."
         case .invalidBandwidthLimit:
-            return "Invalid bandwidth limit. Choose Unlimited or 20-300 MB/s."
+            return "Invalid bandwidth limit. Choose a supported bandwidth preset or Unlimited."
         case .interrupted:
             return "The transfer was interrupted."
         case .timeout:

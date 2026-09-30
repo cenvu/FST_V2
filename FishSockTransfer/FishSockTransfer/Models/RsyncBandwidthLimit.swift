@@ -22,7 +22,7 @@ nonisolated public enum RsyncBandwidthLimitError: Error, Equatable, LocalizedErr
 nonisolated public enum RsyncBandwidthLimit {
     public static let minimumMegabytesPerSecond = 20.0
     public static let maximumMegabytesPerSecond = 300.0
-    public static let presetMegabytesPerSecond = [50, 120, 240]
+    public static let presetMegabytesPerSecond = [50, 75, 100, 125, 150, 175, 200]
 
     public static func kibPerSecond(for megabytesPerSecond: Int) -> Int {
         do {
