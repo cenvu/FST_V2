@@ -22,7 +22,12 @@ public struct TransferControlsView: View {
         VStack(spacing: 12) {
             settingsPanel
 
-            actionStatusButton
+            switch viewModel.transferState {
+            case .ready, .validating, .copying, .verifying:
+                activeControlBar
+            case .copyComplete, .safeToFormat, .error, .cancelled:
+                actionStatusButton
+            }
 
             if let storageWarningMessage = viewModel.storageWarningMessage {
                 HStack(spacing: 8) {
@@ -67,6 +72,21 @@ public struct TransferControlsView: View {
             }
 
             progressPanel
+        }
+        .confirmationDialog("Cancel Transfer?", isPresented: $isShowingCancelConfirmation, titleVisibility: .visible) {
+            Button("Cancel Transfer", role: .destructive) {
+                cancelRequestGuard.confirmCancellationRequest()
+                isShowingCancelConfirmation = false
+                viewModel.cancelTransfer()
+            }
+            Button("Continue Transfer", role: .cancel) {
+                isShowingCancelConfirmation = false
+            }
+        } message: {
+            Text("The current transfer will stop. Source and destination selections will remain available.")
+        }
+        .onChange(of: viewModel.transferState) { newState in
+            cancelRequestGuard.reset(for: newState)
         }
     }
 
@@ -188,6 +208,66 @@ public struct TransferControlsView: View {
         )
     }
 
+    private var activeControlBar: some View {
+        let state = viewModel.transferState
+        let stateColor = TransferControlsActionPresentation.stateColor(for: state)
+
+        return HStack(spacing: 12) {
+            Image(systemName: TransferControlsActionPresentation.stateIcon(for: state))
+                .font(.body)
+                .foregroundColor(stateColor)
+                .accessibilityHidden(true)
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text(TransferControlsActionPresentation.stateTitle(
+                    for: state,
+                    canStartTransfer: viewModel.canStartTransfer
+                ))
+                .font(.headline)
+                .foregroundColor(stateColor)
+
+                Text(TransferControlsActionPresentation.stateSubtitle(
+                    for: state,
+                    canStartTransfer: viewModel.canStartTransfer,
+                    startBlockedReason: viewModel.startBlockedReason,
+                    workflowPhaseTitle: viewModel.workflowPhaseTitle,
+                    workflowPhaseMessage: viewModel.workflowPhaseMessage
+                ))
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+
+            if state == .validating {
+                // Validation has no cancellation path. This is status, not an action.
+                ProgressView()
+                    .controlSize(.small)
+                    .accessibilityLabel("Preparing Transfer")
+            } else {
+                Button(action: handleActionButton) {
+                    Label(
+                        TransferActionPresentation.title(for: state),
+                        systemImage: TransferControlsActionPresentation.icon(for: state)
+                    )
+                    .fixedSize()
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.regular)
+                .disabled(!isActionButtonEnabled)
+                .accessibilityLabel(accessibilityActionLabel)
+            }
+        }
+        .padding(12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color(NSColor.controlBackgroundColor).opacity(0.55))
+        .cornerRadius(10)
+        .overlay(
+            RoundedRectangle(cornerRadius: 10)
+                .stroke(Color.secondary.opacity(0.16), lineWidth: 1)
+        )
+    }
+
     private var actionStatusButton: some View {
         let statusColor = TransferControlsActionPresentation.buttonColor(
             for: viewModel.transferState,
@@ -250,21 +330,6 @@ public struct TransferControlsView: View {
         .disabled(!isActionButtonEnabled)
         .opacity(isActionButtonEnabled ? 1 : 0.68)
         .accessibilityLabel(accessibilityActionLabel)
-        .confirmationDialog("Cancel Transfer?", isPresented: $isShowingCancelConfirmation, titleVisibility: .visible) {
-            Button("Cancel Transfer", role: .destructive) {
-                cancelRequestGuard.confirmCancellationRequest()
-                isShowingCancelConfirmation = false
-                viewModel.cancelTransfer()
-            }
-            Button("Continue Transfer", role: .cancel) {
-                isShowingCancelConfirmation = false
-            }
-        } message: {
-            Text("The current transfer will stop. Source and destination selections will remain available.")
-        }
-        .onChange(of: viewModel.transferState) { newState in
-            cancelRequestGuard.reset(for: newState)
-        }
         .onHover { hovering in
             isActionHovered = hovering
         }
@@ -434,16 +499,11 @@ public struct TransferControlsView: View {
     }
 
     private var isActionButtonEnabled: Bool {
-        switch viewModel.transferState {
-        case .copying, .verifying:
-            return !cancelRequestGuard.isCancellationRequested
-        case .validating:
-            // Validation has no cancellable task in the current Coordinator,
-            // so the active presentation must stay disabled.
-            return false
-        case .ready, .error, .cancelled, .copyComplete, .safeToFormat:
-            return viewModel.canStartTransfer
-        }
+        TransferActionPresentation.isEnabled(
+            for: viewModel.transferState,
+            canStartTransfer: viewModel.canStartTransfer,
+            isCancellationRequested: cancelRequestGuard.isCancellationRequested
+        )
     }
 
     private var isStartAction: Bool {
@@ -495,6 +555,70 @@ nonisolated public enum TransferControlsVisualRole: Equatable, Sendable {
 }
 
 nonisolated public enum TransferControlsActionPresentation {
+    /// State identity is separate from the operator action returned by title(for:).
+    public static func stateTitle(for state: TransferState, canStartTransfer: Bool = false) -> String {
+        switch state {
+        case .ready:
+            return canStartTransfer ? "READY" : "SETUP REQUIRED"
+        case .validating:
+            return "PREPARING"
+        case .copying:
+            return "COPYING"
+        case .verifying:
+            return "VERIFYING"
+        case .copyComplete, .safeToFormat, .error, .cancelled:
+            return title(for: state)
+        }
+    }
+
+    public static func stateSubtitle(
+        for state: TransferState,
+        canStartTransfer: Bool = false,
+        startBlockedReason: String? = nil,
+        workflowPhaseTitle: String = "",
+        workflowPhaseMessage: String = ""
+    ) -> String {
+        switch state {
+        case .ready:
+            return canStartTransfer ? "Ready to transfer" : (startBlockedReason ?? "Complete transfer setup.")
+        case .validating:
+            let phase = [workflowPhaseTitle, workflowPhaseMessage].filter { !$0.isEmpty }
+            return phase.isEmpty ? subtitle(for: state) : phase.joined(separator: " — ")
+        case .copying:
+            return "Copy in progress. Do not remove media."
+        case .verifying:
+            return "Verification in progress. Do not remove media."
+        case .copyComplete, .safeToFormat, .error, .cancelled:
+            return subtitle(for: state)
+        }
+    }
+
+    public static func stateIcon(for state: TransferState) -> String {
+        switch state {
+        case .ready:
+            return "tray"
+        case .validating, .verifying:
+            return "magnifyingglass"
+        case .copying:
+            return "doc.on.doc"
+        case .copyComplete, .safeToFormat, .error, .cancelled:
+            return icon(for: state)
+        }
+    }
+
+    public static func stateColor(for state: TransferState) -> Color {
+        switch visualRole(for: state) {
+        case .idle:
+            return .secondary
+        case .preparing, .transferring:
+            return .blue
+        case .verifying:
+            return .orange
+        case .copyOnlyComplete, .safeToFormat, .manualCheckRequired, .error, .cancelled:
+            return buttonColor(for: state)
+        }
+    }
+
     public static func visualRole(for state: TransferState) -> TransferControlsVisualRole {
         visualRole(for: state, errorMessage: nil)
     }

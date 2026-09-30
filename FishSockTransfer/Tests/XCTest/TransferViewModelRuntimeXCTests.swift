@@ -899,9 +899,26 @@ final class TransferViewModelRuntimeXCTests: XCTestCase {
     // MARK: - Start / Cancel presentation
 
     func testActionPresentationReadyWithValidInputsPresentsStart() {
-        XCTAssertEqual(TransferActionPresentation.title(for: .ready, canStartTransfer: true), "START")
-        XCTAssertEqual(TransferActionPresentation.title(for: .ready, canStartTransfer: false), "START")
+        XCTAssertEqual(TransferActionPresentation.title(for: .ready, canStartTransfer: true), "START TRANSFER")
+        XCTAssertEqual(TransferActionPresentation.title(for: .ready, canStartTransfer: false), "START TRANSFER")
         XCTAssertFalse(TransferActionPresentation.isActiveCancellableState(.ready))
+    }
+
+    func testControlBarActionEnablementPreservesReadinessAndCancellation() {
+        XCTAssertTrue(TransferActionPresentation.isEnabled(for: .ready, canStartTransfer: true))
+        XCTAssertFalse(TransferActionPresentation.isEnabled(for: .ready, canStartTransfer: false))
+        XCTAssertFalse(TransferActionPresentation.isEnabled(for: .validating, canStartTransfer: true))
+        XCTAssertFalse(TransferActionPresentation.isEnabled(for: .validating, canStartTransfer: false))
+        for state in [TransferState.copying, .verifying] {
+            XCTAssertTrue(TransferActionPresentation.isEnabled(for: state, canStartTransfer: false))
+            XCTAssertFalse(TransferActionPresentation.isEnabled(for: state, canStartTransfer: false, isCancellationRequested: true))
+            XCTAssertTrue(TransferInteractionLock.isConfigurationLocked(for: state))
+            XCTAssertEqual(TransferActionPresentation.title(for: state), "CANCEL")
+        }
+        for state in [TransferState.error, .cancelled, .copyComplete, .safeToFormat] {
+            XCTAssertTrue(TransferActionPresentation.isEnabled(for: state, canStartTransfer: true))
+            XCTAssertFalse(TransferActionPresentation.isEnabled(for: state, canStartTransfer: false))
+        }
     }
 
     func testActionPresentationCopyingPresentsCancel() {

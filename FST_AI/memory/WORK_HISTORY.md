@@ -21,6 +21,17 @@ Each entry must include:
 
 ## Recent History
 
+### 2026-09-30 17:00+07:00 - UI-4 Active State Control Bar
+
+- Agent/model: Codex local Worker / GPT-6 (variant UNVERIFIED)
+- Branch/commit/tag: clean main synchronized with origin/main at 562a889df1ce0e2e9bcd2d5b4ed7e9271851f199; FF-only check up to date; final SHA in BRAIN RAW; no tag/release
+- Files changed: two production presentation surfaces (TransferControlsView and TransferActionPresentation in TransferViewModel), two existing test files, memory records and one NORMAL handoff
+- What changed: compact active Control Bar separates READY/PREPARING/COPYING/VERIFYING from START TRANSFER/CANCEL. Incomplete ready setup displays SETUP REQUIRED and existing blocked reason. Preparing displays truthful workflow phase and no Cancel. Terminal rendering remains on the existing button path. Shared cancellation confirmation/reset moved to the parent View without changing its actions.
+- Safety boundary confirmation: only a start-label change and an identical pure enablement projection in ViewModel file; canStartTransfer, lock, guard, start/cancel methods, Coordinator/state machine, copy/hash/report algorithms, UI-2/3 data, metrics and SAFE TO EJECT unchanged.
+- Build/test/package result: Debug PASS; full/default standalone label harness PASS including former stale action branch; focused 136/136; full canonical 236/236, 0 failed/0 skipped; diff check PASS. Native visual QA NOT PHYSICALLY EXECUTED; no package.
+- Whether committed/tagged/released: one coherent task commit includes source/tests/memory/handoff; no tag/release
+- Next recommended action: RETURN TO BRAIN FOR UI-4 REVIEW; do not start UI-5.
+
 ### 2026-09-30 16:30+07:00 - UI-3 Bandwidth Verification Controls
 
 - Agent/model: Codex local Worker / GPT-6 (variant UNVERIFIED)

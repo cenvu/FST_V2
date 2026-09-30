@@ -4,12 +4,12 @@
 
 ## Authorized Phase
 
-- Phase: UI-3 BANDWIDTH + VERIFICATION CONTROLS
-- Approval: BRAIN authorized UI-3 after independently accepting UI-2 as PASS_WITH_ADVISORY.
+- Phase: UI-4 ACTIVE STATE + CONTROL BAR PRESENTATION
+- Approval: BRAIN authorized UI-4 after independently accepting UI-3 as PASS_WITH_ADVISORY.
 - Status: Implemented; return to BRAIN for review.
-- Scope: canonical bandwidth presets, setup menus, verification selection labels, wording-only invalid-bandwidth feedback, and contract tests; algorithms and safety rules unchanged.
-- UI-4 and later phases remain unauthorized until BRAIN issues a new action.
-- Single next action: RETURN TO BRAIN FOR UI-3 REVIEW.
+- Scope: compact Ready/Preparing/Copying/Verifying Control Bar, separated state/action labels, and reconciled standalone tests; terminal rendering and workflow semantics unchanged.
+- UI-5 and later phases remain unauthorized until BRAIN issues a new action.
+- Single next action: RETURN TO BRAIN FOR UI-4 REVIEW.
 
 ## Current Known Focus Areas
 

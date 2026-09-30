@@ -43,6 +43,7 @@ struct TransferControlsLabelTests {
             return
         }
         testActionPresentation()
+        testActiveStateAndActionSeparation()
         try await MainActor.run {
             try testViewModelStartGateAndSelectionLock()
         }
@@ -166,13 +167,13 @@ struct TransferControlsLabelTests {
 
         assertEqual(
             TransferControlsActionPresentation.title(for: .ready),
-            "START",
-            "ready label"
+            "START TRANSFER",
+            "ready action label"
         )
         assertEqual(
             TransferControlsActionPresentation.title(for: .copying),
-            "TRANSFERRING",
-            "copying label"
+            "CANCEL",
+            "copying action label"
         )
         assertEqual(
             TransferControlsActionPresentation.title(for: .validating),
@@ -196,8 +197,8 @@ struct TransferControlsLabelTests {
         )
         assertEqual(
             TransferControlsActionPresentation.title(for: .verifying),
-            "VERIFYING",
-            "verifying label"
+            "CANCEL",
+            "verifying action label"
         )
         assertEqual(
             TransferControlsActionPresentation.title(for: .copyComplete),
@@ -347,6 +348,51 @@ struct TransferControlsLabelTests {
         )
     }
 
+    private static func testActiveStateAndActionSeparation() {
+        let states: [(TransferState, String, String, TransferControlsVisualRole)] = [
+            (.ready, "READY", "START TRANSFER", .idle),
+            (.validating, "PREPARING", "PREPARING TRANSFER", .preparing),
+            (.copying, "COPYING", "CANCEL", .transferring),
+            (.verifying, "VERIFYING", "CANCEL", .verifying)
+        ]
+        for (state, phase, action, role) in states {
+            assertEqual(TransferControlsActionPresentation.stateTitle(for: state, canStartTransfer: true), phase, "state identity")
+            assertEqual(TransferControlsActionPresentation.title(for: state), action, "operator action")
+            assertEqual(TransferControlsActionPresentation.visualRole(for: state), role, "active visual role")
+            for label in [phase, action, TransferControlsActionPresentation.stateSubtitle(for: state, canStartTransfer: true)] {
+                assertFalse(label.contains("SAFE TO EJECT"), "active state must not imply verified success")
+            }
+            assertNotEqual(role, .safeToFormat, "active state must not use success role")
+            assertNotEqual(TransferControlsActionPresentation.stateIcon(for: state), "checkmark.circle.fill", "active phase must not use verified-success icon")
+        }
+        assertEqual(TransferControlsActionPresentation.stateSubtitle(for: .ready, canStartTransfer: true), "Ready to transfer", "ready message")
+        assertEqual(TransferControlsActionPresentation.stateTitle(for: .ready), "SETUP REQUIRED", "blocked setup must not pretend ready")
+        assertEqual(TransferControlsActionPresentation.stateSubtitle(for: .ready, startBlockedReason: "Select a source folder."), "Select a source folder.", "backend start-blocked reason")
+        assertEqual(TransferControlsActionPresentation.stateSubtitle(for: .validating), "Scanning source and checking destination...", "preparation fallback")
+        assertEqual(TransferControlsActionPresentation.stateSubtitle(for: .validating, workflowPhaseTitle: "Scanning source", workflowPhaseMessage: "Building inventory"), "Scanning source — Building inventory", "truthful backend phase detail")
+        assertEqual(TransferControlsActionPresentation.stateSubtitle(for: .copying), "Copy in progress. Do not remove media.", "copy message")
+        assertEqual(TransferControlsActionPresentation.stateSubtitle(for: .verifying), "Verification in progress. Do not remove media.", "verify message")
+        assertFalse(TransferActionPresentation.isEnabled(for: .validating, canStartTransfer: true), "preparing has no action even with a stale start flag")
+
+        var guardState = TransferCancelRequestGuard()
+        var requests = 0
+        for state in [TransferState.copying, .verifying] {
+            if guardState.allowsNewCancellationRequest(for: state) {
+                guardState.confirmCancellationRequest()
+                requests += 1
+            }
+            assertFalse(TransferActionPresentation.isEnabled(for: state, canStartTransfer: false, isCancellationRequested: guardState.isCancellationRequested), "confirmed Cancel disables button across active phases")
+        }
+        assertEqual(requests, 1, "one confirmed cancellation per workflow")
+        for state in [TransferState.ready, .validating, .copyComplete, .safeToFormat, .error, .cancelled] {
+            guardState.confirmCancellationRequest()
+            guardState.reset(for: state)
+            assertFalse(guardState.isCancellationRequested, "leaving active phases resets guard")
+            assertFalse(guardState.allowsNewCancellationRequest(for: state), "no cancellation outside copying/verifying")
+            assertTrue(guardState.allowsNewCancellationRequest(for: .copying), "next workflow can cancel")
+        }
+    }
+
     @MainActor
     private static func testViewModelStartGateAndSelectionLock() throws {
         let temporaryRoot = URL(fileURLWithPath: NSTemporaryDirectory())
@@ -369,6 +415,7 @@ struct TransferControlsLabelTests {
         )
 
         assertFalse(viewModel.canStartTransfer, "missing source must disable start")
+        assertFalse(TransferActionPresentation.isEnabled(for: .ready, canStartTransfer: viewModel.canStartTransfer), "control bar start must use ViewModel readiness")
         assertEqual(viewModel.startBlockedReason, "Select a source folder.", "missing source reason")
 
         viewModel.sourceURL = sourceURL
@@ -377,6 +424,7 @@ struct TransferControlsLabelTests {
 
         viewModel.destinationURL = destinationURL
         assertTrue(viewModel.canStartTransfer, "selected source and destination should enable ready start")
+        assertTrue(TransferActionPresentation.isEnabled(for: .ready, canStartTransfer: viewModel.canStartTransfer), "valid readiness enables control bar start")
 
         viewModel.transferState = .cancelled
         assertTrue(viewModel.canStartTransfer, "cancelled with valid selections must allow restart")

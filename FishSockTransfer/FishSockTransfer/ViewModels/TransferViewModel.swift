@@ -1383,7 +1383,7 @@ nonisolated public enum TransferActionPresentation {
 
         switch state {
         case .ready:
-            return "START"
+            return "START TRANSFER"
         case .validating:
             return "PREPARING TRANSFER"
         case .copying, .verifying:
@@ -1396,6 +1396,22 @@ nonisolated public enum TransferActionPresentation {
             return "TRANSFER ERROR"
         case .cancelled:
             return "CANCELLED"
+        }
+    }
+
+    /// Pure enablement projection; readiness and confirmed cancellation remain authoritative.
+    public static func isEnabled(
+        for state: TransferState,
+        canStartTransfer: Bool,
+        isCancellationRequested: Bool = false
+    ) -> Bool {
+        switch state {
+        case .copying, .verifying:
+            return !isCancellationRequested
+        case .validating:
+            return false
+        case .ready, .error, .cancelled, .copyComplete, .safeToFormat:
+            return canStartTransfer
         }
     }
 

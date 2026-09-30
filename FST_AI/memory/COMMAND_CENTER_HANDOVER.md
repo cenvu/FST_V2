@@ -1,5 +1,15 @@
 # FST Command Center Handover
 
+## Current Sprint Status — UI-4 Active State Control Bar (2026-09-30)
+
+- BRAIN authorized UI-4 after accepting UI-3 as PASS_WITH_ADVISORY. Clean main start: 562a889df1ce0e2e9bcd2d5b4ed7e9271851f199, equal to fetched origin/main.
+- Active Control Bar separates state and action: READY / START TRANSFER; blocked setup / disabled START TRANSFER; PREPARING / no action; COPYING / CANCEL; VERIFYING / CANCEL. State uses text plus neutral/blue/orange presentation, never success-green or SAFE TO EJECT.
+- Existing terminal action button rendering/wording preserved. ViewModel file changes are confined to SwiftUI-free TransferActionPresentation (START TRANSFER plus the existing enablement switch extracted for tests); no workflow change. Confirmation and TransferCancelRequestGuard behavior unchanged; settings remain locked during active workflow.
+- Debug PASS; focused 136/136; canonical 236/236 (0 failed/skipped); full/default standalone TransferControlsLabelTests PASS, resolving the stale action expectation advisory. Native visual checks remain NOT PHYSICALLY EXECUTED.
+- No Source/Destination/Storage, bandwidth/verification, metrics/ETA, engine/service/coordinator/report/notification/bookmark/state-machine/project changes. CodeGraph unavailable; direct source authoritative. Matching UI-4 issue search found NONE.
+- Canonical handoff: handoffs/CURRENT_HANDOFF.md; final Git/upstream evidence and mandatory fallback packet in ~/Desktop/03_FST_BRAIN.md after finalization.
+- Single Next Action: RETURN TO BRAIN FOR UI-4 REVIEW. Do not start UI-5.
+
 ## Current Sprint Status — UI-3 Bandwidth Verification Controls (2026-09-30)
 
 - BRAIN authorized UI-3 after accepting UI-2 as PASS_WITH_ADVISORY. Starting synchronized main: `7625e6996d7606ffed590ea67111b34cc69e702f`; unknown local state was preserved (initial worktree clean).
