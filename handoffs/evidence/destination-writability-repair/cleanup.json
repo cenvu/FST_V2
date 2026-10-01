@@ -1,0 +1,28 @@
+{
+  "verified_at": "2026-10-01T17:44:24.333982+07:00",
+  "attached_task_images": [],
+  "remaining_task_fixtures": [],
+  "owner_media_touched": "NONE",
+  "result": "PASS",
+  "image_qa_passed_tests": [
+    {
+      "duration": "16s",
+      "durationInSeconds": 16.669148087501526,
+      "name": "testDisposableAPFSAdmissionAndVerifiedCopy()",
+      "nodeIdentifier": "DestinationCapacityImageRuntimeXCTests/testDisposableAPFSAdmissionAndVerifiedCopy()",
+      "nodeIdentifierURL": "test://com.apple.xcode/FishSockTransfer/FishSockTransferTests/DestinationCapacityImageRuntimeXCTests/testDisposableAPFSAdmissionAndVerifiedCopy",
+      "nodeType": "Test Case",
+      "result": "Passed"
+    },
+    {
+      "duration": "12s",
+      "durationInSeconds": 12.625234961509705,
+      "name": "testDisposableExfatLogicalWarningAndVerifiedCopy()",
+      "nodeIdentifier": "DestinationCapacityImageRuntimeXCTests/testDisposableExfatLogicalWarningAndVerifiedCopy()",
+      "nodeIdentifierURL": "test://com.apple.xcode/FishSockTransfer/FishSockTransferTests/DestinationCapacityImageRuntimeXCTests/testDisposableExfatLogicalWarningAndVerifiedCopy",
+      "nodeType": "Test Case",
+      "result": "Passed"
+    }
+  ],
+  "runtime_stdout": "Not present in xcodebuild console; authoritative xcresult outcomes and fixture cleanup checks recorded."
+}

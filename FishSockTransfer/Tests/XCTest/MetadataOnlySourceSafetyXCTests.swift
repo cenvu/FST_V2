@@ -153,14 +153,14 @@ final class MetadataOnlySourceSafetyXCTests: XCTestCase {
 
         XCTAssertThrowsError(try TransferPreflightValidator.validate(
             source: source, destination: destination, sourceMetadata: metadata,
-            destinationFreeSpaceBytes: logical - 1
+            destinationMetadata: .init(freeSpaceBytes: logical - 1, filesystem: "Unknown", isWritable: true)
         )) { error in
             XCTAssertEqual(error as? TransferPreflightError,
                            .insufficientDestinationSpace(required: logical, available: logical - 1))
         }
         let plan = try TransferPreflightValidator.validate(
             source: source, destination: destination, sourceMetadata: metadata,
-            destinationFreeSpaceBytes: logical
+            destinationMetadata: .init(freeSpaceBytes: logical, filesystem: "Unknown", isWritable: true)
         )
         XCTAssertEqual(plan.transferableBytes, logical)
         XCTAssertEqual(plan.transferableFileCount, 1)
@@ -332,7 +332,7 @@ final class MetadataOnlySourceSafetyXCTests: XCTestCase {
                 source: sourceURL,
                 destination: sourceURL,
                 sourceMetadata: metadata,
-                destinationFreeSpaceBytes: 2048
+                destinationMetadata: .init(freeSpaceBytes: 2048, filesystem: "Unknown", isWritable: true)
             )
         ) { error in
             XCTAssertEqual(error as? TransferPreflightError, .sameSourceAndDestination)
@@ -353,7 +353,7 @@ final class MetadataOnlySourceSafetyXCTests: XCTestCase {
                 source: sourceURL,
                 destination: destinationURL,
                 sourceMetadata: metadata,
-                destinationFreeSpaceBytes: 2048
+                destinationMetadata: .init(freeSpaceBytes: 2048, filesystem: "Unknown", isWritable: true)
             )
         ) { error in
             XCTAssertEqual(error as? TransferPreflightError, .destinationInsideSource)
@@ -374,7 +374,7 @@ final class MetadataOnlySourceSafetyXCTests: XCTestCase {
                 source: sourceURL,
                 destination: destinationURL,
                 sourceMetadata: metadata,
-                destinationFreeSpaceBytes: 2048
+                destinationMetadata: .init(freeSpaceBytes: 2048, filesystem: "Unknown", isWritable: true)
             )
         ) { error in
             XCTAssertEqual(error as? TransferPreflightError, .sourceInsideDestination)
@@ -394,7 +394,7 @@ final class MetadataOnlySourceSafetyXCTests: XCTestCase {
             source: sourceURL,
             destination: destinationURL,
             sourceMetadata: metadata,
-            destinationFreeSpaceBytes: 2048
+            destinationMetadata: .init(freeSpaceBytes: 2048, filesystem: "Unknown", isWritable: true)
         )
 
         XCTAssertEqual(plan.destinationJobFolderURL.path, destinationURL.appendingPathComponent(sourceURL.lastPathComponent).path)
@@ -451,7 +451,7 @@ final class MetadataOnlySourceSafetyXCTests: XCTestCase {
                 source: sourceURL,
                 destination: destinationURL,
                 sourceMetadata: metadata,
-                destinationFreeSpaceBytes: 2048
+                destinationMetadata: .init(freeSpaceBytes: 2048, filesystem: "Unknown", isWritable: true)
             )
         ) { error in
             XCTAssertEqual(error as? TransferPreflightError, .destinationJobPathAlreadyExists(expectedPath))
@@ -472,7 +472,7 @@ final class MetadataOnlySourceSafetyXCTests: XCTestCase {
                 source: sourceURL,
                 destination: destinationURL,
                 sourceMetadata: metadata,
-                destinationFreeSpaceBytes: 1024
+                destinationMetadata: .init(freeSpaceBytes: 1024, filesystem: "Unknown", isWritable: true)
             )
         ) { error in
             XCTAssertEqual(error as? TransferPreflightError, .insufficientDestinationSpace(required: 2048, available: 1024))
@@ -495,7 +495,7 @@ final class MetadataOnlySourceSafetyXCTests: XCTestCase {
                 source: sourceURL,
                 destination: destinationURL,
                 sourceMetadata: metadata,
-                destinationFreeSpaceBytes: nil
+                destinationMetadata: .init(freeSpaceBytes: -1, filesystem: "Unknown", isWritable: true)
             )
         ) { error in
             XCTAssertEqual(error as? TransferPreflightError, .unableToDetermineDestinationFreeSpace)
@@ -600,7 +600,7 @@ final class MetadataOnlySourceSafetyXCTests: XCTestCase {
             source: sourceURL,
             destination: destinationURL,
             sourceMetadata: metadata,
-            destinationFreeSpaceBytes: metadata.totalSizeBytes
+            destinationMetadata: .init(freeSpaceBytes: metadata.totalSizeBytes, filesystem: "Unknown", isWritable: true)
         )
 
         XCTAssertEqual(plan.transferableFileCount, 1)
@@ -616,7 +616,7 @@ final class MetadataOnlySourceSafetyXCTests: XCTestCase {
             source: sourceURL,
             destination: destinationURL,
             sourceMetadata: metadata,
-            destinationFreeSpaceBytes: 4096
+            destinationMetadata: .init(freeSpaceBytes: 4096, filesystem: "Unknown", isWritable: true)
         )
 
         XCTAssertEqual(plan.destinationJobFolderURL.lastPathComponent, sourceURL.lastPathComponent)
@@ -873,6 +873,84 @@ final class DestinationCapacityPolicyXCTests: XCTestCase {
     private let source = URL(fileURLWithPath: "/tmp/fst-capacity-policy/source")
     private let destination = URL(fileURLWithPath: "/tmp/fst-capacity-policy/destination")
 
+    func testFreshReadOnlyEvidenceRejectsOldWritableAdmission() throws {
+        let before = DestinationStorageMetadata(freeSpaceBytes: 4096, filesystem: "APFS", isWritable: true,
+            filesystemIdentity: "apfs", allocationUnit: 4096)
+        let fresh = DestinationStorageMetadata(freeSpaceBytes: 4096, filesystem: "APFS", isWritable: false,
+            filesystemIdentity: "apfs", allocationUnit: 4096)
+        XCTAssertTrue(before.isWritable)
+        XCTAssertFalse(fresh.isWritable)
+        let a = try DestinationCapacityAssessment.make(source: source, destination: destination,
+            logicalPayloadBytes: 1, roundedPayloadBytes: 4096, snapshot: fresh)
+        let metadata = SourceStorageMetadata(folderName: "source", fullPath: source.path,
+            totalSizeBytes: 1, fileCount: 1, folderCount: 0)
+        XCTAssertThrowsError(try TransferPreflightValidator.validate(source: source, destination: destination,
+            sourceMetadata: metadata, destinationMetadata: fresh, capacityAssessment: a)) {
+            XCTAssertEqual($0 as? TransferError, .destinationUnavailable)
+        }
+    }
+
+    func testFinalWritableEvidenceWinsAndPolicyBoundariesRemainUnchanged() throws {
+        let old = DestinationStorageMetadata(freeSpaceBytes: 4096, filesystem: "Unknown", isWritable: false)
+        XCTAssertFalse(old.isWritable)
+        let metadata = SourceStorageMetadata(folderName: "source", fullPath: source.path,
+            totalSizeBytes: 1, fileCount: 1, folderCount: 0)
+        for (identity, unit): (String?, Int64?) in [("apfs",4096),("apfs",8192),("exfat",512),("futurefs",nil),(nil,nil)] {
+            let floor: Int64 = identity == "apfs" && unit == 4096 ? 4096 : 1
+            for available in [floor, floor - 1] {
+                let fresh = DestinationStorageMetadata(freeSpaceBytes: available, filesystem: "Display only",
+                    isWritable: true, filesystemIdentity: identity, allocationUnit: unit)
+                let a = try DestinationCapacityAssessment.make(source: source, destination: destination,
+                    logicalPayloadBytes: 1, roundedPayloadBytes: 4096, snapshot: fresh)
+                if available == floor {
+                    let plan = try TransferPreflightValidator.validate(source: source, destination: destination,
+                        sourceMetadata: metadata, destinationMetadata: fresh, capacityAssessment: a)
+                    XCTAssertEqual(plan.transferableBytes, 1)
+                    XCTAssertEqual(plan.admissionFloorBytes, floor)
+                    XCTAssertEqual(plan.capacityAssessment.hasUnvalidatedAllocation, floor == 1)
+                } else {
+                    XCTAssertThrowsError(try TransferPreflightValidator.validate(source: source, destination: destination,
+                        sourceMetadata: metadata, destinationMetadata: fresh, capacityAssessment: a)) {
+                        XCTAssertEqual($0 as? TransferPreflightError,
+                            .insufficientDestinationSpace(required: floor, available: available))
+                    }
+                }
+            }
+        }
+    }
+
+    func testOldAssessmentCannotOverrideFinalReadOnlyMetadata() throws {
+        let oldAssessment = try assessment()
+        let fresh = DestinationStorageMetadata(freeSpaceBytes: 4096, filesystem: "APFS", isWritable: false,
+            filesystemIdentity: "apfs", allocationUnit: 4096)
+        let metadata = SourceStorageMetadata(folderName: "source", fullPath: source.path,
+            totalSizeBytes: 1, fileCount: 1, folderCount: 0)
+        XCTAssertThrowsError(try TransferPreflightValidator.validate(source: source, destination: destination,
+            sourceMetadata: metadata, destinationMetadata: fresh, capacityAssessment: oldAssessment)) {
+            XCTAssertEqual($0 as? TransferError, .destinationUnavailable)
+            XCTAssertEqual($0.localizedDescription, "The destination location is unavailable or cannot be written.")
+        }
+    }
+
+    func testFinalProfileAndCapacityMustMatchAssessment() throws {
+        let oldAssessment = try assessment()
+        let metadata = SourceStorageMetadata(folderName: "source", fullPath: source.path,
+            totalSizeBytes: 1, fileCount: 1, folderCount: 0)
+        for fresh in [
+            DestinationStorageMetadata(freeSpaceBytes: 4096, filesystem: "APFS", isWritable: true,
+                filesystemIdentity: "exfat", allocationUnit: 4096),
+            DestinationStorageMetadata(freeSpaceBytes: 4096, filesystem: "APFS", isWritable: true,
+                filesystemIdentity: "apfs", allocationUnit: 8192),
+            DestinationStorageMetadata(freeSpaceBytes: 8192, filesystem: "APFS", isWritable: true,
+                filesystemIdentity: "apfs", allocationUnit: 4096)
+        ] {
+            XCTAssertThrowsError(try TransferPreflightValidator.validate(source: source, destination: destination,
+                sourceMetadata: metadata, destinationMetadata: fresh, capacityAssessment: oldAssessment)) {
+                XCTAssertEqual($0 as? TransferPreflightError, .invalidCapacityEvidence)
+            }
+        }
+    }
+
     private func assessment(identity: String? = "apfs", unit: Int64? = 4096,
                             logical: Int64 = 1, rounded: Int64? = 4096, available: Int64 = 4096,
                             display: String = "Localized display") throws -> DestinationCapacityAssessment {
@@ -957,7 +1035,7 @@ final class DestinationCapacityPolicyXCTests: XCTestCase {
         let metadata = SourceStorageMetadata(folderName: "source", fullPath: source.path, totalSizeBytes: 1024,
                                              fileCount: 1024, folderCount: 0)
         XCTAssertThrowsError(try TransferPreflightValidator.validate(source: source, destination: destination,
-            sourceMetadata: metadata, destinationFreeSpaceBytes: 1024, capacityAssessment: a)) {
+            sourceMetadata: metadata, destinationMetadata: .init(freeSpaceBytes: 1024, filesystem: "APFS", isWritable: true, filesystemIdentity: "apfs", allocationUnit: 4096), capacityAssessment: a)) {
             XCTAssertEqual($0 as? TransferPreflightError, .insufficientDestinationSpace(required: 4_194_304, available: 1024))
         }
     }
@@ -967,7 +1045,7 @@ final class DestinationCapacityPolicyXCTests: XCTestCase {
             let metadata = SourceStorageMetadata(folderName: "source", fullPath: source.path,
                 totalSizeBytes: logical, fileCount: 1, folderCount: 0)
             let plan = try TransferPreflightValidator.validate(source: source, destination: destination,
-                sourceMetadata: metadata, destinationFreeSpaceBytes: 4096, capacityAssessment: a)
+                sourceMetadata: metadata, destinationMetadata: .init(freeSpaceBytes: 4096, filesystem: "APFS", isWritable: true, filesystemIdentity: "apfs", allocationUnit: 4096), capacityAssessment: a)
             XCTAssertEqual(plan.transferableBytes, logical)
             XCTAssertEqual(plan.admissionFloorBytes, rounded)
         }
@@ -979,7 +1057,7 @@ final class DestinationCapacityPolicyXCTests: XCTestCase {
         let metadata = SourceStorageMetadata(folderName: "source", fullPath: source.path,
             totalSizeBytes: 1, fileCount: 1, folderCount: 0)
         XCTAssertThrowsError(try TransferPreflightValidator.validate(source: source, destination: newDestination,
-            sourceMetadata: metadata, destinationFreeSpaceBytes: 4096, capacityAssessment: a)) {
+            sourceMetadata: metadata, destinationMetadata: .init(freeSpaceBytes: 4096, filesystem: "APFS", isWritable: true, filesystemIdentity: "apfs", allocationUnit: 4096), capacityAssessment: a)) {
             XCTAssertEqual($0 as? TransferPreflightError, .invalidCapacityEvidence)
         }
     }
@@ -1056,6 +1134,124 @@ final class DestinationCapacityPolicyXCTests: XCTestCase {
         XCTAssertEqual(types[0]["NSPrivacyAccessedAPIType"] as? String, "NSPrivacyAccessedAPICategoryDiskSpace")
         XCTAssertEqual(types[0]["NSPrivacyAccessedAPITypeReasons"] as? [String], ["E174.1", "85F4.1"])
         XCTAssertEqual(Set(types[0].keys), ["NSPrivacyAccessedAPIType", "NSPrivacyAccessedAPITypeReasons"])
+    }
+}
+
+/// Only destination access signals are injected; metadata enumeration/capacity remain real.
+private final class TransitionDestinationFileManager: FileManager, @unchecked Sendable {
+    enum Transition { case readOnly, disappears }
+    private let destinationPath: String
+    private let transition: Transition
+    private let lock = NSLock()
+    private var probes: [Bool] = []
+
+    init(destination: URL, transition: Transition) {
+        destinationPath = destination.path
+        self.transition = transition
+        super.init()
+    }
+
+    override func isWritableFile(atPath path: String) -> Bool {
+        guard path == destinationPath else { return super.isWritableFile(atPath: path) }
+        lock.lock()
+        defer { lock.unlock() }
+        let result = transition == .readOnly && probes.count >= 2 ? false : super.isWritableFile(atPath: path)
+        probes.append(result)
+        // The second probe belongs to the pre-scan metadata snapshot. Remove
+        // only this empty UUID destination after its initial evidence was read.
+        if transition == .disappears && probes.count == 2 {
+            try? super.removeItem(atPath: path)
+        }
+        return result
+    }
+
+    func recordedProbes() -> [Bool] {
+        lock.lock()
+        defer { lock.unlock() }
+        return probes
+    }
+}
+
+final class DestinationWritabilityFreshnessXCTests: XCTestCase {
+    private var root: URL!
+    private var source: URL!
+    private var destination: URL!
+
+    override func setUpWithError() throws {
+        root = FileManager.default.temporaryDirectory.appendingPathComponent("FSTWritabilityRepair-\(UUID())", isDirectory: true)
+        source = root.appendingPathComponent("source", isDirectory: true)
+        destination = root.appendingPathComponent("destination", isDirectory: true)
+        for url in [source!, destination!] { try FileManager.default.createDirectory(at: url, withIntermediateDirectories: true) }
+        try Data([0x41]).write(to: source.appendingPathComponent("clip.bin"))
+    }
+
+    override func tearDownWithError() throws {
+        try FileManager.default.removeItem(at: root)
+        XCTAssertFalse(FileManager.default.fileExists(atPath: root.path))
+    }
+
+    func testAuthoritativePreflightRejectsPostScanReadOnlyEvidence() async throws {
+        let fm = TransitionDestinationFileManager(destination: destination, transition: .readOnly)
+        let drive = DriveService(fileManager: fm)
+        do {
+            _ = try await drive.preflight(source: source, destination: destination)
+            XCTFail("Post-scan read-only metadata must block authoritative admission")
+        } catch {
+            XCTAssertEqual(error as? TransferError, .destinationUnavailable)
+        }
+        XCTAssertEqual(fm.recordedProbes(), [true, true, false])
+        XCTAssertEqual(try Data(contentsOf: source.appendingPathComponent("clip.bin")), Data([0x41]))
+        XCTAssertFalse(FileManager.default.fileExists(atPath: destination.appendingPathComponent("source").path))
+    }
+
+    func testProgrammaticCoordinatorRejectsPostScanReadOnlyBeforeRsync() async throws {
+        let fm = TransitionDestinationFileManager(destination: destination, transition: .readOnly)
+        let coordinator = TransferCoordinator(driveService: DriveService(fileManager: fm))
+        let recorder = TransferCoordinatorRecorder()
+        await coordinator.configureCallbacks(onStateChanged: { recorder.appendState($0) },
+            onProgress: { _ in }, onSpeed: { _ in }, onTransferTime: { _ in }, onCurrentFile: { _ in },
+            onError: { recorder.appendError($0) }, onLog: { recorder.appendLog($0) })
+        let started = await coordinator.startTransfer(source: source, destination: destination, bandwidthLimit: nil, mode: .full)
+        XCTAssertTrue(started)
+        let deadline = Date().addingTimeInterval(5)
+        while !(recorder.snapshotStates().contains(.error)) && Date() < deadline {
+            try await Task.sleep(nanoseconds: 20_000_000)
+        }
+        let finalState = await coordinator.state
+        XCTAssertEqual(finalState, .error)
+        XCTAssertEqual(recorder.snapshotStates(), [.validating, .error])
+        XCTAssertEqual(recorder.snapshotErrors(), ["TRANSFER ERROR: The destination location is unavailable or cannot be written."])
+        XCTAssertEqual(fm.recordedProbes(), [true, true, false])
+        XCTAssertFalse(recorder.snapshotLogs().contains { $0.message == "Transfer Started" })
+        XCTAssertFalse(FileManager.default.fileExists(atPath: destination.appendingPathComponent("source").path))
+        XCTAssertEqual(try FileManager.default.contentsOfDirectory(atPath: source.path), ["clip.bin"])
+        XCTAssertEqual(try Data(contentsOf: source.appendingPathComponent("clip.bin")), Data([0x41]))
+    }
+
+    func testDisappearedDestinationCannotUseInitialWritableSnapshot() async throws {
+        let fm = TransitionDestinationFileManager(destination: destination, transition: .disappears)
+        do {
+            _ = try await DriveService(fileManager: fm).preflight(source: source, destination: destination)
+            XCTFail("Missing destination must not be admitted using initial evidence")
+        } catch {
+            // Preserve the existing missing-capacity/profile failure semantics.
+            XCTAssertTrue(error as? TransferPreflightError == .unableToDetermineDestinationFreeSpace
+                || error as? TransferPreflightError == .destinationCapacityChanged)
+        }
+        XCTAssertEqual(fm.recordedProbes(), [true, true])
+        XCTAssertFalse(FileManager.default.fileExists(atPath: destination.path))
+    }
+
+    func testExistingDestinationUnavailableSemanticsForMissingAndFilePaths() async throws {
+        for url in [root.appendingPathComponent("missing"), source.appendingPathComponent("clip.bin")] {
+            do {
+                try await DriveService().validateDestination(at: url)
+                XCTFail("Missing/file destination must be unavailable")
+            } catch {
+                XCTAssertEqual(error as? TransferError, .destinationUnavailable)
+                XCTAssertEqual(error.localizedDescription, "The destination location is unavailable or cannot be written.")
+            }
+        }
     }
 }
 

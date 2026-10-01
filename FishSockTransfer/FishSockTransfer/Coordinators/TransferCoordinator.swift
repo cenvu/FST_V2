@@ -161,7 +161,7 @@ public actor TransferCoordinator {
             sourceMetadata = evidence.source
             _ = try TransferPreflightValidator.validate(source: source, destination: destination,
                 sourceMetadata: evidence.source,
-                destinationFreeSpaceBytes: evidence.assessment.availableSnapshotBytes,
+                destinationMetadata: evidence.destination,
                 capacityAssessment: evidence.assessment)
         } catch {
             let message = "TRANSFER ERROR: \(error.localizedDescription)"

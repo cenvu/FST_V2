@@ -21,6 +21,18 @@ Each entry must include:
 
 ## Recent History
 
+### 2026-10-01 - Destination Capacity Final Writability Freshness Repair
+
+- Agent/model: Codex local Worker; exact model UNVERIFIED; implementer, not reviewer
+- Branch/start: clean main at fetched HEAD=origin/main=7d0a9deafe46be1a451ee51225e59a0dc00dfc89; no matching issue or duplicate repair
+- Change: final core validator consumes immutable post-scan DestinationStorageMetadata, checks isWritable with existing destinationUnavailable error, takes F and compares profile to assessment; both authoritative callers pass the same evidence.destination. DEBUG-only FileManager injection enables deterministic true,true,false transition tests.
+- Files: DriveService, one TransferCoordinator caller, canonical metadata/preflight/capacity test file, scoped evidence/patches, memory and one NORMAL handoff
+- Safety boundary: no capacity formula/owner policy/arithmetic/source metadata/L/progress/observer/ETA/UI/Privacy/Telegram/rsync/verification/TransferState/report safety/SAFE TO EJECT/OpenDesign change; no owner media access
+- Validation: test-first regression failed on old code as expected; later test-only compile typo (.sha256) corrected to existing .full. Final focused64 passed/0 failed/0 skipped; Debug build PASS; full285 passed/0 failed/0 skipped including existing disposable APFS/exFAT QA. Programmatic Coordinator final read-only => exactly validating,error, no job folder/rsync start, source intact. Diff and task-fixture/image cleanup PASS.
+- Evidence/limitations: handoffs/evidence/destination-writability-repair/REPAIR_EVIDENCE.md, verification.json, exact diff JSON and cleanup/test-result records. CodeGraph unavailable; deterministic access injection, no physical remount/read-only flip claimed; final snapshot cannot reserve writability after check.
+- Publication: one coherent commit/push/fetch/export; final exact SHA/upstream/clean/handoff/operator gates in V2.1 packet; no tag/release; BRAIN review pending and ownership fields unset
+- Single Worker proposal: RETURN_TO_BRAIN_FOR_FINAL_REPAIR_ADJUDICATION.
+
 ### 2026-10-01 - Destination Capacity Policy Production Implementation
 
 - Agent/model: Codex local Worker; exact model UNVERIFIED; implementer only

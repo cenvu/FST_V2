@@ -33,6 +33,18 @@ This appears to have been run before as <entry>. Do you want to rerun it, contin
 
 ## Recent Tasks
 
+### 2026-10-01 - Destination Capacity Final Writability Freshness Repair
+
+- Task ID: DESTINATION_CAPACITY_FINAL_WRITABILITY_FRESHNESS_REPAIR
+- Agent: Codex local Worker / exact model UNVERIFIED; implementer only
+- Status: bounded repair and required verification complete; BRAIN review PENDING, classification/accepted state UNSET
+- Files changed: DriveService final validator and DEBUG-only access injection; one Coordinator evidence argument; canonical preflight/capacity test file; scoped evidence, required memory, one NORMAL handoff
+- Safety impact: final fresh DestinationStorageMetadata.isWritable now required for admission; existing destinationUnavailable error; same final F/profile evidence; no APFS R/WARN+L policy, L/progress, UI, Privacy, Telegram, engines, verification or SAFE TO EJECT changes
+- Checks: test-first red reproduced old admission (0 passed/1 failed/0 skipped); final focused64/0/0; Debug PASS; full285/0/0 including existing temporary APFS/exFAT QA; diff/cleanup PASS
+- Evidence: handoffs/evidence/destination-writability-repair/REPAIR_EVIDENCE.md and exact production/tests JSON patches, verification/cleanup/new-test results
+- Commit/tag/release: one coherent commit/push/fetch/export; exact final SHA and upstream/clean state in V2.1 packet; no tag/release
+- Notes: deterministic writable probes true,true,false reject before copying/rsync; no writability reservation or TOCTOU guarantee. Single Worker proposal RETURN_TO_BRAIN_FOR_FINAL_REPAIR_ADJUDICATION.
+
 ### 2026-10-01 - Destination Capacity Policy Production Implementation
 
 - Task ID: DESTINATION_CAPACITY_POLICY_PRODUCTION_IMPLEMENTATION

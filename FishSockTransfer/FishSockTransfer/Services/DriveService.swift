@@ -4,9 +4,14 @@ import Foundation
 import Darwin
 
 public actor DriveService {
-    private let fileManager = FileManager.default
+    private let fileManager: FileManager
     
-    public init() {}
+    public init() { fileManager = .default }
+
+#if DEBUG
+    // Inject filesystem access signals for deterministic preflight transition tests.
+    internal init(fileManager: FileManager) { self.fileManager = fileManager }
+#endif
     
     public func validateSource(at url: URL) throws {
         var isDirectory: ObjCBool = false
@@ -173,7 +178,7 @@ public actor DriveService {
     public func preflight(source: URL, destination: URL) throws -> (plan: TransferPreflightPlan, source: SourceStorageMetadata) {
         let evidence = try preparePreflight(source: source, destination: destination)
         let plan = try TransferPreflightValidator.validate(source: source, destination: destination,
-            sourceMetadata: evidence.source, destinationFreeSpaceBytes: evidence.assessment.availableSnapshotBytes,
+            sourceMetadata: evidence.source, destinationMetadata: evidence.destination,
             capacityAssessment: evidence.assessment)
         return (plan, evidence.source)
     }
@@ -332,7 +337,7 @@ nonisolated public enum TransferPreflightValidator {
         source: URL,
         destination: URL,
         sourceMetadata: SourceStorageMetadata,
-        destinationFreeSpaceBytes: Int64?,
+        destinationMetadata: DestinationStorageMetadata,
         capacityAssessment: DestinationCapacityAssessment? = nil,
         fileManager: FileManager = .default
     ) throws -> TransferPreflightPlan {
@@ -360,17 +365,26 @@ nonisolated public enum TransferPreflightValidator {
             throw TransferPreflightError.noTransferableFiles
         }
 
-        guard let availableBytes = destinationFreeSpaceBytes, availableBytes >= 0 else {
+        // Consume the same post-scan snapshot as capacity/profile admission.
+        // This check cannot reserve writability after admission.
+        guard destinationMetadata.isWritable else {
+            throw TransferError.destinationUnavailable
+        }
+
+        let availableBytes = destinationMetadata.freeSpaceBytes
+        guard availableBytes >= 0 else {
             throw TransferPreflightError.unableToDetermineDestinationFreeSpace
         }
 
         let assessment = try capacityAssessment ?? DestinationCapacityAssessment.make(
             source: source, destination: destination, logicalPayloadBytes: sourceMetadata.totalSizeBytes,
             roundedPayloadBytes: nil,
-            snapshot: DestinationStorageMetadata(freeSpaceBytes: availableBytes, filesystem: "Unknown", isWritable: true))
+            snapshot: destinationMetadata)
         guard assessment.matches(source: source, destination: destination),
               assessment.logicalPayloadBytes == sourceMetadata.totalSizeBytes,
-              assessment.availableSnapshotBytes == availableBytes else {
+              assessment.availableSnapshotBytes == availableBytes,
+              assessment.filesystemIdentity == destinationMetadata.filesystemIdentity,
+              assessment.allocationUnit == destinationMetadata.allocationUnit else {
             throw TransferPreflightError.invalidCapacityEvidence
         }
         guard assessment.passesCapacityPrecheck else {

@@ -1,0 +1,166 @@
+{
+  "red": {
+    "command": "xcodebuild -project FishSockTransfer/FishSockTransfer.xcodeproj -scheme FishSockTransfer -configuration Debug -destination 'platform=macOS,arch=arm64' -derivedDataPath /tmp/FST-Writability-Repair CODE_SIGNING_ALLOWED=NO test -only-testing:FishSockTransferTests/DestinationCapacityPolicyXCTests/testFreshReadOnlyEvidenceRejectsOldWritableAdmission",
+    "log": "/tmp/fst-writability-red.log",
+    "log_sha256": "dc8978799ba4c4220b05b2009895c844c090e0e26686822104163d453d09736e",
+    "xcresult": "/tmp/FST-Writability-Repair/Logs/Test/Test-FishSockTransfer-2026.10.01_17-38-11-+0700.xcresult",
+    "summary": {
+      "devicesAndConfigurations": [
+        {
+          "device": {
+            "architecture": "arm64",
+            "deviceId": "00006001-001C18E21109801E",
+            "deviceName": "My Mac",
+            "modelName": "MacBook Pro",
+            "osBuildNumber": "24G720",
+            "osVersion": "15.7.7",
+            "platform": "macOS"
+          },
+          "expectedFailures": 0,
+          "failedTests": 1,
+          "passedTests": 0,
+          "skippedTests": 0,
+          "testPlanConfiguration": {
+            "configurationId": "1",
+            "configurationName": "Test Scheme Action"
+          }
+        }
+      ],
+      "environmentDescription": "FishSockTransfer \u00b7 Built with macOS 15.7.7",
+      "expectedFailures": 0,
+      "failedTests": 1,
+      "finishTime": 1790851121.335,
+      "passedTests": 0,
+      "result": "Failed",
+      "skippedTests": 0,
+      "startTime": 1790851091.889,
+      "statistics": [],
+      "testFailures": [
+        {
+          "failureText": "XCTAssertThrowsError failed: did not throw an error",
+          "targetName": "FishSockTransferTests",
+          "testIdentifier": 1,
+          "testIdentifierString": "DestinationCapacityPolicyXCTests/testFreshReadOnlyEvidenceRejectsOldWritableAdmission()",
+          "testIdentifierURL": "test://com.apple.xcode/FishSockTransfer/FishSockTransferTests/DestinationCapacityPolicyXCTests/testFreshReadOnlyEvidenceRejectsOldWritableAdmission",
+          "testName": "testFreshReadOnlyEvidenceRejectsOldWritableAdmission()"
+        }
+      ],
+      "title": "Test - FishSockTransfer",
+      "topInsights": [],
+      "totalTestCount": 1
+    },
+    "exit_code": 65
+  },
+  "focused": {
+    "command": "xcodebuild -project FishSockTransfer/FishSockTransfer.xcodeproj -scheme FishSockTransfer -configuration Debug -destination 'platform=macOS,arch=arm64' -derivedDataPath /tmp/FST-Writability-Repair CODE_SIGNING_ALLOWED=NO test -only-testing:FishSockTransferTests/DestinationWritabilityFreshnessXCTests -only-testing:FishSockTransferTests/DestinationCapacityPolicyXCTests -only-testing:FishSockTransferTests/MetadataOnlySourceSafetyXCTests",
+    "log": "/tmp/fst-writability-focused.log",
+    "log_sha256": "6257787389657ad6d778bf5a1650429f16f0e6b779405068fa5de7c767564422",
+    "xcresult": "/tmp/FST-Writability-Repair/Logs/Test/Test-FishSockTransfer-2026.10.01_17-41-13-+0700.xcresult",
+    "summary": {
+      "devicesAndConfigurations": [
+        {
+          "device": {
+            "architecture": "arm64",
+            "deviceId": "00006001-001C18E21109801E",
+            "deviceName": "My Mac",
+            "modelName": "MacBook Pro",
+            "osBuildNumber": "24G720",
+            "osVersion": "15.7.7",
+            "platform": "macOS"
+          },
+          "expectedFailures": 0,
+          "failedTests": 0,
+          "passedTests": 64,
+          "skippedTests": 0,
+          "testPlanConfiguration": {
+            "configurationId": "1",
+            "configurationName": "Test Scheme Action"
+          }
+        }
+      ],
+      "environmentDescription": "FishSockTransfer \u00b7 Built with macOS 15.7.7",
+      "expectedFailures": 0,
+      "failedTests": 0,
+      "finishTime": 1790851279.502,
+      "passedTests": 64,
+      "result": "Passed",
+      "skippedTests": 0,
+      "startTime": 1790851273.479,
+      "statistics": [],
+      "testFailures": [],
+      "title": "Test - FishSockTransfer",
+      "topInsights": [
+        {
+          "category": "Longest Test Runs",
+          "impact": "25% of duration",
+          "text": "2 longest test runs with outlier durations exceeding 0.09s (three standard deviations)"
+        }
+      ],
+      "totalTestCount": 64
+    },
+    "exit_code": 0
+  },
+  "full": {
+    "command": "xcodebuild -project FishSockTransfer/FishSockTransfer.xcodeproj -scheme FishSockTransfer -configuration Debug -destination 'platform=macOS,arch=arm64' -derivedDataPath /tmp/FST-Writability-Repair CODE_SIGNING_ALLOWED=NO test",
+    "log": "/tmp/fst-writability-full.log",
+    "log_sha256": "00c2a04527359fb5b768f1f3efd0febd0201972b5a9b5d835ecaa05e4f13ca41",
+    "xcresult": "/tmp/FST-Writability-Repair/Logs/Test/Test-FishSockTransfer-2026.10.01_17-42-23-+0700.xcresult",
+    "summary": {
+      "devicesAndConfigurations": [
+        {
+          "device": {
+            "architecture": "arm64",
+            "deviceId": "00006001-001C18E21109801E",
+            "deviceName": "My Mac",
+            "modelName": "MacBook Pro",
+            "osBuildNumber": "24G720",
+            "osVersion": "15.7.7",
+            "platform": "macOS"
+          },
+          "expectedFailures": 0,
+          "failedTests": 0,
+          "passedTests": 285,
+          "skippedTests": 0,
+          "testPlanConfiguration": {
+            "configurationId": "1",
+            "configurationName": "Test Scheme Action"
+          }
+        }
+      ],
+      "environmentDescription": "FishSockTransfer \u00b7 Built with macOS 15.7.7",
+      "expectedFailures": 0,
+      "failedTests": 0,
+      "finishTime": 1790851375.815,
+      "passedTests": 285,
+      "result": "Passed",
+      "skippedTests": 0,
+      "startTime": 1790851343.776,
+      "statistics": [],
+      "testFailures": [],
+      "title": "Test - FishSockTransfer",
+      "topInsights": [
+        {
+          "category": "Longest Test Runs",
+          "impact": "78% of duration",
+          "text": "2 longest test runs with outlier durations exceeding 3.85s (three standard deviations)"
+        }
+      ],
+      "totalTestCount": 285
+    },
+    "exit_code": 0
+  },
+  "debug_build": {
+    "command": "xcodebuild -project FishSockTransfer/FishSockTransfer.xcodeproj -scheme FishSockTransfer -configuration Debug -destination 'platform=macOS,arch=arm64' -derivedDataPath /tmp/FST-Writability-Repair CODE_SIGNING_ALLOWED=NO build",
+    "exit_code": 0,
+    "result": "PASS",
+    "log": "/tmp/fst-writability-build.log",
+    "log_sha256": "9f30a90c9e962ed9f822eb2150b4ad26eb6a37a4fe8941fe64942ff3cb148de3"
+  },
+  "earlier_compile_failure": {
+    "command": "xcodebuild -project FishSockTransfer/FishSockTransfer.xcodeproj -scheme FishSockTransfer -configuration Debug -destination 'platform=macOS,arch=arm64' -derivedDataPath /tmp/FST-Writability-Repair CODE_SIGNING_ALLOWED=NO test -only-testing:FishSockTransferTests/DestinationWritabilityFreshnessXCTests -only-testing:FishSockTransferTests/DestinationCapacityPolicyXCTests -only-testing:FishSockTransferTests/MetadataOnlySourceSafetyXCTests",
+    "exit_code": 65,
+    "test_count": null,
+    "reason": "New test fixture used nonexistent VerificationMode.sha256; corrected to existing .full",
+    "log_sha256": "d4085b750c5fb886a998a887752886f386750683a2c7716fe279b4827014c5a9"
+  }
+}
