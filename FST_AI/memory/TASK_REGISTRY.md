@@ -29,6 +29,18 @@ This appears to have been run before as <entry>. Do you want to rerun it, contin
 
 ## Recent Tasks
 
+### 2026-10-01 - Storage Preflight Logical Size Safety
+
+- Task ID: STORAGE_PREFLIGHT_LOGICAL_SIZE_SAFETY
+- Task name: Storage Preflight Logical Size Safety
+- Agent: Codex local Worker / model UNVERIFIED
+- Status: implemented safety-core repair; BRAIN review pending
+- Files changed: DriveService.swift; StorageMetadata.swift (comment only); MetadataOnlySourceSafetyXCTests.swift; TransferViewModelRuntimeXCTests.swift; required memory and one NORMAL handoff
+- Commit/tag/release: one coherent task/handoff commit; exact final HEAD in V2 packet; no release/tag
+- Safety impact: storage/preflight use logical regular-file bytes instead of source allocation; missing logical size fails closed; exclusions/cancellation and rsync flags unchanged
+- Checks: Apple docs/SDK and exact rsync v3.4.4 source before actual bundled repro; sparse/compressed undercount proven before patch; Debug PASS; focused 145 passed/0 failed/0 skipped; full 255 passed/0 failed/0 skipped; post-fix real copy hashes match and source unchanged; diff check PASS
+- Notes: logical bytes are content floor, not filesystem metadata/cluster overhead or reservation. No UI8. Single Next Action: RETURN_TO_BRAIN.
+
 ### 2026-10-01 - UI-7 Final Verification Repair
 
 - Date: 2026-10-01

@@ -112,7 +112,7 @@ public actor DriveService {
     }
 
     private func scanFolder(at url: URL) throws -> (totalSizeBytes: Int64, fileCount: Int, folderCount: Int) {
-        let keys: [URLResourceKey] = [.isDirectoryKey, .isRegularFileKey, .fileSizeKey, .totalFileAllocatedSizeKey]
+        let keys: [URLResourceKey] = [.isDirectoryKey, .isRegularFileKey, .fileSizeKey]
         guard let enumerator = fileManager.enumerator(
             at: url,
             includingPropertiesForKeys: keys,
@@ -144,12 +144,12 @@ public actor DriveService {
 
             guard values.isRegularFile == true else { continue }
 
-            fileCount += 1
-            if let allocatedSize = values.totalFileAllocatedSize {
-                totalSizeBytes += Int64(allocatedSize)
-            } else {
-                totalSizeBytes += Int64(values.fileSize ?? 0)
+            guard let logicalSize = values.fileSize, logicalSize >= 0 else {
+                throw TransferError.sourceUnavailable
             }
+            fileCount += 1
+            // Rsync without --sparse writes logical contents, regardless of source allocation.
+            totalSizeBytes += Int64(logicalSize)
         }
 
         return (totalSizeBytes, fileCount, folderCount)

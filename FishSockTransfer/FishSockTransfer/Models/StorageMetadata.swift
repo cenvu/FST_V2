@@ -5,6 +5,7 @@ import Foundation
 nonisolated public struct SourceStorageMetadata: Equatable, Sendable {
     public let folderName: String
     public let fullPath: String
+    /// Logical content bytes of transferable regular files, not source disk allocation.
     public let totalSizeBytes: Int64
     public let fileCount: Int
     public let folderCount: Int

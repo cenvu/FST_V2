@@ -21,6 +21,19 @@ Each entry must include:
 
 ## Recent History
 
+### 2026-10-01 - Storage Preflight Logical Size Safety
+
+- Agent/model: Codex local Worker / model UNVERIFIED
+- Branch/start: clean main at 0d43d789d98904559b18ff0132ac9d34ff16a343 == fetched origin/main; FF-only up to date
+- Files: DriveService scan; metadata comment; two canonical XCTest files; required memory and one NORMAL handoff
+- Evidence before patch: sparse logical 1,073,741,824 / allocated 32,768 bytes admitted against 536,870,912 bytes; actual bundled rsync dest allocated 1,081,344,000. Compressed logical 8,388,608 / allocated 65,536 admitted against 4,194,304; dest allocated 8,388,608.
+- Repair: sum logical fileSize, never allocated bytes; unknown/negative logical size fails source validation. Existing Required, preflight and observer consumers share that metadata.
+- Verification: Debug BUILD SUCCEEDED; focused 145/0/0; full 255/0/0; both post-fix real rsync repros block insufficient capacity, allow logical capacity, preserve source/hash equality, and remove temp fixtures. Five direct DriveService tests plus preflight/observer/ViewModel regressions added.
+- Boundary: 70 other tracked production/project files identical to starting HEAD; rsync/parser/Coordinator/verification/report/Telegram/ETA/UI implementations unchanged. Report numeric totals inherit corrected metadata; report code/schema unchanged.
+- Risk: logical content bytes do not budget filesystem overhead or reserve capacity; other filesystem physical repro and native UI were not executed.
+- Commit/release: one coherent repair/handoff commit; final pushed HEAD/upstream state in V2 packet; no release/tag
+- Single Next Action: RETURN_TO_BRAIN. No UI8.
+
 ### 2026-10-01 - UI-7 Final Verification Repair
 
 - Agent/model: Codex local Worker / exact model UNVERIFIED

@@ -1,5 +1,17 @@
 # FST Command Center Handover
 
+## Current Safety Core — Storage Preflight Logical Size Safety (2026-10-01)
+
+TASK=STORAGE_PREFLIGHT_LOGICAL_SIZE_SAFETY;STATUS=IMPLEMENTED_BRAIN_REVIEW_PENDING;START_HEAD=0d43d789d98904559b18ff0132ac9d34ff16a343
+REPRO_BEFORE=APFS_SPARSE_1GiB;SOURCE_ALLOCATED=32768;REQUIRED=32768;512MiB_ADMITTED;RSYNC_DEST_ALLOCATED=1081344000
+REPRO_COMPRESSED=8MiB_LOGICAL;SOURCE_ALLOCATED=65536;4MiB_ADMITTED;RSYNC_DEST_ALLOCATED=8388608
+REPAIR=DriveService_regular_file_fileSize_logical_sum;missing_size_fails_closed;SourceStorageMetadata_semantics_comment
+CONSUMERS=Storage_Readiness+preflight+observer_share_corrected_total;NO_CONSUMER_ALGORITHM_CHANGE
+VERIFY=DEBUG_BUILD_SUCCEEDED;FOCUSED_145/0/0;FULL_255/0/0;POST_FIX_BOTH_REPROS_BLOCK_INSUFFICIENT;HASHES_MATCH;SOURCE_UNCHANGED
+SCOPE=DriveService.swift+StorageMetadata_comment+2_XCTest_files;NO_RSYNC_FLAGS_CHANGE;NO_UI8
+LIMIT=logical_content_floor_not_physical_metadata_allocation_or_space_reservation
+NEXT=RETURN_TO_BRAIN
+
 ## Current Control Plane — M2M Brain Return V2 (2026-09-30)
 
 - Status: implementation and NORMAL handoff complete; exporter suite 12/12 PASS; publisher dry-run and post-publish verify PASS; BRAIN review pending.

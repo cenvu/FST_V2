@@ -68,3 +68,4 @@ new handoffs that reference the older handoff; history is never erased.
 | 2026-09-30T21:50:15+07:00 | 20260930-215015_codex-local-worker_m2m-brain-return-v2.md | NORMAL | Codex local Worker/UNVERIFIED | M2M Brain Return V2/CONTROL_PLANE_ONLY | main@1452704 | modified | NONE |
 | 2026-09-30T22:14:51+07:00 | 20260930-221451_antigravity_ui-7-final-visual-polish.md | NORMAL | Antigravity/Gemini-2.0 | UI-7 Final Visual Polish/COMPLETED | main@2fba7a8 | modified | NONE |
 | 2026-10-01T00:52:43+07:00 | 20261001-005243_codex-local-worker_ui-7-final-verification-repair.md | VERIFICATION | Codex local Worker/UNVERIFIED | UI-7 Final Verification Repair/UI7_ACCEPTANCE | main@ba4e7ec | modified | NONE |
+| 2026-10-01T09:00:52+07:00 | 20261001-090052_codex-local-worker_storage-preflight-logical-size-safety.md | NORMAL | Codex local Worker/UNVERIFIED | Storage Preflight Logical Size Safety/SAFETY_CORE | main@0d43d78 | modified | NONE |

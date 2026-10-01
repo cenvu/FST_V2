@@ -5,6 +5,51 @@ import Combine
 
 @MainActor
 final class TransferViewModelRuntimeXCTests: XCTestCase {
+    func testScannedLogicalSizeDrivesStorageStartGateAndObserverProgress() async throws {
+        let fm = FileManager.default
+        let root = fm.temporaryDirectory.appendingPathComponent("FSTLogicalStorageRuntime-\(UUID().uuidString)", isDirectory: true)
+        try fm.createDirectory(at: root, withIntermediateDirectories: true)
+        defer { try? fm.removeItem(at: root) }
+        let source = root.appendingPathComponent("source", isDirectory: true)
+        let destination = root.appendingPathComponent("destination", isDirectory: true)
+        try fm.createDirectory(at: source, withIntermediateDirectories: true)
+        try fm.createDirectory(at: destination, withIntermediateDirectories: true)
+        let logical: Int64 = 1_073_741_824
+        for (folder, size) in [(source, logical), (destination, logical / 2)] {
+            let file = folder.appendingPathComponent("clip.bin")
+            XCTAssertTrue(fm.createFile(atPath: file.path, contents: nil))
+            let handle = try FileHandle(forWritingTo: file)
+            try handle.seek(toOffset: UInt64(size - 1))
+            try handle.write(contentsOf: Data([0x41]))
+            try handle.close()
+        }
+        let metadata = try await DriveService().sourceMetadata(for: source)
+        let observed = try DestinationActivitySnapshotter.snapshot(
+            destinationRootURL: destination, totalBytes: metadata.totalSizeBytes,
+            totalFiles: metadata.fileCount, copyStartedAt: Date().addingTimeInterval(-10),
+            previousSamples: []
+        ).snapshot
+        let viewModel = makeViewModel()
+        viewModel.sourceURL = source
+        viewModel.destinationURL = destination
+        viewModel.sourceMetadata = metadata
+        viewModel.destinationMetadata = DestinationStorageMetadata(freeSpaceBytes: logical - 1, filesystem: "Test", isWritable: true)
+        viewModel.bundledRsyncInfo = BundledRsyncInfo(executableURL: root.appendingPathComponent("rsync"), version: "3.4.4", diagnostics: [])
+        XCTAssertEqual(viewModel.sourceMetadata?.totalSizeBytes, logical)
+        XCTAssertTrue(viewModel.hasInsufficientDestinationSpace)
+        XCTAssertFalse(viewModel.canStartTransfer)
+        XCTAssertTrue(viewModel.startBlockedReason?.contains("1,073,741,824 bytes") == true)
+
+        viewModel.destinationMetadata = DestinationStorageMetadata(freeSpaceBytes: logical, filesystem: "Test", isWritable: true)
+        XCTAssertFalse(viewModel.hasInsufficientDestinationSpace)
+        XCTAssertTrue(viewModel.canStartTransfer)
+        viewModel.applyTransferState(.copying)
+        viewModel.applyCopyRuntimeSnapshot(observed)
+        XCTAssertEqual(viewModel.copyRuntimeSnapshot?.totalBytes, logical)
+        XCTAssertEqual(viewModel.copyRuntimeSnapshot?.copiedBytes, logical / 2)
+        XCTAssertEqual(viewModel.progress, 50, accuracy: 0.0001)
+    }
+
     func testActivePhaseHeroTitlesAndSeparateSecondaryAverage() throws {
         let copy = try XCTUnwrap(TransferRuntimeMetricPresentation.heroTitles(for: .copying))
         XCTAssertEqual(copy.progress, "COPY PROGRESS")

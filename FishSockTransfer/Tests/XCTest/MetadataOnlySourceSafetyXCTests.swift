@@ -80,6 +80,169 @@ final class MetadataOnlySourceSafetyXCTests: XCTestCase {
         temporaryRoot = nil
     }
 
+    func testDriveServiceCountsSparseLogicalBytesWithoutMutatingSource() async throws {
+        let source = try folder(named: "logical-sparse-source", in: temporaryRoot)
+        let logical: Int64 = 1_073_741_824
+        let file = try writeSparseFile("clip.bin", logicalBytes: logical, in: source)
+        let before = try file.resourceValues(forKeys: [.fileSizeKey, .totalFileAllocatedSizeKey, .isSparseKey, .contentModificationDateKey])
+        XCTAssertEqual(before.fileSize, Int(logical))
+        XCTAssertEqual(before.isSparse, true)
+        XCTAssertLessThan(try XCTUnwrap(before.totalFileAllocatedSize), Int(logical))
+
+        let drive = DriveService()
+        let metadata = try await drive.sourceMetadata(for: source)
+        let calculated = try await drive.calculateFolderSize(at: source)
+        XCTAssertEqual(metadata.totalSizeBytes, logical)
+        XCTAssertEqual(calculated, logical)
+        XCTAssertEqual(metadata.fileCount, 1)
+        let after = try URL(fileURLWithPath: file.path).resourceValues(forKeys: [.fileSizeKey, .totalFileAllocatedSizeKey, .contentModificationDateKey])
+        XCTAssertEqual(after.fileSize, before.fileSize)
+        XCTAssertEqual(after.totalFileAllocatedSize, before.totalFileAllocatedSize)
+        XCTAssertEqual(after.contentModificationDate, before.contentModificationDate)
+        let reader = try FileHandle(forReadingFrom: file)
+        defer { try? reader.close() }
+        XCTAssertEqual(try reader.read(upToCount: 1), Data([0x5a]))
+        try reader.seek(toOffset: UInt64(logical - 1))
+        XCTAssertEqual(try reader.read(upToCount: 1), Data([0x5b]))
+    }
+
+    func testDriveServiceCountsOrdinaryFileLogicalBytes() async throws {
+        let source = try folder(named: "logical-ordinary-source", in: temporaryRoot)
+        let file = source.appendingPathComponent("ordinary.mov")
+        let contents = Data(repeating: 0x7f, count: 65_536)
+        try contents.write(to: file)
+
+        let metadata = try await DriveService().sourceMetadata(for: source)
+        XCTAssertEqual(metadata.totalSizeBytes, Int64(contents.count))
+        XCTAssertEqual(metadata.fileCount, 1)
+        XCTAssertEqual(try Data(contentsOf: file), contents)
+    }
+
+    func testDriveServiceSumsLogicalBytesAndIgnoresExcludedFiles() async throws {
+        let source = try folder(named: "logical-multi-source", in: temporaryRoot)
+        let nested = try folder(named: "clips", in: source)
+        let excluded = try folder(named: ".Spotlight-V100", in: source)
+        let logical: Int64 = 1_073_741_824
+        _ = try writeSparseFile("sparse.bin", logicalBytes: logical, in: source)
+        try Data(repeating: 0x41, count: 333).write(to: nested.appendingPathComponent("small.mov"))
+        try Data(repeating: 0x42, count: 8192).write(to: source.appendingPathComponent("ordinary.mov"))
+        try Data().write(to: source.appendingPathComponent("empty.mov"))
+        _ = try writeSparseFile(".DS_Store", logicalBytes: logical, in: source)
+        _ = try writeSparseFile("._clip", logicalBytes: logical, in: source)
+        _ = try writeSparseFile("ignored.bin", logicalBytes: logical, in: excluded)
+
+        let metadata = try await DriveService().sourceMetadata(for: source)
+        XCTAssertEqual(metadata.totalSizeBytes, logical + 333 + 8192)
+        XCTAssertEqual(metadata.fileCount, 4)
+        XCTAssertEqual(metadata.folderCount, 1)
+    }
+
+    func testSparseLogicalPreflightBlocksInsufficientSpaceAndAllowsEnough() async throws {
+        let source = try folder(named: "logical-preflight-source", in: temporaryRoot)
+        let destination = try folder(named: "logical-preflight-destination", in: temporaryRoot)
+        let logical: Int64 = 1_073_741_824
+        _ = try writeSparseFile("clip.bin", logicalBytes: logical, in: source)
+        let metadata = try await DriveService().sourceMetadata(for: source)
+
+        XCTAssertThrowsError(try TransferPreflightValidator.validate(
+            source: source, destination: destination, sourceMetadata: metadata,
+            destinationFreeSpaceBytes: logical - 1
+        )) { error in
+            XCTAssertEqual(error as? TransferPreflightError,
+                           .insufficientDestinationSpace(required: logical, available: logical - 1))
+        }
+        let plan = try TransferPreflightValidator.validate(
+            source: source, destination: destination, sourceMetadata: metadata,
+            destinationFreeSpaceBytes: logical
+        )
+        XCTAssertEqual(plan.transferableBytes, logical)
+        XCTAssertEqual(plan.transferableFileCount, 1)
+    }
+
+    func testDestinationObserverBoundsUseScannedLogicalTotal() async throws {
+        let source = try folder(named: "logical-observer-source", in: temporaryRoot)
+        let destination = try folder(named: "logical-observer-destination", in: temporaryRoot)
+        let logical: Int64 = 1_073_741_824
+        _ = try writeSparseFile("clip.bin", logicalBytes: logical, in: source)
+        let partial = try writeSparseFile("clip.bin", logicalBytes: logical / 2, in: destination)
+        let metadata = try await DriveService().sourceMetadata(for: source)
+        let now = Date()
+        let first = try DestinationActivitySnapshotter.snapshot(
+            destinationRootURL: destination, totalBytes: metadata.totalSizeBytes,
+            totalFiles: metadata.fileCount, copyStartedAt: now.addingTimeInterval(-10),
+            previousSamples: [], now: now
+        )
+        XCTAssertEqual(first.snapshot.totalBytes, logical)
+        XCTAssertEqual(first.snapshot.copiedBytes, logical / 2)
+        XCTAssertEqual(try XCTUnwrap(first.snapshot.progressFraction), 0.5, accuracy: 0.0001)
+        let writer = try FileHandle(forWritingTo: partial)
+        try writer.truncate(atOffset: UInt64(logical))
+        try writer.close()
+        let final = try DestinationActivitySnapshotter.snapshot(
+            destinationRootURL: destination, totalBytes: metadata.totalSizeBytes,
+            totalFiles: metadata.fileCount, copyStartedAt: now.addingTimeInterval(-10),
+            previousSamples: first.samples, now: now.addingTimeInterval(1)
+        ).snapshot
+        XCTAssertEqual(final.copiedBytes, logical)
+        XCTAssertEqual(final.totalBytes, logical)
+        XCTAssertEqual(try XCTUnwrap(final.progressFraction), 1, accuracy: 0.0001)
+    }
+
+    func testDriveServiceCountsCompressedFileLogicalBytes() async throws {
+        let source = try folder(named: "logical-compressed-source", in: temporaryRoot)
+        let input = temporaryRoot.appendingPathComponent("uncompressed.bin")
+        let compressed = source.appendingPathComponent("clip.bin")
+        let contents = Data(repeating: 0x5a, count: 8 * 1024 * 1024)
+        try contents.write(to: input)
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/ditto")
+        process.arguments = ["--hfsCompression", input.path, compressed.path]
+        process.standardOutput = FileHandle.nullDevice
+        process.standardError = FileHandle.nullDevice
+        try process.run()
+        process.waitUntilExit()
+        XCTAssertEqual(process.terminationStatus, 0)
+        let values = try compressed.resourceValues(forKeys: [.fileSizeKey, .totalFileAllocatedSizeKey])
+        let allocated = try XCTUnwrap(values.totalFileAllocatedSize)
+        guard allocated < contents.count else {
+            throw XCTSkip("Fixture filesystem did not create a compressed allocation.")
+        }
+        XCTAssertEqual(values.fileSize, contents.count)
+
+        let metadata = try await DriveService().sourceMetadata(for: source)
+        XCTAssertEqual(metadata.totalSizeBytes, Int64(contents.count))
+        XCTAssertEqual(try Data(contentsOf: compressed), contents)
+    }
+
+    func testDriveServiceScanHonorsCancellation() async throws {
+        let source = try folder(named: "logical-cancelled-source", in: temporaryRoot)
+        try writeFile("clip.bin", contents: "contents", in: source)
+        let drive = DriveService()
+        let scan = Task {
+            withUnsafeCurrentTask { $0?.cancel() }
+            return try await drive.sourceMetadata(for: source)
+        }
+        do {
+            _ = try await scan.value
+            XCTFail("A cancelled scan must not return metadata.")
+        } catch is CancellationError {
+            XCTAssertEqual(try String(contentsOf: source.appendingPathComponent("clip.bin"), encoding: .utf8), "contents")
+        }
+    }
+
+    private func writeSparseFile(_ name: String, logicalBytes: Int64, in folder: URL) throws -> URL {
+        let file = folder.appendingPathComponent(name)
+        guard FileManager.default.createFile(atPath: file.path, contents: nil) else {
+            throw CocoaError(.fileWriteUnknown)
+        }
+        let handle = try FileHandle(forWritingTo: file)
+        defer { try? handle.close() }
+        try handle.write(contentsOf: Data([0x5a]))
+        try handle.seek(toOffset: UInt64(logicalBytes - 1))
+        try handle.write(contentsOf: Data([0x5b]))
+        return file
+    }
+
     func testDSStoreOnlySourceFailsValidation() async throws {
         let sourceURL = try folder(named: "ds-store-only-source", in: temporaryRoot)
         try writeFile(".DS_Store", contents: "metadata", in: sourceURL)
