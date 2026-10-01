@@ -21,6 +21,17 @@ Each entry must include:
 
 ## Recent History
 
+### 2026-10-01 - Destination Capacity Headroom Decision
+
+AGENT=Codex local Worker;MODEL=UNVERIFIED;BRANCH=main;START_HEAD=3d8d8a251533d22f57cb141a28c4bae9f6154a31
+CHANGE=control_plane_research_only;three_memory_files+one_NORMAL_canonical_handoff;production_project_tests_byte_identical
+EVIDENCE=Apple_primary_docs_SDK_FS_specs>rsync_v3.4.4>community>temp_APFS_matrix;20_real_copies_PASS_source_manifest_unchanged_and_data_hashes_match;2_idle_controls;22_temp_roots_removed
+RESULT=allocation_gap_confirmed;importantUsage_includes_expected_purgeable_capacity_not_reservation;custom_xattr_and_resourcefork_not_copied_under_current_flags;A-F_policy_costs_and_unknowns_recorded
+POLICY=no_arbitrary_margin_chosen;E_shape_FS_candidate_and_F_uncertainty_option;owner_hard_reject_vs_warn_tradeoff_pending
+LIMIT=exFAT_HFS_near_ENOSPC_isolated_accounting_and_build_XCTest_rerun_NOT_EXECUTED;no_UI8
+GIT=one_control_plane_evidence_commit_normal_push_fetch_verify_and_V2_return;no_tag_release
+NEXT=RETURN_TO_BRAIN_FOR_HEADROOM_POLICY_DECISION
+
 ### 2026-10-01 - Storage Preflight Logical Size Safety
 
 - Agent/model: Codex local Worker / model UNVERIFIED

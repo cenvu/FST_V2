@@ -29,6 +29,16 @@ This appears to have been run before as <entry>. Do you want to rerun it, contin
 
 ## Recent Tasks
 
+### 2026-10-01 - Destination Capacity Headroom Decision
+
+TASK_ID=DESTINATION_CAPACITY_HEADROOM_DECISION;TASK=Destination Capacity Headroom Decision
+AGENT=Codex local Worker;MODEL=UNVERIFIED;STATUS=research_complete_policy_pending
+START_HEAD=3d8d8a251533d22f57cb141a28c4bae9f6154a31;SCOPE=three_memory_files_and_one_NORMAL_handoff_only
+CHECKS=primary_research_before_repro;APFS20/20_real_copy_PASS;2_idle_controls;source_unchanged_dest_data_match;91_app_project_test_paths_identical;diffcheck_and_publisher_gates
+FINDING=logical_bytes_not_physical_fit_proof;importantUsage_not_reservation;no_universal_numeric_margin_justified;OWNER_DECISION_REQUIRED
+NOT_EXECUTED=exFAT_HFS_near_ENOSPC_isolated_accounting_build_XCTest_rerun;NO_PRODUCTION_PATCH;NO_UI8;NO_RELEASE
+NEXT=RETURN_TO_BRAIN_FOR_HEADROOM_POLICY_DECISION
+
 ### 2026-10-01 - Storage Preflight Logical Size Safety
 
 - Task ID: STORAGE_PREFLIGHT_LOGICAL_SIZE_SAFETY

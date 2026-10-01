@@ -69,3 +69,4 @@ new handoffs that reference the older handoff; history is never erased.
 | 2026-09-30T22:14:51+07:00 | 20260930-221451_antigravity_ui-7-final-visual-polish.md | NORMAL | Antigravity/Gemini-2.0 | UI-7 Final Visual Polish/COMPLETED | main@2fba7a8 | modified | NONE |
 | 2026-10-01T00:52:43+07:00 | 20261001-005243_codex-local-worker_ui-7-final-verification-repair.md | VERIFICATION | Codex local Worker/UNVERIFIED | UI-7 Final Verification Repair/UI7_ACCEPTANCE | main@ba4e7ec | modified | NONE |
 | 2026-10-01T09:00:52+07:00 | 20261001-090052_codex-local-worker_storage-preflight-logical-size-safety.md | NORMAL | Codex local Worker/UNVERIFIED | Storage Preflight Logical Size Safety/SAFETY_CORE | main@0d43d78 | modified | NONE |
+| 2026-10-01T09:28:36+07:00 | 20261001-092836_codex-local-worker_destination-capacity-headroom-decision.md | NORMAL | Codex local Worker/UNVERIFIED | Destination Capacity Headroom Decision/SAFETY_RESEARCH | main@3d8d8a2 | modified | NONE |
