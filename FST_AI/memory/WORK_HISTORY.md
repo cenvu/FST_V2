@@ -21,6 +21,18 @@ Each entry must include:
 
 ## Recent History
 
+### 2026-10-01 - Destination Capacity Policy Independent Review artifact recovery
+
+- Agent/model: Codex local Worker / exact runtime model UNVERIFIED
+- Branch/start: clean `main` at `e75683c675b8dce0900e6ee8ff6b38f85b82562e`, equal to fetched `origin/main`.
+- Files: one BLOCKED recovery handoff plus CURRENT/INDEX and required task/work memory; no product or Swift files.
+- What changed: recorded that the completed independent review artifact could not be recovered from repository, temporary, scoped local agent-output, GitHub issue, or unreachable Git-object sources. Related filesystem calibration evidence was identified as input material, not substituted for the missing review.
+- Review boundary: no review rerun, no claim reconstruction from the task summary, no policy conclusion, and no self-acceptance. Expected review claims remain unverified; BRAIN classification and accepted state remain unset.
+- Verification: repository/temporary/session/issue/object searches returned no separate artifact; publisher dry-run passed before publication; final publication, production diff, commit/push/fetch, and V2.1 export results are in the canonical handoff and `03_FST_BRAIN.md`.
+- Safety: no product, Swift, tests, design system, OpenDesign, headroom production logic, rsync, verification, or SAFE TO EJECT behavior changed.
+- Commit/release: one control-plane failure record and required memory commit; no release/tag.
+- Single Worker proposal: RETURN_TO_BRAIN_FOR_ARTIFACT_RECOVERY_DECISION.
+
 ### 2026-10-01 - FST Brain Operator Architecture Pilot
 
 - Agent/model: Codex local Worker / exact runtime model UNVERIFIED

@@ -33,6 +33,19 @@ This appears to have been run before as <entry>. Do you want to rerun it, contin
 
 ## Recent Tasks
 
+### 2026-10-01 - Destination Capacity Policy Independent Review
+
+- Date: 2026-10-01
+- Task ID: DESTINATION_CAPACITY_POLICY_INDEPENDENT_REVIEW
+- Task name: Destination Capacity Policy Independent Review
+- Agent: Codex local Worker / model UNVERIFIED
+- Status: blocked; existing independent review artifact/output was not recovered
+- Files changed: one BLOCKED recovery handoff, CURRENT/INDEX, this registry, WORK_HISTORY
+- Commit/tag/release: control-plane recovery record only; final Git/export gates in `03_FST_BRAIN.md`; no release/tag
+- Safety impact: no product, Swift, tests, design system, OpenDesign, destination headroom logic, rsync, verification, or SAFE TO EJECT mutation
+- Checks: repo, `/tmp`, scoped agent-output, GitHub issue, and 4,863 unreachable Git-object searches produced no independent review artifact; publisher dry-run passed; final verification in BRAIN packet
+- Notes: expected claims were not promoted to findings; review was not re-executed or reconstructed; BRAIN review/classification/accepted state remain pending/unset. Single next action: RETURN_TO_BRAIN_FOR_ARTIFACT_RECOVERY_DECISION.
+
 ### 2026-10-01 - FST Brain Operator Architecture Pilot
 
 - Date: 2026-10-01
