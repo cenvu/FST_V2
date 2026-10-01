@@ -1,0 +1,195 @@
+[
+  {
+    "kind": "startup",
+    "at": 1790838423.935152,
+    "repo": "/Users/cenvu/DEV/FST_V2",
+    "root": "/tmp/FST-FS-Calibration-wwzzdh2v",
+    "host_free": 147579854848,
+    "bounded_image_bytes": 536870912,
+    "max_concurrent_images": 3,
+    "rsync_sha256": "bfc558eba53ad8b6ed0dbaec0d76c85f4ff21c6dbd035bed17767b26841ce915",
+    "rsync_version": "rsync  version 3.4.4  protocol version 32\nCopyright (C) 1996-2026 by Andrew Tridgell, Wayne Davison, and others.\nWeb site: https://rsync.samba.org/\nCapabilities:\n    64-bit files, 64-bit inums, 64-bit timestamps, 64-bit long ints,\n    socketpairs, symlinks, symtimes, hardlinks, hardlink-specials,\n    hardlink-symlinks, IPv6, atimes, batchfiles, inplace, append, ACLs,\n    xattrs, optional secluded-args, iconv, no prealloc, stop-at, crtimes\nOptimizations:\n    no SIMD-roll, no asm-roll, openssl-crypto, no asm-MD5\nChecksum list:\n    xxh128 xxh3 xxh64 (xxhash) md5 md4 sha1 none\nCompress list:\n    zstd lz4 zlibx zlib none\nDaemon auth list:\n    sha512 sha256 sha1 md5 md4\n\nrsync comes with ABSOLUTELY NO WARRANTY.  This is free software, and you\nare welcome to redistribute it under certain conditions.  See the GNU\nGeneral Public Licence for details.\n"
+  },
+  {
+    "kind": "blank_before_filesystem",
+    "at": 1790838425.214454,
+    "image": "/tmp/FST-FS-Calibration-wwzzdh2v/source.img",
+    "sha256": "9acca8e8c22201155389f65abbf6bc9723edc7384ead80503839f49dcc56d767",
+    "size": 536870912,
+    "exclusive_new_file": true,
+    "filesystem": null
+  },
+  {
+    "kind": "attach_proven",
+    "at": 1790838427.5302029,
+    "image": "/tmp/FST-FS-Calibration-wwzzdh2v/source.img",
+    "sha256": "9acca8e8c22201155389f65abbf6bc9723edc7384ead80503839f49dcc56d767",
+    "size": 536870912,
+    "whole": "/dev/disk5",
+    "entities": [
+      {
+        "content-hint": "",
+        "dev-entry": "/dev/disk5"
+      }
+    ],
+    "disk_info": {
+      "Bootable": false,
+      "BusProtocol": "Disk Image",
+      "CanBeMadeBootable": false,
+      "CanBeMadeBootableRequiresDestroy": false,
+      "Content": "",
+      "DeviceBlockSize": 512,
+      "DeviceIdentifier": "disk5",
+      "DeviceNode": "/dev/disk5",
+      "DeviceTreePath": "IODeviceTree:/",
+      "Ejectable": true,
+      "EjectableMediaAutomaticUnderSoftwareControl": true,
+      "EjectableOnly": true,
+      "FreeSpace": 0,
+      "GlobalPermissionsEnabled": false,
+      "IOKitSize": 536870912,
+      "IORegistryEntryName": "Apple read/write Media",
+      "Internal": false,
+      "LowLevelFormatSupported": false,
+      "MediaName": "Disk Image",
+      "MediaType": "Generic",
+      "MountPoint": "",
+      "OS9DriversInstalled": false,
+      "OSInternalMedia": false,
+      "ParentWholeDisk": "disk5",
+      "PartitionMapPartition": false,
+      "RAIDMaster": false,
+      "RAIDSlice": false,
+      "Removable": true,
+      "RemovableMedia": true,
+      "RemovableMediaOrExternalDevice": true,
+      "SMARTDeviceSpecificKeysMayVaryNotGuaranteed": {},
+      "SMARTStatus": "Not Supported",
+      "Size": 536870912,
+      "SupportsGlobalPermissionsDisable": false,
+      "SystemImage": false,
+      "TotalSize": 536870912,
+      "VirtualOrPhysical": "Virtual",
+      "VolumeName": "",
+      "VolumeSize": 0,
+      "WholeDisk": true,
+      "Writable": true,
+      "WritableMedia": true,
+      "WritableVolume": false
+    },
+    "readonly": false,
+    "nomount": true
+  },
+  {
+    "kind": "filesystem_creation",
+    "at": 1790838427.652334,
+    "fs": "apfs",
+    "image": "/tmp/FST-FS-Calibration-wwzzdh2v/source.img",
+    "proven_device": "/dev/disk5",
+    "argv": [
+      "/sbin/newfs_apfs",
+      "-v",
+      "source",
+      "/dev/disk5"
+    ],
+    "exit": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "kind": "detached",
+    "at": 1790838427.781576,
+    "image": "/tmp/FST-FS-Calibration-wwzzdh2v/source.img",
+    "device": "/dev/disk5"
+  },
+  {
+    "kind": "attach_proven",
+    "at": 1790838428.577311,
+    "image": "/tmp/FST-FS-Calibration-wwzzdh2v/source.img",
+    "sha256": "23f8067e161694755106cf852bc8b095de86200c28e54b608616d197dd2749e2",
+    "size": 536870912,
+    "whole": "/dev/disk5",
+    "entities": [
+      {
+        "content-hint": "",
+        "dev-entry": "/dev/disk5"
+      },
+      {
+        "content-hint": "EF57347C-0000-11AA-AA11-00306543ECAC",
+        "dev-entry": "/dev/disk6"
+      },
+      {
+        "content-hint": "41504653-0000-11AA-AA11-00306543ECAC",
+        "dev-entry": "/dev/disk6s1",
+        "mount-point": "/private/tmp/FST-FS-Calibration-wwzzdh2v/source"
+      }
+    ],
+    "disk_info": {
+      "APFSContainerReference": "disk6",
+      "Bootable": false,
+      "BusProtocol": "Disk Image",
+      "CanBeMadeBootable": false,
+      "CanBeMadeBootableRequiresDestroy": false,
+      "Content": "",
+      "DeviceBlockSize": 512,
+      "DeviceIdentifier": "disk5",
+      "DeviceNode": "/dev/disk5",
+      "DeviceTreePath": "IODeviceTree:/",
+      "Ejectable": true,
+      "EjectableMediaAutomaticUnderSoftwareControl": true,
+      "EjectableOnly": true,
+      "FreeSpace": 0,
+      "Fusion": false,
+      "GlobalPermissionsEnabled": false,
+      "IOKitSize": 536870912,
+      "IORegistryEntryName": "Apple read/write Media",
+      "Internal": false,
+      "LowLevelFormatSupported": false,
+      "MediaName": "Disk Image",
+      "MediaType": "Generic",
+      "MountPoint": "",
+      "OS9DriversInstalled": false,
+      "OSInternalMedia": false,
+      "ParentWholeDisk": "disk5",
+      "PartitionMapPartition": false,
+      "RAIDMaster": false,
+      "RAIDSlice": false,
+      "Removable": true,
+      "RemovableMedia": true,
+      "RemovableMediaOrExternalDevice": true,
+      "SMARTDeviceSpecificKeysMayVaryNotGuaranteed": {},
+      "SMARTStatus": "Not Supported",
+      "Size": 536870912,
+      "SupportsGlobalPermissionsDisable": false,
+      "SystemImage": false,
+      "TotalSize": 536870912,
+      "VirtualOrPhysical": "Virtual",
+      "VolumeName": "",
+      "VolumeSize": 0,
+      "WholeDisk": true,
+      "Writable": true,
+      "WritableMedia": true,
+      "WritableVolume": false
+    },
+    "readonly": false,
+    "nomount": false
+  },
+  {
+    "kind": "fatal",
+    "at": 1790838428.5786922,
+    "traceback": "Traceback (most recent call last):\n  File \"/Users/cenvu/DEV/FST_V2/handoffs/evidence/fs-calibration/calibrate.py\", line 261, in main\n    sm=attach(source_image,'source');names=fixtures(sm);detach(source_image)\n  File \"/Users/cenvu/DEV/FST_V2/handoffs/evidence/fs-calibration/calibrate.py\", line 69, in attach\n    assert len(mounted) == 1 and pathlib.Path(mounted[0]['mount-point']) == mount\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError\n"
+  },
+  {
+    "kind": "detached",
+    "at": 1790838429.069932,
+    "image": "/tmp/FST-FS-Calibration-wwzzdh2v/source.img",
+    "device": "/dev/disk5"
+  },
+  {
+    "kind": "cleanup",
+    "at": 1790838429.09911,
+    "all_test_mounts_detached": true,
+    "root_removed": true,
+    "remaining_test_images": []
+  }
+]

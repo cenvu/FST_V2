@@ -59,6 +59,18 @@ This appears to have been run before as <entry>. Do you want to rerun it, contin
 - Checks: stdlib unittest 18/18 PASS; exact operator bytes/hash and mutation change; missing/unreadable/non-UTF8/hash failure downgrades PASS; no 8 MiB operator ceiling; no handoff/raw bodies; dry-run, Desktop path, five-line CLI, FAIL export, and existing gate tests PASS. V2 prior Desktop packet 1,441 bytes; V2.1 representative packet 6,889 bytes with 5,459-byte operator snapshot.
 - Notes: GitHub issue list returned empty; CodeGraph MCP unavailable, direct source inspection used. Single Next Action: RETURN_TO_BRAIN.
 
+### 2026-10-01 - Destination Capacity FS Calibration
+
+TASK_ID=DESTINATION_CAPACITY_FS_CALIBRATION;TASK=Destination Capacity FS Calibration
+AGENT=Codex local Worker;MODEL=UNVERIFIED;STATUS=research_evidence_complete_policy_pending
+START_HEAD=c74178a8c406fc134432055b51af5bd5325bf30e;SCOPE=control_plane_evidence_only;PRODUCTION_BYTES=UNCHANGED
+EVIDENCE=handoffs/evidence/fs-calibration/README.md;POLICY=handoffs/evidence/fs-calibration/POLICY_SPEC_CANDIDATE.md
+CHECKS=actual_bundled_rsync_187_jobs_83_hash_correct_successes_104_failures_preserved;APFS_five_runs_per_sparse_and_small_case;exFAT_cluster_verified_from_image;exact_L_R_boundary_points;source_readonly_unchanged;ten_temp_roots_removed_no_mounts
+FINDING=exFAT_f_frsize_and_public_minallocation512_vs_cluster32768;receiver_AppleDouble_metadata;APFS_ENOSPC_despite_F_ge_R;no_exact_fit_or_universal_metadata_budget;OWNER_B_ACKNOWLEDGED
+LIMIT=one_provenance_check_stopped_phase_preserved_and_cleaned;required_exFAT_boundaries_completed_separately;46_missed_targets_preserved;HFS_and_physical_media_and_signed_app_and_purge_tests_NOT_EXECUTED
+BRAIN_CLASSIFICATION=UNSET;ACCEPTED_STATE=UNSET;ACTIVE_NEXT=NONE
+NEXT=RETURN_TO_BRAIN_FOR_INDEPENDENT_POLICY_ADJUDICATION
+
 ### 2026-10-01 - Destination Capacity Headroom Decision
 
 TASK_ID=DESTINATION_CAPACITY_HEADROOM_DECISION;TASK=Destination Capacity Headroom Decision

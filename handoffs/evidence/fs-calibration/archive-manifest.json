@@ -1,0 +1,47 @@
+[
+  {
+    "phase": "matrix",
+    "path": "events.json.gz",
+    "compressed_bytes": 1855421,
+    "compressed_sha256": "5a1b585aeaeda15e791ddd5e2eaa3b8a50330c823509518c0155a1bd9aebd176",
+    "original_json_bytes": 50808436,
+    "original_json_sha256": "8932d7b972de635b2907b6f774aa10614fe0dd41845dc47791c6aa60c1b8bc72",
+    "lossless_roundtrip": true
+  },
+  {
+    "phase": "boundaries",
+    "path": "boundaries/events.json.gz",
+    "compressed_bytes": 1447772,
+    "compressed_sha256": "2140ae761476e2c2e26129bd06d2d76aed1c76cc6234262c8959e2e59f589a32",
+    "original_json_bytes": 42416883,
+    "original_json_sha256": "8f92b8e6c533dede477e542b8fa2a8792d8f7b080498e086078069804238a5e4",
+    "lossless_roundtrip": true
+  },
+  {
+    "phase": "adaptive",
+    "path": "adaptive/events.json.gz",
+    "compressed_bytes": 721793,
+    "compressed_sha256": "e63bcd392a8b43b96893cd74ae7439af110337592868b69b7ef2d84759a31dc8",
+    "original_json_bytes": 22101981,
+    "original_json_sha256": "4ea8c521cbfad03101ccd7e2815b92658b4257bf7b1c4670a2aa2b6b9dfb2b87",
+    "lossless_roundtrip": true
+  },
+  {
+    "phase": "cluster-corrected",
+    "path": "cluster-corrected/events.json.gz",
+    "compressed_bytes": 933072,
+    "compressed_sha256": "3c5ac8dd18aecc21be42fb858de969e62931223f0a5c0907c01c10feaf450b08",
+    "original_json_bytes": 28326095,
+    "original_json_sha256": "3bcaea65f462cdc6d7b5e43a3e9fe04909874f674a4ebdc2830cd5eda79fc5f4",
+    "lossless_roundtrip": true
+  },
+  {
+    "phase": "residual",
+    "path": "residual/events.json.gz",
+    "compressed_bytes": 869768,
+    "compressed_sha256": "baeb24b4eea6353924dab4504eb9c9b1f313e28d871e56e03594b2d061b1daf6",
+    "original_json_bytes": 29012867,
+    "original_json_sha256": "a2f31e9adcc03e9430474d89efb5885dcad2f180bdb15e156c9ecbefae3a12cb",
+    "lossless_roundtrip": true
+  }
+]

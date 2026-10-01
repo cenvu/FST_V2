@@ -1,0 +1,13 @@
+[
+  {
+    "kind": "startup",
+    "at": 1790838641.0948532,
+    "repo": "/Users/cenvu/DEV/FST_V2",
+    "root": "/tmp/FST-FS-Calibration-2gtr7tif",
+    "host_free": 147517042688,
+    "bounded_image_bytes": 536870912,
+    "max_concurrent_images": 3,
+    "rsync_sha256": "bfc558eba53ad8b6ed0dbaec0d76c85f4ff21c6dbd035bed17767b26841ce915",
+    "rsync_version": "rsync  version 3.4.4  protocol version 32\nCopyright (C) 1996-2026 by Andrew Tridgell, Wayne Davison, and others.\nWeb site: https://rsync.samba.org/\nCapabilities:\n    64-bit files, 64-bit inums, 64-bit timestamps, 64-bit long ints,\n    socketpairs, symlinks, symtimes, hardlinks, hardlink-specials,\n    hardlink-symlinks, IPv6, atimes, batchfiles, inplace, append, ACLs,\n    xattrs, optional secluded-args, iconv, no prealloc, stop-at, crtimes\nOptimizations:\n    no SIMD-roll, no asm-roll, openssl-crypto, no asm-MD5\nChecksum list:\n    xxh128 xxh3 xxh64 (xxhash) md5 md4 sha1 none\nCompress list:\n    zstd lz4 zlibx zlib none\nDaemon auth list:\n    sha512 sha256 sha1 md5 md4\n\nrsync comes with ABSOLUTELY NO WARRANTY.  This is free software, and you\nare welcome to redistribute it under certain conditions.  See the GNU\nGeneral Public Licence for details.\n"
+  }
+]

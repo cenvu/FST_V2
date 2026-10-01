@@ -1,0 +1,1199 @@
+[
+  {
+    "kind": "startup",
+    "at": 1790838562.619748,
+    "repo": "/Users/cenvu/DEV/FST_V2",
+    "root": "/tmp/FST-FS-Calibration-po8yw04v",
+    "host_free": 147536166912,
+    "bounded_image_bytes": 536870912,
+    "max_concurrent_images": 3,
+    "rsync_sha256": "bfc558eba53ad8b6ed0dbaec0d76c85f4ff21c6dbd035bed17767b26841ce915",
+    "rsync_version": "rsync  version 3.4.4  protocol version 32\nCopyright (C) 1996-2026 by Andrew Tridgell, Wayne Davison, and others.\nWeb site: https://rsync.samba.org/\nCapabilities:\n    64-bit files, 64-bit inums, 64-bit timestamps, 64-bit long ints,\n    socketpairs, symlinks, symtimes, hardlinks, hardlink-specials,\n    hardlink-symlinks, IPv6, atimes, batchfiles, inplace, append, ACLs,\n    xattrs, optional secluded-args, iconv, no prealloc, stop-at, crtimes\nOptimizations:\n    no SIMD-roll, no asm-roll, openssl-crypto, no asm-MD5\nChecksum list:\n    xxh128 xxh3 xxh64 (xxhash) md5 md4 sha1 none\nCompress list:\n    zstd lz4 zlibx zlib none\nDaemon auth list:\n    sha512 sha256 sha1 md5 md4\n\nrsync comes with ABSOLUTELY NO WARRANTY.  This is free software, and you\nare welcome to redistribute it under certain conditions.  See the GNU\nGeneral Public Licence for details.\n"
+  },
+  {
+    "kind": "blank_before_filesystem",
+    "at": 1790838563.5105789,
+    "image": "/tmp/FST-FS-Calibration-po8yw04v/source.img",
+    "sha256": "9acca8e8c22201155389f65abbf6bc9723edc7384ead80503839f49dcc56d767",
+    "size": 536870912,
+    "exclusive_new_file": true,
+    "filesystem": null
+  },
+  {
+    "kind": "attach_proven",
+    "at": 1790838564.963016,
+    "image": "/tmp/FST-FS-Calibration-po8yw04v/source.img",
+    "sha256": "9acca8e8c22201155389f65abbf6bc9723edc7384ead80503839f49dcc56d767",
+    "size": 536870912,
+    "whole": "/dev/disk5",
+    "entities": [
+      {
+        "content-hint": "",
+        "dev-entry": "/dev/disk5"
+      }
+    ],
+    "disk_info": {
+      "Bootable": false,
+      "BusProtocol": "Disk Image",
+      "CanBeMadeBootable": false,
+      "CanBeMadeBootableRequiresDestroy": false,
+      "Content": "",
+      "DeviceBlockSize": 512,
+      "DeviceIdentifier": "disk5",
+      "DeviceNode": "/dev/disk5",
+      "DeviceTreePath": "IODeviceTree:/",
+      "Ejectable": true,
+      "EjectableMediaAutomaticUnderSoftwareControl": true,
+      "EjectableOnly": true,
+      "FreeSpace": 0,
+      "GlobalPermissionsEnabled": false,
+      "IOKitSize": 536870912,
+      "IORegistryEntryName": "Apple read/write Media",
+      "Internal": false,
+      "LowLevelFormatSupported": false,
+      "MediaName": "Disk Image",
+      "MediaType": "Generic",
+      "MountPoint": "",
+      "OS9DriversInstalled": false,
+      "OSInternalMedia": false,
+      "ParentWholeDisk": "disk5",
+      "PartitionMapPartition": false,
+      "RAIDMaster": false,
+      "RAIDSlice": false,
+      "Removable": true,
+      "RemovableMedia": true,
+      "RemovableMediaOrExternalDevice": true,
+      "SMARTDeviceSpecificKeysMayVaryNotGuaranteed": {},
+      "SMARTStatus": "Not Supported",
+      "Size": 536870912,
+      "SupportsGlobalPermissionsDisable": false,
+      "SystemImage": false,
+      "TotalSize": 536870912,
+      "VirtualOrPhysical": "Virtual",
+      "VolumeName": "",
+      "VolumeSize": 0,
+      "WholeDisk": true,
+      "Writable": true,
+      "WritableMedia": true,
+      "WritableVolume": false
+    },
+    "readonly": false,
+    "nomount": true
+  },
+  {
+    "kind": "filesystem_creation",
+    "at": 1790838565.082369,
+    "fs": "apfs",
+    "image": "/tmp/FST-FS-Calibration-po8yw04v/source.img",
+    "proven_device": "/dev/disk5",
+    "argv": [
+      "/sbin/newfs_apfs",
+      "-v",
+      "source",
+      "/dev/disk5"
+    ],
+    "exit": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "kind": "detached",
+    "at": 1790838565.275952,
+    "image": "/tmp/FST-FS-Calibration-po8yw04v/source.img",
+    "device": "/dev/disk5"
+  },
+  {
+    "kind": "attach_proven",
+    "at": 1790838566.005965,
+    "image": "/tmp/FST-FS-Calibration-po8yw04v/source.img",
+    "sha256": "4b0361be19569a7d1c31503a887230c48379bbfddb6021af340ab66492ba80c4",
+    "size": 536870912,
+    "whole": "/dev/disk5",
+    "entities": [
+      {
+        "content-hint": "",
+        "dev-entry": "/dev/disk5"
+      },
+      {
+        "content-hint": "EF57347C-0000-11AA-AA11-00306543ECAC",
+        "dev-entry": "/dev/disk6"
+      },
+      {
+        "content-hint": "41504653-0000-11AA-AA11-00306543ECAC",
+        "dev-entry": "/dev/disk6s1",
+        "mount-point": "/private/tmp/FST-FS-Calibration-po8yw04v/source"
+      }
+    ],
+    "disk_info": {
+      "APFSContainerReference": "disk6",
+      "Bootable": false,
+      "BusProtocol": "Disk Image",
+      "CanBeMadeBootable": false,
+      "CanBeMadeBootableRequiresDestroy": false,
+      "Content": "",
+      "DeviceBlockSize": 512,
+      "DeviceIdentifier": "disk5",
+      "DeviceNode": "/dev/disk5",
+      "DeviceTreePath": "IODeviceTree:/",
+      "Ejectable": true,
+      "EjectableMediaAutomaticUnderSoftwareControl": true,
+      "EjectableOnly": true,
+      "FreeSpace": 0,
+      "Fusion": false,
+      "GlobalPermissionsEnabled": false,
+      "IOKitSize": 536870912,
+      "IORegistryEntryName": "Apple read/write Media",
+      "Internal": false,
+      "LowLevelFormatSupported": false,
+      "MediaName": "Disk Image",
+      "MediaType": "Generic",
+      "MountPoint": "",
+      "OS9DriversInstalled": false,
+      "OSInternalMedia": false,
+      "ParentWholeDisk": "disk5",
+      "PartitionMapPartition": false,
+      "RAIDMaster": false,
+      "RAIDSlice": false,
+      "Removable": true,
+      "RemovableMedia": true,
+      "RemovableMediaOrExternalDevice": true,
+      "SMARTDeviceSpecificKeysMayVaryNotGuaranteed": {},
+      "SMARTStatus": "Not Supported",
+      "Size": 536870912,
+      "SupportsGlobalPermissionsDisable": false,
+      "SystemImage": false,
+      "TotalSize": 536870912,
+      "VirtualOrPhysical": "Virtual",
+      "VolumeName": "",
+      "VolumeSize": 0,
+      "WholeDisk": true,
+      "Writable": true,
+      "WritableMedia": true,
+      "WritableVolume": false
+    },
+    "readonly": false,
+    "nomount": false
+  },
+  {
+    "kind": "compression_fixture",
+    "at": 1790838570.475107,
+    "exit": 0,
+    "probe": {
+      "capacity": 536870912,
+      "device": "/dev/disk6s1",
+      "f_frsize": 4096,
+      "fs_type": "apfs",
+      "NSURLFileAllocatedSizeKey": 98304,
+      "NSURLFileSizeKey": 8388608,
+      "NSURLTotalFileAllocatedSizeKey": 98304,
+      "NSURLVolumeAvailableCapacityForImportantUsageKey": 0,
+      "NSURLVolumeAvailableCapacityKey": 247562240,
+      "ordinary_statvfs": 247562240,
+      "read_only": 0,
+      "statfs_f_bsize": 4096,
+      "statfs_f_iosize": 2097152,
+      "statvfs_f_bsize": 2097152
+    }
+  },
+  {
+    "kind": "detached",
+    "at": 1790838570.8175402,
+    "image": "/tmp/FST-FS-Calibration-po8yw04v/source.img",
+    "device": "/dev/disk5"
+  },
+  {
+    "kind": "attach_proven",
+    "at": 1790838571.934581,
+    "image": "/tmp/FST-FS-Calibration-po8yw04v/source.img",
+    "sha256": "1165260b8af83530f3b63118b5d81928746b9ccbc3f499f83283b56ade7951bd",
+    "size": 536870912,
+    "whole": "/dev/disk5",
+    "entities": [
+      {
+        "content-hint": "",
+        "dev-entry": "/dev/disk5"
+      },
+      {
+        "content-hint": "EF57347C-0000-11AA-AA11-00306543ECAC",
+        "dev-entry": "/dev/disk6"
+      },
+      {
+        "content-hint": "41504653-0000-11AA-AA11-00306543ECAC",
+        "dev-entry": "/dev/disk6s1",
+        "mount-point": "/private/tmp/FST-FS-Calibration-po8yw04v/source"
+      }
+    ],
+    "disk_info": {
+      "APFSContainerReference": "disk6",
+      "Bootable": false,
+      "BusProtocol": "Disk Image",
+      "CanBeMadeBootable": false,
+      "CanBeMadeBootableRequiresDestroy": false,
+      "Content": "",
+      "DeviceBlockSize": 512,
+      "DeviceIdentifier": "disk5",
+      "DeviceNode": "/dev/disk5",
+      "DeviceTreePath": "IODeviceTree:/",
+      "Ejectable": true,
+      "EjectableMediaAutomaticUnderSoftwareControl": true,
+      "EjectableOnly": true,
+      "FreeSpace": 0,
+      "Fusion": false,
+      "GlobalPermissionsEnabled": false,
+      "IOKitSize": 536870912,
+      "IORegistryEntryName": "Apple read/write Media",
+      "Internal": false,
+      "LowLevelFormatSupported": false,
+      "MediaName": "Disk Image",
+      "MediaType": "Generic",
+      "MountPoint": "",
+      "OS9DriversInstalled": false,
+      "OSInternalMedia": false,
+      "ParentWholeDisk": "disk5",
+      "PartitionMapPartition": false,
+      "RAIDMaster": false,
+      "RAIDSlice": false,
+      "Removable": true,
+      "RemovableMedia": true,
+      "RemovableMediaOrExternalDevice": true,
+      "SMARTDeviceSpecificKeysMayVaryNotGuaranteed": {},
+      "SMARTStatus": "Not Supported",
+      "Size": 536870912,
+      "SupportsGlobalPermissionsDisable": false,
+      "SystemImage": false,
+      "TotalSize": 536870912,
+      "VirtualOrPhysical": "Virtual",
+      "VolumeName": "",
+      "VolumeSize": 0,
+      "WholeDisk": true,
+      "Writable": false,
+      "WritableMedia": false,
+      "WritableVolume": false
+    },
+    "readonly": true,
+    "nomount": false
+  },
+  {
+    "kind": "blank_before_filesystem",
+    "at": 1790838575.1196,
+    "image": "/tmp/FST-FS-Calibration-po8yw04v/baseapfs.img",
+    "sha256": "9acca8e8c22201155389f65abbf6bc9723edc7384ead80503839f49dcc56d767",
+    "size": 536870912,
+    "exclusive_new_file": true,
+    "filesystem": null
+  },
+  {
+    "kind": "attach_proven",
+    "at": 1790838576.1925561,
+    "image": "/tmp/FST-FS-Calibration-po8yw04v/baseapfs.img",
+    "sha256": "9acca8e8c22201155389f65abbf6bc9723edc7384ead80503839f49dcc56d767",
+    "size": 536870912,
+    "whole": "/dev/disk7",
+    "entities": [
+      {
+        "content-hint": "",
+        "dev-entry": "/dev/disk7"
+      }
+    ],
+    "disk_info": {
+      "Bootable": false,
+      "BusProtocol": "Disk Image",
+      "CanBeMadeBootable": false,
+      "CanBeMadeBootableRequiresDestroy": false,
+      "Content": "",
+      "DeviceBlockSize": 512,
+      "DeviceIdentifier": "disk7",
+      "DeviceNode": "/dev/disk7",
+      "DeviceTreePath": "IODeviceTree:/",
+      "Ejectable": true,
+      "EjectableMediaAutomaticUnderSoftwareControl": true,
+      "EjectableOnly": true,
+      "FreeSpace": 0,
+      "GlobalPermissionsEnabled": false,
+      "IOKitSize": 536870912,
+      "IORegistryEntryName": "Apple read/write Media",
+      "Internal": false,
+      "LowLevelFormatSupported": false,
+      "MediaName": "Disk Image",
+      "MediaType": "Generic",
+      "MountPoint": "",
+      "OS9DriversInstalled": false,
+      "OSInternalMedia": false,
+      "ParentWholeDisk": "disk7",
+      "PartitionMapPartition": false,
+      "RAIDMaster": false,
+      "RAIDSlice": false,
+      "Removable": true,
+      "RemovableMedia": true,
+      "RemovableMediaOrExternalDevice": true,
+      "SMARTDeviceSpecificKeysMayVaryNotGuaranteed": {},
+      "SMARTStatus": "Not Supported",
+      "Size": 536870912,
+      "SupportsGlobalPermissionsDisable": false,
+      "SystemImage": false,
+      "TotalSize": 536870912,
+      "VirtualOrPhysical": "Virtual",
+      "VolumeName": "",
+      "VolumeSize": 0,
+      "WholeDisk": true,
+      "Writable": true,
+      "WritableMedia": true,
+      "WritableVolume": false
+    },
+    "readonly": false,
+    "nomount": true
+  },
+  {
+    "kind": "filesystem_creation",
+    "at": 1790838576.3262131,
+    "fs": "apfs",
+    "image": "/tmp/FST-FS-Calibration-po8yw04v/baseapfs.img",
+    "proven_device": "/dev/disk7",
+    "argv": [
+      "/sbin/newfs_apfs",
+      "-v",
+      "baseapfs",
+      "/dev/disk7"
+    ],
+    "exit": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "kind": "detached",
+    "at": 1790838576.488184,
+    "image": "/tmp/FST-FS-Calibration-po8yw04v/baseapfs.img",
+    "device": "/dev/disk7"
+  },
+  {
+    "kind": "disposable_copy_before_mount",
+    "at": 1790838577.212235,
+    "image": "/tmp/FST-FS-Calibration-po8yw04v/work0013.img",
+    "size": 536870912,
+    "sha256": "af2f9ba3d2068f8f71af84292e54c49b9507ec21eb51aa0aa81ea3f50fa45bca",
+    "template": "/tmp/FST-FS-Calibration-po8yw04v/baseapfs.img",
+    "template_sha256": "af2f9ba3d2068f8f71af84292e54c49b9507ec21eb51aa0aa81ea3f50fa45bca"
+  },
+  {
+    "kind": "attach_proven",
+    "at": 1790838578.037908,
+    "image": "/tmp/FST-FS-Calibration-po8yw04v/work0013.img",
+    "sha256": "af2f9ba3d2068f8f71af84292e54c49b9507ec21eb51aa0aa81ea3f50fa45bca",
+    "size": 536870912,
+    "whole": "/dev/disk8",
+    "entities": [
+      {
+        "content-hint": "",
+        "dev-entry": "/dev/disk7"
+      },
+      {
+        "content-hint": "EF57347C-0000-11AA-AA11-00306543ECAC",
+        "dev-entry": "/dev/disk8"
+      },
+      {
+        "content-hint": "41504653-0000-11AA-AA11-00306543ECAC",
+        "dev-entry": "/dev/disk8s1",
+        "mount-point": "/private/tmp/FST-FS-Calibration-po8yw04v/work0013"
+      }
+    ],
+    "disk_info": {
+      "APFSContainerReference": "disk8",
+      "APFSPhysicalStores": [
+        {
+          "APFSPhysicalStore": "disk7"
+        }
+      ],
+      "Bootable": false,
+      "BusProtocol": "Disk Image",
+      "CanBeMadeBootable": false,
+      "CanBeMadeBootableRequiresDestroy": false,
+      "Content": "EF57347C-0000-11AA-AA11-00306543ECAC",
+      "DeviceBlockSize": 4096,
+      "DeviceIdentifier": "disk8",
+      "DeviceNode": "/dev/disk8",
+      "DeviceTreePath": "IODeviceTree:/",
+      "DiskUUID": "CB1C8BA0-6839-4387-817D-1838F538E273",
+      "Ejectable": true,
+      "EjectableMediaAutomaticUnderSoftwareControl": true,
+      "EjectableOnly": true,
+      "FreeSpace": 0,
+      "Fusion": false,
+      "GlobalPermissionsEnabled": false,
+      "IOKitSize": 536870912,
+      "IORegistryEntryName": "AppleAPFSMedia",
+      "Internal": false,
+      "LowLevelFormatSupported": false,
+      "MediaName": "Disk Image",
+      "MediaType": "Generic",
+      "MountPoint": "",
+      "OS9DriversInstalled": false,
+      "OSInternalMedia": false,
+      "ParentWholeDisk": "disk8",
+      "PartitionMapPartition": false,
+      "RAIDMaster": false,
+      "RAIDSlice": false,
+      "Removable": true,
+      "RemovableMedia": true,
+      "RemovableMediaOrExternalDevice": true,
+      "SMARTDeviceSpecificKeysMayVaryNotGuaranteed": {},
+      "SMARTStatus": "Not Supported",
+      "Size": 536870912,
+      "SupportsGlobalPermissionsDisable": false,
+      "SystemImage": false,
+      "TotalSize": 536870912,
+      "VirtualOrPhysical": "Virtual",
+      "VolumeName": "",
+      "VolumeSize": 0,
+      "WholeDisk": true,
+      "Writable": true,
+      "WritableMedia": true,
+      "WritableVolume": false
+    },
+    "readonly": false,
+    "nomount": false
+  },
+  {
+    "kind": "job",
+    "fs": "apfs",
+    "case": "ordinary_large_aligned",
+    "run": 1,
+    "point": null,
+    "image": "/tmp/FST-FS-Calibration-po8yw04v/work0013.img",
+    "image_capacity": 536870912,
+    "source": {
+      "L": 16777216,
+      "N": 1,
+      "D": 0,
+      "R": 16777216,
+      "allocated": 16777216,
+      "files": [
+        {
+          "path": "f0000.bin",
+          "size": 16777216,
+          "allocated": 16777216,
+          "mode": 33188,
+          "mtime_ns": 1790838566010040672,
+          "inode": 17,
+          "sha256": "341aacac661ccb210720bedaa9ead5d668fe5ea41a73532fc147c71e34040df1",
+          "xattrs": {
+            "com.apple.provenance": "5b5835de0aa17d559fe76deaa1e29e14724d5780f9d8578d4b34691297d5ad50"
+          }
+        }
+      ],
+      "dirs": []
+    },
+    "destination": {
+      "L": 16777216,
+      "N": 1,
+      "D": 0,
+      "R": 16777216,
+      "allocated": 16777216,
+      "files": [
+        {
+          "path": "f0000.bin",
+          "size": 16777216,
+          "allocated": 16777216,
+          "mode": 33188,
+          "mtime_ns": 1790838566010040672,
+          "inode": 17,
+          "sha256": "341aacac661ccb210720bedaa9ead5d668fe5ea41a73532fc147c71e34040df1",
+          "xattrs": {
+            "com.apple.provenance": "5b5835de0aa17d559fe76deaa1e29e14724d5780f9d8578d4b34691297d5ad50"
+          }
+        }
+      ],
+      "dirs": []
+    },
+    "free_before": {
+      "capacity": 536870912,
+      "device": "/dev/disk8s1",
+      "f_frsize": 4096,
+      "fs_type": "apfs",
+      "NSURLFileAllocatedSizeKey": null,
+      "NSURLFileSizeKey": null,
+      "NSURLTotalFileAllocatedSizeKey": null,
+      "NSURLVolumeAvailableCapacityForImportantUsageKey": 0,
+      "NSURLVolumeAvailableCapacityKey": 535085056,
+      "ordinary_statvfs": 535085056,
+      "read_only": 0,
+      "statfs_f_bsize": 4096,
+      "statfs_f_iosize": 2097152,
+      "statvfs_f_bsize": 2097152
+    },
+    "free_after": {
+      "capacity": 536870912,
+      "device": "/dev/disk8s1",
+      "f_frsize": 4096,
+      "fs_type": "apfs",
+      "NSURLFileAllocatedSizeKey": null,
+      "NSURLFileSizeKey": null,
+      "NSURLTotalFileAllocatedSizeKey": null,
+      "NSURLVolumeAvailableCapacityForImportantUsageKey": 0,
+      "NSURLVolumeAvailableCapacityKey": 518307840,
+      "ordinary_statvfs": 518307840,
+      "read_only": 0,
+      "statfs_f_bsize": 4096,
+      "statfs_f_iosize": 2097152,
+      "statvfs_f_bsize": 2097152
+    },
+    "fill": null,
+    "argv": [
+      "/Users/cenvu/DEV/FST_V2/FishSockTransfer/FishSockTransfer/rsync",
+      "-a",
+      "-h",
+      "--info=name1,progress2",
+      "--outbuf=N",
+      "--exclude=.DS_Store",
+      "--exclude=._*",
+      "--exclude=.Spotlight-V100",
+      "--exclude=.Trashes",
+      "--exclude=.fseventsd",
+      "--exclude=.TemporaryItems",
+      "/tmp/FST-FS-Calibration-po8yw04v/source/ordinary_large_aligned",
+      "/tmp/FST-FS-Calibration-po8yw04v/work0013/"
+    ],
+    "rsync_exit": 0,
+    "stderr": "",
+    "stdout_tail": "ordinary_large_aligned/\nordinary_large_aligned/f0000.bin\n\n         32.77K   0%    0.00kB/s    0:00:00  \n         16.78M 100%  591.44MB/s    0:00:00 (xfr#1, to-chk=0/2)\n         16.78M 100%  591.44MB/s    0:00:00 (xfr#1, to-chk=0/2)\n         16.78M 100%  550.65MB/s    0:00:00 (xfr#1, to-chk=0/2)\n",
+    "integrity": true,
+    "observer_final_bytes": 16777216,
+    "observer_method": "Snapshotter logical clamp reproduced; no safety authority",
+    "selected_capacity": 535085056,
+    "admit_P0": true,
+    "admit_P1": true,
+    "regular_allocation_minus_R": 0,
+    "samples": [
+      {
+        "t": 0.00019687507301568985,
+        "free": 535085056,
+        "allocated": 0,
+        "logical": 0,
+        "temps": 0
+      },
+      {
+        "t": 0.005609249928966165,
+        "free": 535085056,
+        "allocated": 0,
+        "logical": 0,
+        "temps": 0
+      },
+      {
+        "t": 0.011974208056926727,
+        "free": 535085056,
+        "allocated": 0,
+        "logical": 0,
+        "temps": 0
+      },
+      {
+        "t": 0.017413208028301597,
+        "free": 535085056,
+        "allocated": 0,
+        "logical": 0,
+        "temps": 0
+      },
+      {
+        "t": 0.02378229098394513,
+        "free": 535085056,
+        "allocated": 0,
+        "logical": 0,
+        "temps": 0
+      },
+      {
+        "t": 0.030112666077911854,
+        "free": 535085056,
+        "allocated": 0,
+        "logical": 0,
+        "temps": 0
+      },
+      {
+        "t": 0.03646095795556903,
+        "free": 535085056,
+        "allocated": 0,
+        "logical": 0,
+        "temps": 0
+      },
+      {
+        "t": 0.042624874971807,
+        "free": 535085056,
+        "allocated": 0,
+        "logical": 0,
+        "temps": 0
+      },
+      {
+        "t": 0.04935112502425909,
+        "free": 535085056,
+        "allocated": 786432,
+        "logical": 786432,
+        "temps": 1
+      },
+      {
+        "t": 0.05555004091002047,
+        "free": 535085056,
+        "allocated": 4980736,
+        "logical": 4980736,
+        "temps": 1
+      },
+      {
+        "t": 0.06165529089048505,
+        "free": 535085056,
+        "allocated": 9175040,
+        "logical": 9175040,
+        "temps": 1
+      },
+      {
+        "t": 0.06798899988643825,
+        "free": 535085056,
+        "allocated": 12320768,
+        "logical": 12320768,
+        "temps": 1
+      },
+      {
+        "t": 0.07440437492914498,
+        "free": 535085056,
+        "allocated": 16515072,
+        "logical": 16515072,
+        "temps": 1
+      },
+      {
+        "t": 0.08095820806920528,
+        "free": 518307840,
+        "allocated": 16777216,
+        "logical": 16777216,
+        "temps": 0
+      },
+      {
+        "t": 0.08748341607861221,
+        "free": 518307840,
+        "allocated": 16777216,
+        "logical": 16777216,
+        "temps": 0
+      },
+      {
+        "t": 0.09395770798437297,
+        "free": 518307840,
+        "allocated": 16777216,
+        "logical": 16777216,
+        "temps": 0
+      },
+      {
+        "t": 0.10019887494854629,
+        "free": 518307840,
+        "allocated": 16777216,
+        "logical": 16777216,
+        "temps": 0
+      },
+      {
+        "t": 0.10706291603855789,
+        "free": 518307840,
+        "allocated": 16777216,
+        "logical": 16777216,
+        "temps": 0
+      },
+      {
+        "t": 0.1136313749011606,
+        "free": 518307840,
+        "allocated": 16777216,
+        "logical": 16777216,
+        "temps": 0
+      },
+      {
+        "t": 0.1205422910861671,
+        "free": 518307840,
+        "allocated": 16777216,
+        "logical": 16777216,
+        "temps": 0
+      }
+    ],
+    "temp_names": [
+      ".f0000.bin.RVfqsW"
+    ],
+    "temp_samples": [
+      {
+        "path": ".f0000.bin.RVfqsW",
+        "inode": 17,
+        "allocated": 786432,
+        "size": 786432
+      },
+      {
+        "path": ".f0000.bin.RVfqsW",
+        "inode": 17,
+        "allocated": 4980736,
+        "size": 4980736
+      },
+      {
+        "path": ".f0000.bin.RVfqsW",
+        "inode": 17,
+        "allocated": 9175040,
+        "size": 9175040
+      },
+      {
+        "path": ".f0000.bin.RVfqsW",
+        "inode": 17,
+        "allocated": 12320768,
+        "size": 12320768
+      },
+      {
+        "path": ".f0000.bin.RVfqsW",
+        "inode": 17,
+        "allocated": 16515072,
+        "size": 16515072
+      }
+    ],
+    "foundation_file_allocation_sample": {
+      "capacity": 536870912,
+      "device": "/dev/disk8s1",
+      "f_frsize": 4096,
+      "fs_type": "apfs",
+      "NSURLFileAllocatedSizeKey": 16777216,
+      "NSURLFileSizeKey": 16777216,
+      "NSURLTotalFileAllocatedSizeKey": 16777216,
+      "NSURLVolumeAvailableCapacityForImportantUsageKey": 0,
+      "NSURLVolumeAvailableCapacityKey": 518307840,
+      "ordinary_statvfs": 518307840,
+      "read_only": 0,
+      "statfs_f_bsize": 4096,
+      "statfs_f_iosize": 2097152,
+      "statvfs_f_bsize": 2097152
+    },
+    "source_unchanged": true
+  },
+  {
+    "kind": "detached",
+    "at": 1790838578.972618,
+    "image": "/tmp/FST-FS-Calibration-po8yw04v/work0013.img",
+    "device": "/dev/disk8"
+  },
+  {
+    "kind": "disposable_copy_before_mount",
+    "at": 1790838579.685982,
+    "image": "/tmp/FST-FS-Calibration-po8yw04v/work0017.img",
+    "size": 536870912,
+    "sha256": "af2f9ba3d2068f8f71af84292e54c49b9507ec21eb51aa0aa81ea3f50fa45bca",
+    "template": "/tmp/FST-FS-Calibration-po8yw04v/baseapfs.img",
+    "template_sha256": "af2f9ba3d2068f8f71af84292e54c49b9507ec21eb51aa0aa81ea3f50fa45bca"
+  },
+  {
+    "kind": "attach_proven",
+    "at": 1790838580.529451,
+    "image": "/tmp/FST-FS-Calibration-po8yw04v/work0017.img",
+    "sha256": "af2f9ba3d2068f8f71af84292e54c49b9507ec21eb51aa0aa81ea3f50fa45bca",
+    "size": 536870912,
+    "whole": "/dev/disk7",
+    "entities": [
+      {
+        "content-hint": "",
+        "dev-entry": "/dev/disk7"
+      },
+      {
+        "content-hint": "EF57347C-0000-11AA-AA11-00306543ECAC",
+        "dev-entry": "/dev/disk8"
+      },
+      {
+        "content-hint": "41504653-0000-11AA-AA11-00306543ECAC",
+        "dev-entry": "/dev/disk8s1",
+        "mount-point": "/private/tmp/FST-FS-Calibration-po8yw04v/work0017"
+      }
+    ],
+    "disk_info": {
+      "APFSContainerReference": "disk8",
+      "Bootable": false,
+      "BusProtocol": "Disk Image",
+      "CanBeMadeBootable": false,
+      "CanBeMadeBootableRequiresDestroy": false,
+      "Content": "",
+      "DeviceBlockSize": 512,
+      "DeviceIdentifier": "disk7",
+      "DeviceNode": "/dev/disk7",
+      "DeviceTreePath": "IODeviceTree:/",
+      "Ejectable": true,
+      "EjectableMediaAutomaticUnderSoftwareControl": true,
+      "EjectableOnly": true,
+      "FreeSpace": 0,
+      "Fusion": false,
+      "GlobalPermissionsEnabled": false,
+      "IOKitSize": 536870912,
+      "IORegistryEntryName": "Apple read/write Media",
+      "Internal": false,
+      "LowLevelFormatSupported": false,
+      "MediaName": "Disk Image",
+      "MediaType": "Generic",
+      "MountPoint": "",
+      "OS9DriversInstalled": false,
+      "OSInternalMedia": false,
+      "ParentWholeDisk": "disk7",
+      "PartitionMapPartition": false,
+      "RAIDMaster": false,
+      "RAIDSlice": false,
+      "Removable": true,
+      "RemovableMedia": true,
+      "RemovableMediaOrExternalDevice": true,
+      "SMARTDeviceSpecificKeysMayVaryNotGuaranteed": {},
+      "SMARTStatus": "Not Supported",
+      "Size": 536870912,
+      "SupportsGlobalPermissionsDisable": false,
+      "SystemImage": false,
+      "TotalSize": 536870912,
+      "VirtualOrPhysical": "Virtual",
+      "VolumeName": "",
+      "VolumeSize": 0,
+      "WholeDisk": true,
+      "Writable": true,
+      "WritableMedia": true,
+      "WritableVolume": false
+    },
+    "readonly": false,
+    "nomount": false
+  },
+  {
+    "kind": "job",
+    "fs": "apfs",
+    "case": "ordinary_large_unaligned",
+    "run": 1,
+    "point": null,
+    "image": "/tmp/FST-FS-Calibration-po8yw04v/work0017.img",
+    "image_capacity": 536870912,
+    "source": {
+      "L": 16777339,
+      "N": 1,
+      "D": 0,
+      "R": 16781312,
+      "allocated": 16781312,
+      "files": [
+        {
+          "path": "f0000.bin",
+          "size": 16777339,
+          "allocated": 16781312,
+          "mode": 33188,
+          "mtime_ns": 1790838566014389542,
+          "inode": 19,
+          "sha256": "6263799c147d77eb37c875a7336076e8060c344fa30113a733a6bdb13607e1ed",
+          "xattrs": {
+            "com.apple.provenance": "5b5835de0aa17d559fe76deaa1e29e14724d5780f9d8578d4b34691297d5ad50"
+          }
+        }
+      ],
+      "dirs": []
+    },
+    "destination": {
+      "L": 16777339,
+      "N": 1,
+      "D": 0,
+      "R": 16781312,
+      "allocated": 16781312,
+      "files": [
+        {
+          "path": "f0000.bin",
+          "size": 16777339,
+          "allocated": 16781312,
+          "mode": 33188,
+          "mtime_ns": 1790838566014389542,
+          "inode": 17,
+          "sha256": "6263799c147d77eb37c875a7336076e8060c344fa30113a733a6bdb13607e1ed",
+          "xattrs": {
+            "com.apple.provenance": "5b5835de0aa17d559fe76deaa1e29e14724d5780f9d8578d4b34691297d5ad50"
+          }
+        }
+      ],
+      "dirs": []
+    },
+    "free_before": {
+      "capacity": 536870912,
+      "device": "/dev/disk8s1",
+      "f_frsize": 4096,
+      "fs_type": "apfs",
+      "NSURLFileAllocatedSizeKey": null,
+      "NSURLFileSizeKey": null,
+      "NSURLTotalFileAllocatedSizeKey": null,
+      "NSURLVolumeAvailableCapacityForImportantUsageKey": 0,
+      "NSURLVolumeAvailableCapacityKey": 535085056,
+      "ordinary_statvfs": 535085056,
+      "read_only": 0,
+      "statfs_f_bsize": 4096,
+      "statfs_f_iosize": 2097152,
+      "statvfs_f_bsize": 2097152
+    },
+    "free_after": {
+      "capacity": 536870912,
+      "device": "/dev/disk8s1",
+      "f_frsize": 4096,
+      "fs_type": "apfs",
+      "NSURLFileAllocatedSizeKey": null,
+      "NSURLFileSizeKey": null,
+      "NSURLTotalFileAllocatedSizeKey": null,
+      "NSURLVolumeAvailableCapacityForImportantUsageKey": 0,
+      "NSURLVolumeAvailableCapacityKey": 518303744,
+      "ordinary_statvfs": 518303744,
+      "read_only": 0,
+      "statfs_f_bsize": 4096,
+      "statfs_f_iosize": 2097152,
+      "statvfs_f_bsize": 2097152
+    },
+    "fill": null,
+    "argv": [
+      "/Users/cenvu/DEV/FST_V2/FishSockTransfer/FishSockTransfer/rsync",
+      "-a",
+      "-h",
+      "--info=name1,progress2",
+      "--outbuf=N",
+      "--exclude=.DS_Store",
+      "--exclude=._*",
+      "--exclude=.Spotlight-V100",
+      "--exclude=.Trashes",
+      "--exclude=.fseventsd",
+      "--exclude=.TemporaryItems",
+      "/tmp/FST-FS-Calibration-po8yw04v/source/ordinary_large_unaligned",
+      "/tmp/FST-FS-Calibration-po8yw04v/work0017/"
+    ],
+    "rsync_exit": 0,
+    "stderr": "",
+    "stdout_tail": "ordinary_large_unaligned/\nordinary_large_unaligned/f0000.bin\n\n         32.77K   0%    0.00kB/s    0:00:00  \n         16.78M 100%  614.19MB/s    0:00:00 (xfr#1, to-chk=0/2)\n         16.78M 100%  614.19MB/s    0:00:00 (xfr#1, to-chk=0/2)\n         16.78M 100%  550.65MB/s    0:00:00 (xfr#1, to-chk=0/2)\n",
+    "integrity": true,
+    "observer_final_bytes": 16777339,
+    "observer_method": "Snapshotter logical clamp reproduced; no safety authority",
+    "selected_capacity": 535085056,
+    "admit_P0": true,
+    "admit_P1": true,
+    "regular_allocation_minus_R": 0,
+    "samples": [
+      {
+        "t": 0.0001474160235375166,
+        "free": 535085056,
+        "allocated": 0,
+        "logical": 0,
+        "temps": 0
+      },
+      {
+        "t": 0.006251708138734102,
+        "free": 535085056,
+        "allocated": 0,
+        "logical": 0,
+        "temps": 0
+      },
+      {
+        "t": 0.012981916079297662,
+        "free": 535085056,
+        "allocated": 0,
+        "logical": 0,
+        "temps": 1
+      },
+      {
+        "t": 0.019723208155483007,
+        "free": 535085056,
+        "allocated": 3670016,
+        "logical": 3670016,
+        "temps": 1
+      },
+      {
+        "t": 0.026415541069582105,
+        "free": 535085056,
+        "allocated": 7864320,
+        "logical": 7864320,
+        "temps": 1
+      },
+      {
+        "t": 0.03213950013741851,
+        "free": 535085056,
+        "allocated": 11534336,
+        "logical": 11534336,
+        "temps": 1
+      },
+      {
+        "t": 0.03889004117809236,
+        "free": 535085056,
+        "allocated": 16515072,
+        "logical": 16515072,
+        "temps": 1
+      },
+      {
+        "t": 0.04556608316488564,
+        "free": 518303744,
+        "allocated": 16781312,
+        "logical": 16777339,
+        "temps": 0
+      },
+      {
+        "t": 0.052068707998842,
+        "free": 518303744,
+        "allocated": 16781312,
+        "logical": 16777339,
+        "temps": 0
+      },
+      {
+        "t": 0.058685333002358675,
+        "free": 518303744,
+        "allocated": 16781312,
+        "logical": 16777339,
+        "temps": 0
+      }
+    ],
+    "temp_names": [
+      ".f0000.bin.vEs1iy"
+    ],
+    "temp_samples": [
+      {
+        "path": ".f0000.bin.vEs1iy",
+        "inode": 17,
+        "allocated": 0,
+        "size": 0
+      },
+      {
+        "path": ".f0000.bin.vEs1iy",
+        "inode": 17,
+        "allocated": 3670016,
+        "size": 3670016
+      },
+      {
+        "path": ".f0000.bin.vEs1iy",
+        "inode": 17,
+        "allocated": 7864320,
+        "size": 7864320
+      },
+      {
+        "path": ".f0000.bin.vEs1iy",
+        "inode": 17,
+        "allocated": 11534336,
+        "size": 11534336
+      },
+      {
+        "path": ".f0000.bin.vEs1iy",
+        "inode": 17,
+        "allocated": 16515072,
+        "size": 16515072
+      }
+    ],
+    "foundation_file_allocation_sample": {
+      "capacity": 536870912,
+      "device": "/dev/disk8s1",
+      "f_frsize": 4096,
+      "fs_type": "apfs",
+      "NSURLFileAllocatedSizeKey": 16781312,
+      "NSURLFileSizeKey": 16777339,
+      "NSURLTotalFileAllocatedSizeKey": 16781312,
+      "NSURLVolumeAvailableCapacityForImportantUsageKey": 0,
+      "NSURLVolumeAvailableCapacityKey": 518303744,
+      "ordinary_statvfs": 518303744,
+      "read_only": 0,
+      "statfs_f_bsize": 4096,
+      "statfs_f_iosize": 2097152,
+      "statvfs_f_bsize": 2097152
+    },
+    "source_unchanged": true
+  },
+  {
+    "kind": "detached",
+    "at": 1790838581.047359,
+    "image": "/tmp/FST-FS-Calibration-po8yw04v/work0017.img",
+    "device": "/dev/disk7"
+  },
+  {
+    "kind": "disposable_copy_before_mount",
+    "at": 1790838581.75101,
+    "image": "/tmp/FST-FS-Calibration-po8yw04v/work0021.img",
+    "size": 536870912,
+    "sha256": "af2f9ba3d2068f8f71af84292e54c49b9507ec21eb51aa0aa81ea3f50fa45bca",
+    "template": "/tmp/FST-FS-Calibration-po8yw04v/baseapfs.img",
+    "template_sha256": "af2f9ba3d2068f8f71af84292e54c49b9507ec21eb51aa0aa81ea3f50fa45bca"
+  },
+  {
+    "kind": "attach_proven",
+    "at": 1790838582.541468,
+    "image": "/tmp/FST-FS-Calibration-po8yw04v/work0021.img",
+    "sha256": "af2f9ba3d2068f8f71af84292e54c49b9507ec21eb51aa0aa81ea3f50fa45bca",
+    "size": 536870912,
+    "whole": "/dev/disk8",
+    "entities": [
+      {
+        "content-hint": "",
+        "dev-entry": "/dev/disk7"
+      },
+      {
+        "content-hint": "EF57347C-0000-11AA-AA11-00306543ECAC",
+        "dev-entry": "/dev/disk8"
+      },
+      {
+        "content-hint": "41504653-0000-11AA-AA11-00306543ECAC",
+        "dev-entry": "/dev/disk8s1",
+        "mount-point": "/private/tmp/FST-FS-Calibration-po8yw04v/work0021"
+      }
+    ],
+    "disk_info": {
+      "APFSContainerReference": "disk8",
+      "APFSPhysicalStores": [
+        {
+          "APFSPhysicalStore": "disk7"
+        }
+      ],
+      "Bootable": false,
+      "BusProtocol": "Disk Image",
+      "CanBeMadeBootable": false,
+      "CanBeMadeBootableRequiresDestroy": false,
+      "Content": "EF57347C-0000-11AA-AA11-00306543ECAC",
+      "DeviceBlockSize": 4096,
+      "DeviceIdentifier": "disk8",
+      "DeviceNode": "/dev/disk8",
+      "DeviceTreePath": "IODeviceTree:/",
+      "DiskUUID": "CB1C8BA0-6839-4387-817D-1838F538E273",
+      "Ejectable": true,
+      "EjectableMediaAutomaticUnderSoftwareControl": true,
+      "EjectableOnly": true,
+      "FreeSpace": 0,
+      "Fusion": false,
+      "GlobalPermissionsEnabled": false,
+      "IOKitSize": 536870912,
+      "IORegistryEntryName": "AppleAPFSMedia",
+      "Internal": false,
+      "LowLevelFormatSupported": false,
+      "MediaName": "Disk Image",
+      "MediaType": "Generic",
+      "MountPoint": "",
+      "OS9DriversInstalled": false,
+      "OSInternalMedia": false,
+      "ParentWholeDisk": "disk8",
+      "PartitionMapPartition": false,
+      "RAIDMaster": false,
+      "RAIDSlice": false,
+      "Removable": true,
+      "RemovableMedia": true,
+      "RemovableMediaOrExternalDevice": true,
+      "SMARTDeviceSpecificKeysMayVaryNotGuaranteed": {},
+      "SMARTStatus": "Not Supported",
+      "Size": 536870912,
+      "SupportsGlobalPermissionsDisable": false,
+      "SystemImage": false,
+      "TotalSize": 536870912,
+      "VirtualOrPhysical": "Virtual",
+      "VolumeName": "",
+      "VolumeSize": 0,
+      "WholeDisk": true,
+      "Writable": true,
+      "WritableMedia": true,
+      "WritableVolume": false
+    },
+    "readonly": false,
+    "nomount": false
+  },
+  {
+    "kind": "detached",
+    "at": 1790838583.9083872,
+    "image": "/tmp/FST-FS-Calibration-po8yw04v/work0021.img",
+    "device": "/dev/disk8"
+  },
+  {
+    "kind": "fatal",
+    "at": 1790838583.91948,
+    "traceback": "Traceback (most recent call last):\n  File \"/Users/cenvu/DEV/FST_V2/handoffs/evidence/fs-calibration/calibrate.py\", line 299, in main\n    for k in range(repeat):job(template,sm/name,fs,name,k+1)\n                           ~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/cenvu/DEV/FST_V2/handoffs/evidence/fs-calibration/calibrate.py\", line 243, in job\n    dest=scan(m/src.name,c)\n  File \"/Users/cenvu/DEV/FST_V2/handoffs/evidence/fs-calibration/calibrate.py\", line 146, in scan\n    p=pathlib.Path(base)/n; s=p.lstat()\n                              ~~~~~~~^^\n  File \"/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/pathlib/__init__.py\", line 661, in lstat\n    return os.lstat(self)\n           ~~~~~~~~^^^^^^\nFileNotFoundError: [Errno 2] No such file or directory: '/tmp/FST-FS-Calibration-po8yw04v/work0021/many_small_1byte/.f0001.bin.YbOYMU'\n"
+  },
+  {
+    "kind": "detached",
+    "at": 1790838584.1819148,
+    "image": "/tmp/FST-FS-Calibration-po8yw04v/source.img",
+    "device": "/dev/disk5"
+  },
+  {
+    "kind": "cleanup",
+    "at": 1790838584.2897542,
+    "all_test_mounts_detached": true,
+    "root_removed": true,
+    "remaining_test_images": []
+  }
+]

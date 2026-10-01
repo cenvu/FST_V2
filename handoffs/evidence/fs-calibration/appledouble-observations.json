@@ -1,0 +1,15 @@
+[
+  {
+    "image": "/tmp/FST-FS-Calibration-zuog2xzb/work0037.img",
+    "mount": "/private/tmp/FST-FS-Calibration-zuog2xzb/work0037",
+    "device": "/dev/disk10",
+    "file": "/private/tmp/FST-FS-Calibration-zuog2xzb/work0037/boundary_small/._f0000.bin",
+    "size": 4096,
+    "sha256": "1c1d9e0da1c17b85658a6bb097f866b27859720b533f9b6c9c83db9aa63e430a",
+    "magic": "0005160700020000",
+    "attribute_names": [
+      "com.apple.provenance"
+    ],
+    "first_96_bytes_hex": "00051607000200004d6163204f53205820202020202020200002000000090000003200000eb00000000200000ee20000011e00000000000000000000000000000000000000000000000000000000000000000000415454520000000000000ee2"
+  }
+]
