@@ -1,9 +1,9 @@
 # FST CodeGraph workspace rule (Antigravity / Gemini)
 
-In the FST repository, before broad filesystem searches, multi-file reads, or
-any edit, query the `fst-codegraph` MCP server first for structural context:
-symbol search, callers, callees, dependency graph, impact analysis, related
-tests, and edit context.
+For FST production-source work, query the `fst-codegraph` MCP server when it is
+available before editing the affected source. Use structural context for the
+target symbols, callers, callees, impact, and related tests. This rule does not
+add CodeGraph startup work for control-plane, documentation, or read-only tasks.
 
 - Server name: `fst-codegraph` (stdio, project-scoped to /Users/cenvu/DEV/FST_V2).
 - Always pass the repository root `/Users/cenvu/DEV/FST_V2` as the workspace/project path when a tool requires it.
@@ -31,16 +31,17 @@ because MCP is unavailable.
 
 ## FST Handoff System (Antigravity / Gemini)
 
-- Read `handoffs/CURRENT_HANDOFF.md` before starting work and after resuming.
+- Read only the HOT header of `handoffs/CURRENT_HANDOFF.md` at startup and
+  reanchor; load other sections only when needed.
 - Timestamped handoffs are immutable; `handoffs/INDEX.md` is append-only.
   Never edit historical entries; publish a CORRECTION or VERIFICATION handoff
   instead.
 - GitHub Issues are the task queue; Git, tests, commits, PRs, and source are
   the final confirmation sources — a handoff is never proof when repository
   evidence disagrees.
-- Before work: authority docs, `CURRENT_HANDOFF.md`, Git status/commit, the
-  relevant GitHub Issue, `fst-codegraph`, direct source, confirm the task is
-  not already completed; work in Sprint Mode and Lean Mode.
+- Before work: L0 kernel and CURRENT HOT, fresh Git state, matching issue and
+  targeted duplicate search. Use CodeGraph for production-source work when
+  available, then inspect direct source; work in Sprint Mode and Lean Mode.
 - After meaningful work: verify, inspect `git diff`, update the Issue when
   authorized, publish one handoff via
   `python3 FST_AI/tools/publish_handoff.py --draft <file> --agent "Antigravity

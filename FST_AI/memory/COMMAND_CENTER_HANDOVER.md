@@ -1,6 +1,44 @@
-# FST Command Center Handover
+# FST Command Center Full Reference
 
-## Current Control Plane — BRAIN Return V2.1 Fallback Resilience (2026-10-01)
+LOAD=L2_ON_DEMAND_ONLY
+ROLE=BACKGROUND_AND_HISTORICAL_PROJECT_CONTEXT;NOT_LIVE_TASK_STATE
+CANONICAL_TASK_QUEUE=GITHUB_ISSUES
+CANONICAL_CURRENT_PROJECT_SNAPSHOT=handoffs/CURRENT_HANDOFF.md
+MEMORY=NON_AUTHORITY
+
+This existing reference retains useful project and governance context without
+being a second live status source. Headings such as “Current”, “Next”, and
+“Baseline” below describe their dated snapshot only; they do not supersede
+GitHub Issues, current repository contents, or the HOT header in CURRENT. Load
+the whole file only for an audit, policy ambiguity, operator repair, governance
+conflict, rule promotion, or high-risk adjudication.
+
+## Captured Governance Architecture Baseline — FST Brain Operator Pilot (2026-10-01)
+
+STATUS=IMPLEMENTED_CONTROL_PLANE_PILOT;BRAIN_REVIEW=PENDING
+L0=AGENTS_ALWAYS_ON_KERNEL;FST_MEDIA_SAFETY_RETAINS_ALWAYS_ON
+L1=BRAIN_OPERATOR_COMPACT_STABLE_GOVERNANCE_ONLY
+L2=EXISTING_FULL_REFERENCES_ON_DEMAND;NO_NEW_GIANT_REFERENCE
+L3=EXISTING_TRIGGERED_SKILLS;TASK_EXECUTION=FST_SMALL_SAFE_CHANGE;FINALIZER=FST_BRAIN_RETURN_FINALIZER;REVIEW=FOCUSED_REVIEW_SKILLS
+L4=EXISTING_PUBLISHER+EXPORTER+GIT_GATES_EXTENDED;NO_NEW_CHECKER
+ACTIVE_CURRENT=handoffs/CURRENT_HANDOFF.md;SNAPSHOT_NOT_JOURNAL
+CURRENT_PRIORITY=DEPRECATED_POINTER_TO_CURRENT;NOT_LIVE_STATE
+WORKER_RESULT=EVIDENCE_ONLY;WORKER_NEXT=PROPOSAL_ONLY;BRAIN_OWNS_ACCEPTANCE_REVIEW_CLASSIFICATION_ACTIVE_NEXT
+POST_BRAIN_PUBLICATION=UNSUPPORTED_WITHOUT_CANONICAL_BRAIN_PROVENANCE;RETURN_PENDING
+PRODUCT_BYTES=UNCHANGED;HEADROOM_POLICY=PARKED_UNTOUCHED
+DEFAULT_CONTEXT=BEFORE_20_FILES_275366_BYTES_5941_LINES;AFTER_AGENTS_PLUS_HOT_2_FILES_7935_BYTES_201_LINES
+TRIGGERED_SKILL_SAMPLE=4_EXISTING_SKILLS_13063_BYTES_400_LINES;NO_NEW_SKILL_OR_CHECKER
+PILOT=A_LOW_RISK_HOT_ONLY|B_WORKER_FINALIZER_EXPORT_PATH|C_INDEPENDENT_READ_ONLY_REVIEW|D_STALE_PROJECTION_CANONICAL_WINS_HISTORY_PRESERVED|E_STATIC_7_PROMPT_MATRIX_NO_RUNTIME_ROUTER
+INDEPENDENT_REVIEW=FINAL_DRAFT_NO_BLOCKING_FINDINGS;BRAIN_REVIEW=PENDING
+GATES=HANDOFF_PUBLISHER_9_OF_9|EXPORTER_18_OF_18|DRY_RUN_VERIFY_DIFF_CHECK_PASS|PRODUCT_DIFF_EMPTY
+POST_BRAIN_PROPOSAL=BRAIN_ADJUDICATES;OWNER_AUTHORIZES_SEPARATE_TASK_FROM_CANONICAL_OWNER_AUTHORED_DECISION;NEW_CURRENT_AND_TIMESTAMPED_RECORD_REFERENCES_PROVENANCE_AND_IMMUTABLE_WORKER_REPORT
+POST_BRAIN_LIMIT=CURRENT_PUBLISHER_CANNOT_AUTHENTICATE_SOURCE_OR_ACTOR_OR_ACCEPT_BRAIN_FIELDS;NO_CHATGPT_WEB_ONLY_AUTH;NOT_IMPLEMENTED_THIS_CYCLE
+
+This is a captured baseline summary only. The current project snapshot and
+task decision remain in `handoffs/CURRENT_HANDOFF.md`; GitHub and repository
+contents remain canonical.
+
+## Captured Control Plane Snapshot — BRAIN Return V2.1 (2026-10-01)
 
 TASK=BRAIN_RETURN_V2_1_FALLBACK_RESILIENCE;STATUS=IMPLEMENTED_VERIFIED
 START_HEAD=64717e0e3fcd33d9951d05dea574af73a57247d4;SCOPE=CONTROL_PLANE_ONLY
@@ -541,27 +579,16 @@ Deferred:
 - Always prioritize data safety over convenience/speed.
 - For release tasks, include checksum and GitHub Release asset upload.
 
-## Required Agent Startup
+## Captured Startup Contract — L2 Reference (2026-10-01)
 
-Before making changes, every AI agent must read:
-- `FST_AI/memory/TASK_REGISTRY.md`
-- `FST_AI/memory/COMMAND_CENTER_HANDOVER.md`
-- `FST_AI/memory/WORK_HISTORY.md`
-- `AGENTS.md`
-- `docs/00_AI_AGENT_START_HERE.md`
-
-If docs conflict, use this priority:
-1. `AGENTS.md`
-2. `FST_AI/memory/COMMAND_CENTER_HANDOVER.md`
-3. `docs/00_AI_AGENT_START_HERE.md`
-4. `FST_AI/memory/TASK_REGISTRY.md`
-5. `FST_AI/memory/WORK_HISTORY.md`
-
-Before executing a task, check:
-- `FST_AI/memory/TASK_REGISTRY.md`
-- `FST_AI/memory/WORK_HISTORY.md`
-
-If a substantially similar task already exists, ask whether to rerun it, continue it, or review previous output.
+This file is not a startup bundle. Follow the always-on governance and
+media-safety kernel in `AGENTS.md`, read only the HOT header of
+`handoffs/CURRENT_HANDOFF.md`, refresh Git identity/freshness, and search only
+matching task-history entries for duplicates. Load this full L2 reference only
+for an audit, policy ambiguity, operator repair, governance conflict, rule
+promotion, or high-risk adjudication. If historical notes here conflict with
+the canonical repository, GitHub Issues, or the current HOT snapshot, preserve
+the conflict and prefer the current canonical evidence.
 
 After meaningful work, agents must propose an update to:
 - `FST_AI/memory/WORK_HISTORY.md`
@@ -590,7 +617,7 @@ Meaningful work includes:
 
 ## Handoff System (2026-08-01)
 
-- `handoffs/CURRENT_HANDOFF.md` is the latest operational continuation record for all agents (Gemini, GPT, Claude, DeepSeek, future agents). Read it before and during work.
+- `handoffs/CURRENT_HANDOFF.md` is the latest project-specific operational snapshot, not a journal or repository authority. Read its HOT header at startup; load other sections only when the task needs them.
 - Timestamped handoffs under `handoffs/` are immutable evidence; `handoffs/INDEX.md` is append-only history — never edit or reorder entries; publish a CORRECTION or VERIFICATION handoff instead of editing history.
 - GitHub Issues remain the task queue. Git, tests, commits, pull requests, and actual source are the final confirmation sources; a handoff is never proof when repository evidence disagrees.
 - Sprint Mode and Lean Mode are active.

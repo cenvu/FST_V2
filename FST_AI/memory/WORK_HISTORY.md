@@ -21,6 +21,19 @@ Each entry must include:
 
 ## Recent History
 
+### 2026-10-01 - FST Brain Operator Architecture Pilot
+
+- Agent/model: Codex local Worker / exact runtime model UNVERIFIED
+- Branch/start: `main` at `174aae63c12eeb12492238d73c4ccee4832bcb1b`; fetched `origin/main` matched before edits and the finalization sequence rechecks freshness.
+- Files: L0 `AGENTS.md` and Claude harness shim; stable BRAIN compact; existing role/skill/docs/governance references; deprecated `current-priority.md` projection; existing handoff schema/docs and publisher/tests; Task Registry and this history; one CURRENT/timestamped handoff. No production Swift/Xcode files.
+- What changed: established L0-L4 progressive context using existing root authority and narrow skills, removed duplicated live priority state, made CURRENT a validated snapshot, extended the existing publisher gates, and kept BRAIN-owned fields pending/unset. No new kernel, skill, checker, or giant reference.
+- Context: required startup baseline 20 files / 275366 bytes / 5941 lines; representative default AGENTS + publisher-assigned CURRENT HOT 2 files / 7935 bytes / 201 lines. Four selected existing L3 skills are a separate sample: 13063 bytes / 400 lines.
+- Pilot evidence: A low-risk HOT orientation with L2 and unrelated skills excluded; B Worker evidence -> finalizer/dry-run/publication -> short exporter return; C independent read-only review with BRAIN review still pending; D disposable stale CURRENT/projection fixtures chose canonical repository state while history stayed intact; E manual seven-prompt skill trigger matrix, no runtime router.
+- Verification: publisher stdlib tests 9/9 PASS; exporter stdlib tests 18/18 PASS; publisher dry-run/verify PASS; `git diff --check` PASS; `git diff -- FishSockTransfer` empty. Xcode and product runtime not run because product bytes are unchanged.
+- Safety boundary: destination headroom policy parked untouched; no product/runtime/release changes. Exact current post-BRAIN provenance gap is that the publisher cannot authenticate BRAIN source/actor or accept BRAIN-owned fields; no BRAIN authority is simulated.
+- Commit/release: one coherent control-plane commit follows publication; push/fetch equality, clean worktree, and final return are gated by the V2.1 exporter; no tag/release.
+- Single Worker proposal: RETURN_TO_BRAIN_FOR_INDEPENDENT_ADJUDICATION. BRAIN review/classification/accepted state/active-next remain its decision.
+
 ### 2026-10-01 - Brain Return V2.1 Fallback Resilience
 
 - Agent/model: Codex local Worker / exact runtime model UNVERIFIED

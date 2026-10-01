@@ -2,8 +2,8 @@
 
 # FST AI Agent Start Here
 
-Version: 2026-06-30  
-Status: First file to read  
+Version: 2026-10-01
+Status: L2 project reference index; load when a task needs project detail
 Applies To: Codex, Claude, ChatGPT, human contributors
 
 ---
@@ -44,42 +44,31 @@ Do not add features that do not reduce media-loss risk.
 
 ---
 
-## Start Here: FST_AI
+## Progressive Context Index
 
-For current AI-assisted development workflow, use:
+`AGENTS.md` is the L0 always-on governance and media-safety kernel. At task
+start, read only its startup contract and the HOT header of
+`handoffs/CURRENT_HANDOFF.md`; confirm current GitHub/repository state before
+acting. Search `TASK_REGISTRY.md` and `WORK_HISTORY.md` for the supplied task
+when checking for duplicate work. Those files are task history, not active
+state.
 
-- `FST_AI/memory/TASK_REGISTRY.md`
-- `FST_AI/memory/COMMAND_CENTER_HANDOVER.md`
-- `FST_AI/memory/WORK_HISTORY.md`
-- `FST_AI/README.md`
-- `FST_AI/memory/current-priority.md`
-- `FST_AI/memory/project-baseline.md`
-- `FST_AI/memory/agent-roles.md`
-- `FST_AI/standards/safety-first.md`
-- `FST_AI/standards/agent-boundaries.md`
-- `FST_AI/workflows/`
-- `FST_AI/prompts/`
-- `FST_AI/skills/`
+Load the exact material needed for the task:
 
-`FST_AI/` defines the active agent model:
+- `FST_AI/memory/BRAIN_OPERATOR_COMPACT.md`: L1 stable BRAIN governance.
+- `FST_AI/memory/COMMAND_CENTER_HANDOVER.md`: L2 full project reference;
+  load only for an audit, ambiguity, operator repair, governance conflict,
+  rule promotion, or high-risk adjudication.
+- `FST_AI/roles/`, `FST_AI/standards/`, `FST_AI/design-system/`, and
+  `FST_AI/skills/`: L3 focused references, only when a trigger matches.
+- `docs/01_PRD.md`, `docs/02_FST_TECHNICAL_GUIDE.md`, and
+  `docs/03_PROJECT_MASTER_GUIDELINE.md`: read the relevant section when the
+  task touches that product behavior; load the full documents only for a
+  demonstrated system-level need.
 
-- Mi / Command Center: Technical Lead, Safety Gate, Prompt Architect, Workflow Router.
-- Codex: Main Core Coding Agent, Secondary Reviewer.
-- Claude: Main QA, Main Code Reviewer, Main Safety Reviewer, Secondary Coding Agent.
-- Antigravity: Main SwiftUI/UI implementation environment.
-- Gemini Pro: Routed UI/ViewModel experiment and polish agent, usually inside Antigravity.
-- Roo/RooCode: dropped unless explicitly reintroduced by Mi.
-
-Use `FST_AI/` for current routing, prompt templates, skill playbooks, QA templates, and UI design guidance.
-
-Do not use older agent routing if it conflicts with `FST_AI/`.
-
-Required handover startup:
-- Read `FST_AI/memory/TASK_REGISTRY.md`, `FST_AI/memory/COMMAND_CENTER_HANDOVER.md`, `FST_AI/memory/WORK_HISTORY.md`, `AGENTS.md`, and this file before making changes.
-- If docs conflict, follow: `AGENTS.md`, then `COMMAND_CENTER_HANDOVER.md`, then this file, then `TASK_REGISTRY.md`, then `WORK_HISTORY.md`.
-- If `TASK_REGISTRY.md` or `WORK_HISTORY.md` shows the task was already completed, ask whether to rerun, continue, or review previous output.
-- After meaningful work, propose new `FST_AI/memory/WORK_HISTORY.md` and `FST_AI/memory/TASK_REGISTRY.md` entries. If the baseline changes, also propose a `FST_AI/memory/COMMAND_CENTER_HANDOVER.md` update.
-- Meaningful work includes source, safety policy, report wording/schema, release/package/tag/GitHub Release, architecture, routing, or source-of-truth docs changes.
+`FST_AI/memory/current-priority.md` is a deprecated pointer, not a status
+source. GitHub and current repository contents are canonical. Memory and
+handoffs provide context only.
 
 ---
 
@@ -114,19 +103,11 @@ Do not include dropped or deprecated agent workflows unless the user explicitly 
 
 ---
 
-## Required Read Order
+## Project Reference Loading
 
-Read only active docs first:
-
-```text
-1. docs/00_AI_AGENT_START_HERE.md
-2. docs/01_PRD.md
-3. docs/02_FST_TECHNICAL_GUIDE.md
-4. docs/03_PROJECT_MASTER_GUIDELINE.md
-5. Existing Swift code
-```
-
-Ignore historical material unless the user explicitly asks for historical context.
+This file is an index, not a mandatory startup bundle. Load project documents
+and exact source/test files when the task scope demonstrates the need. Ignore
+historical material unless the user explicitly asks for historical context.
 
 ---
 

@@ -1,5 +1,13 @@
 # FST CodeGraph Index Status
 
+LOAD=ON_DEMAND_ONLY
+TRIGGER=PRODUCTION_SOURCE_EDIT|CODEGRAPH_TOOLING_TASK
+AUTHORITY=ADVISORY_INDEX;REPOSITORY_SOURCE_WINS
+
+This file records installation and index history. Do not load it for routine
+control-plane, documentation, or read-only task startup. The recorded index
+commit is historical; confirm freshness before relying on any graph result.
+
 Status: INSTALLED — index built with a documented upstream Swift parser
 limitation (see "Known Limitations"). Integration date: 2026-08-01.
 

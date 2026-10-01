@@ -22,8 +22,8 @@ Antigravity is UI owner. Gemini Pro may assist when routed. Claude or Mi reviews
 ## Required Startup Docs
 
 - `AGENTS.md`
-- `FST_AI/memory/COMMAND_CENTER_HANDOVER.md`
-- `FST_AI/memory/TASK_REGISTRY.md`
+- HOT header of `handoffs/CURRENT_HANDOFF.md`; full Command Center only for an L2 trigger
+- Search matching task entries in `FST_AI/memory/TASK_REGISTRY.md` and `WORK_HISTORY.md`; do not load full history
 - `FST_AI/roles/antigravity-gemini-ui-engineer.md`
 - `FST_AI/design-system/MASTER.md`
 

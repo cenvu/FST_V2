@@ -2,7 +2,7 @@
 
 ---
 name: fst-brain-return-finalizer
-description: Finalize every BRAIN-routed FST Worker task into the canonical handoff plus the single Desktop 03_FST_BRAIN.md return envelope.
+description: At the end of a completed or failed BRAIN-routed FST Worker task, verify and publish its handoff, commit/push/fetch-check when mutating, then export the single 03_FST_BRAIN.md return.
 ---
 
 # Skill: fst-brain-return-finalizer
@@ -19,9 +19,11 @@ Use at the end of every meaningful Worker prompt that originated from BRAIN / Ch
 
 - Repository/GitHub truth wins.
 - Worker handoff/model output is evidence, not canonical truth.
-- `handoffs/CURRENT_HANDOFF.md` remains the canonical operational continuation record.
+- `handoffs/CURRENT_HANDOFF.md` is the current project snapshot and operational continuation record; it is not repository truth or a journal.
 - `~/Desktop/03_FST_BRAIN.md` is a non-canonical transport projection only.
 - BRAIN role and routing behavior come from `FST_AI/memory/BRAIN_OPERATOR_COMPACT.md`.
+- The Worker may propose one next decision only. BRAIN owns acceptance,
+  classification, review, and active-next state.
 
 ## Single Desktop Rule
 
@@ -99,6 +101,11 @@ PASS is fail-closed. The exporter downgrades PASS to FAIL when:
 - the canonical BRAIN Operator snapshot is missing, unreadable, invalid UTF-8, or cannot be hashed.
 
 FAIL remains exportable so BRAIN receives evidence and can adjudicate it.
+
+The publisher validates schema and deterministic ownership, freshness, and
+reference fields. It cannot authenticate a BRAIN decision from ChatGPT Web.
+Keep BRAIN review pending unless an explicitly authorized later task provides
+canonical provenance; do not simulate post-BRAIN acceptance in a Worker report.
 
 ## Worker User-Visible Return
 

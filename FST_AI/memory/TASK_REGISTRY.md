@@ -6,9 +6,13 @@ Track meaningful AI/Codex task batches so future agents can detect repeated prom
 
 ## Rule
 
-Before running a new task, Codex must check this registry and `FST_AI/memory/WORK_HISTORY.md`.
+Search only the supplied task ID/name in this registry and
+`FST_AI/memory/WORK_HISTORY.md`; read matching entries to detect duplicate
+work. These files are history, not active state, and are not a full startup
+bundle.
 
-If the same or substantially similar task already exists, Codex must stop and ask:
+If the same or substantially similar task already appears complete, ask whether
+to rerun it, continue it, or review its evidence:
 
 ```text
 This appears to have been run before as <entry>. Do you want to rerun it, continue it, or review previous output?
@@ -28,6 +32,19 @@ This appears to have been run before as <entry>. Do you want to rerun it, contin
 - Notes:
 
 ## Recent Tasks
+
+### 2026-10-01 - FST Brain Operator Architecture Pilot
+
+- Date: 2026-10-01
+- Task ID: FST_BRAIN_OPERATOR_ARCHITECTURE_PILOT
+- Task name: FST Brain Operator Architecture Pilot
+- Agent: Codex local Worker / model UNVERIFIED
+- Status: control-plane pilot implemented; Worker handoff pending BRAIN adjudication
+- Files changed: root/harness kernel; BRAIN compact and existing governance/role/skill references; stale current-priority pointer; handoff template/readme; existing publisher and stdlib tests; docs and this registry/history; one NORMAL CURRENT/timestamped handoff
+- Commit/tag/release: one coherent control-plane commit; final Git/export gates in `03_FST_BRAIN.md`; no release/tag
+- Safety impact: no Swift, Xcode, transfer, verification, rsync, report, SAFE TO EJECT, UI8, or destination headroom policy changes; product diff empty; headroom remains parked
+- Checks: default context reduced from 20 files/275366 bytes/5941 lines to AGENTS plus HOT 2 files/7935 bytes/201 lines; four representative existing skills measured separately at 13063 bytes/400 lines; publisher tests 9/9; exporter tests 18/18; publisher dry-run/verify; `git diff --check`; product diff empty; pilot cases A-E and read-only independent review recorded in CURRENT
+- Notes: no new skill or checker; BRAIN review/classification/accepted state/active-next remain unset/pending. Exact post-BRAIN provenance gap and proposal are in CURRENT. Single Worker proposal: RETURN_TO_BRAIN_FOR_INDEPENDENT_ADJUDICATION.
 
 ### 2026-10-01 - Brain Return V2.1 Fallback Resilience
 

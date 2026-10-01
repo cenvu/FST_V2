@@ -23,6 +23,7 @@
 
 import argparse
 import datetime as _dt
+import hashlib
 import os
 import re
 import subprocess
@@ -97,58 +98,270 @@ def git_readonly(args):
 
 REQUIRED_HEADINGS = [
     "# FST Agent Handoff",
-    "## 1. Handoff Identity",
-    "## 2. Task and Phase",
-    "## 3. Agent and Model",
-    "## 4. Repository Snapshot",
-    "## 5. Starting Context",
-    "## 6. Work Completed",
-    "## 7. Files Changed",
-    "## 8. Verification Evidence",
-    "## 9. Git and GitHub Evidence",
-    "## 10. CodeGraph Evidence",
-    "## 11. Remaining Risks and Unknowns",
-    "## 12. Safety Invariants",
-    "## 13. Single Next Action",
-    "## 14. Resume Prompt",
-    "## 15. References",
+    "## HOT",
+    "## COMPACT_REFS",
+    "## CURRENT_STATE",
+    "## REVIEW",
+    "## RAW_REFS",
+    "## REPORT",
+    "## NEXTSTEP",
 ]
 
+HOT_FIELDS = (
+    "HMD_SCHEMA", "HMD_VERSION", "WORKSTREAM_ID", "HANDOFF_ID",
+    "HANDOFF_TYPE", "REPO", "BRANCH", "REPO_HEAD", "REMOTE_HEAD",
+    "HANDOFF_AT_HEAD", "LAST_VERIFIED_AT", "AUTH", "STATE", "GATE",
+    "BLOCKER", "NEXT_DECISION",
+)
+WORKSTREAM_RE = re.compile(r"^[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)+$")
+SHA_RE = re.compile(r"^(?:[0-9a-fA-F]{40}|UNKNOWN)$")
+NEXT_DECISION_RE = re.compile(
+    r"^(?:ACTION\([^()]+\)|WAIT\([^()]+\)|DONE|NO_WORK_NEEDED|OWNER_DECISION|STOP)$"
+)
 VALID_TYPES = ("NORMAL", "CORRECTION", "VERIFICATION", "BLOCKED")
+CURRENT_PRIORITY_POINTER_TEXT = """<!-- FST / CenVu | (+84) 842 841 222 -->
 
-def validate_handoff(text):
-    """Validate required headings in order and required sections non-empty."""
+# Deprecated Current Priority Pointer
+
+ROLE=DEPRECATED_POINTER
+AUTHORITY=NONE
+CURRENT_PROJECT_SNAPSHOT=handoffs/CURRENT_HANDOFF.md
+TASK_QUEUE=GITHUB_ISSUES
+
+This compatibility path is retained for existing links. It contains no live
+priority, task, blocker, or next-action state. Read the HOT header in
+`handoffs/CURRENT_HANDOFF.md` for the current project snapshot and GitHub Issues
+for queued work. Confirm both against repository/GitHub state.
+"""
+
+def _section_bodies(text):
     lines = text.splitlines()
     heading_index = {}
-    seen = []
     for idx, line in enumerate(lines):
         stripped = line.strip()
         if stripped in REQUIRED_HEADINGS:
+            if stripped in heading_index:
+                die("draft repeats required heading: %s" % stripped)
             heading_index[stripped] = idx
-            seen.append(stripped)
     for expected in REQUIRED_HEADINGS:
         if expected not in heading_index:
             die("draft is missing required heading: %s" % expected)
-    # Headings must appear in schema order.
     positions = [heading_index[h] for h in REQUIRED_HEADINGS]
     if positions != sorted(positions):
         die("draft headings are out of schema order")
-    # Section 13 (Single Next Action) and 14 (Resume Prompt) must have content.
-    for section, section_next in (
-        ("## 13. Single Next Action", "## 14. Resume Prompt"),
-        ("## 14. Resume Prompt", "## 15. References"),
-    ):
-        start = heading_index[section] + 1
-        end = heading_index[section_next]
+    bodies = {}
+    for i, heading in enumerate(REQUIRED_HEADINGS[1:], start=1):
+        start = heading_index[heading] + 1
+        end = heading_index[REQUIRED_HEADINGS[i + 1]] if i + 1 < len(REQUIRED_HEADINGS) else len(lines)
         body = "\n".join(lines[start:end]).strip()
-        if len(body) < 20:
-            die("draft section %s is empty or too short" % section)
-    # Resume Prompt must contain a fenced code block.
-    resume_start = heading_index["## 14. Resume Prompt"]
-    resume_end = heading_index["## 15. References"]
-    resume = "\n".join(lines[resume_start:resume_end])
-    if "```" not in resume:
-        die("draft section ## 14. Resume Prompt must contain a fenced ``` block")
+        if not body:
+            die("draft section %s is empty" % heading)
+        bodies[heading[3:]] = body
+    return bodies
+
+
+def _fields(body, section_name):
+    """Read unique machine fields from section lines."""
+    result = {}
+    for line in body.splitlines():
+        match = re.match(r"^([A-Z][A-Z0-9_]*)=(.*)$", line.strip())
+        if not match:
+            continue
+        key, value = match.groups()
+        if key in result:
+            die("section %s repeats field %s" % (section_name, key))
+        result[key] = value.strip()
+    return result
+
+
+def _repo_file(root, ref):
+    """Resolve a repo-relative path/ref without following it outside root."""
+    path = ref.split("#", 1)[0].strip()
+    if not path or os.path.isabs(path):
+        die("reference path must be repository-relative: %s" % ref)
+    root_real = os.path.realpath(root)
+    candidate = os.path.realpath(os.path.join(root_real, path))
+    if os.path.commonpath((root_real, candidate)) != root_real:
+        die("reference escapes repository root: %s" % ref)
+    if not os.path.isfile(candidate):
+        die("required reference does not exist: %s" % ref)
+    return candidate
+
+
+def _validate_refs(root, compact_refs, raw_refs):
+    compact_count = 0
+    for line in compact_refs.splitlines():
+        value = line.strip()
+        if value.startswith("REF="):
+            _repo_file(root, value[4:])
+            compact_count += 1
+    if compact_count == 0:
+        die("COMPACT_REFS must contain at least one REF=<repo-path>")
+
+    raw_count = 0
+    none_seen = False
+    for line in raw_refs.splitlines():
+        value = line.strip()
+        if value == "RAW_REF=NONE":
+            none_seen = True
+            continue
+        if not value.startswith("RAW_REF="):
+            continue
+        parts = dict(
+            item.split("=", 1) for item in value[len("RAW_REF="):].split(";") if "=" in item
+        )
+        if set(parts) != {"PATH", "BYTES", "SHA256"}:
+            die("RAW_REF must include PATH, BYTES, and SHA256")
+        candidate = _repo_file(root, parts["PATH"])
+        try:
+            expected_bytes = int(parts["BYTES"])
+        except ValueError:
+            die("RAW_REF BYTES must be an integer")
+        if not re.fullmatch(r"[0-9a-fA-F]{64}", parts["SHA256"]):
+            die("RAW_REF SHA256 is malformed")
+        with open(candidate, "rb") as fh:
+            data = fh.read()
+        if len(data) != expected_bytes:
+            die("RAW_REF byte length mismatch: %s" % parts["PATH"])
+        if hashlib.sha256(data).hexdigest().lower() != parts["SHA256"].lower():
+            die("RAW_REF SHA256 mismatch: %s" % parts["PATH"])
+        raw_count += 1
+    if none_seen and raw_count:
+        die("RAW_REF=NONE cannot be combined with raw refs")
+    if raw_count == 0 and not none_seen:
+        die("RAW_REFS must contain RAW_REF=NONE or a verified RAW_REF")
+
+
+def validate_handoff(text, root=None, final=False, expected_handoff_id=None):
+    """Validate the versioned handoff schema and deterministic ownership gates."""
+    if not text.startswith("# FST Agent Handoff\n"):
+        die("draft must start with # FST Agent Handoff")
+    if root is None:
+        die("repository root is required for handoff reference validation")
+    bodies = _section_bodies(text)
+    hot = _fields(bodies["HOT"], "HOT")
+    missing = [key for key in HOT_FIELDS if key not in hot]
+    if missing:
+        die("HOT header is missing fields: %s" % ", ".join(missing))
+    for key in HOT_FIELDS:
+        if not hot[key]:
+            die("HOT field %s is empty" % key)
+    if hot["HMD_SCHEMA"] != "HANDOFF_MARKDOWN" or hot["HMD_VERSION"] != "1":
+        die("unsupported handoff schema/version")
+    if not WORKSTREAM_RE.fullmatch(hot["WORKSTREAM_ID"]):
+        die("WORKSTREAM_ID is malformed")
+    if hot["HANDOFF_TYPE"] not in VALID_TYPES:
+        die("HANDOFF_TYPE is invalid")
+    if hot["HANDOFF_ID"] == "PUBLISHER_ASSIGNED":
+        if final:
+            die("published HANDOFF_ID was not assigned by the publisher")
+    elif not re.fullmatch(r"\d{8}-\d{6}_[A-Za-z0-9_-]+", hot["HANDOFF_ID"]):
+        die("HANDOFF_ID is malformed")
+    if expected_handoff_id and hot["HANDOFF_ID"] != expected_handoff_id:
+        die("HANDOFF_ID does not match the published filename")
+    if not re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+|UNKNOWN", hot["REPO"]):
+        die("REPO must be owner/name or UNKNOWN")
+    if not re.fullmatch(r"[A-Za-z0-9._/-]+|UNKNOWN", hot["BRANCH"]):
+        die("BRANCH is malformed")
+    if not SHA_RE.fullmatch(hot["REPO_HEAD"]):
+        die("REPO_HEAD must be a full SHA or UNKNOWN")
+    if not SHA_RE.fullmatch(hot["REMOTE_HEAD"]):
+        die("REMOTE_HEAD must be a full SHA or UNKNOWN")
+    if hot["HANDOFF_AT_HEAD"] not in ("YES", "NO", "UNKNOWN"):
+        die("HANDOFF_AT_HEAD must be YES, NO, or UNKNOWN")
+    if hot["LAST_VERIFIED_AT"] != "UNKNOWN":
+        try:
+            checked_at = _dt.datetime.fromisoformat(
+                hot["LAST_VERIFIED_AT"].replace("Z", "+00:00")
+            )
+        except ValueError:
+            die("LAST_VERIFIED_AT must be ISO-8601 or UNKNOWN")
+        if checked_at.tzinfo is None:
+            die("LAST_VERIFIED_AT must include a timezone")
+    if hot["AUTH"] != "REPO_GITHUB_CANONICAL":
+        die("AUTH must declare REPO_GITHUB_CANONICAL")
+    if hot["STATE"] not in ("IN_PROGRESS", "WORKER_REPORT_COMPLETE", "WORKER_BLOCKED"):
+        die("STATE must describe Worker report progress, not BRAIN acceptance")
+    if hot["GATE"] not in ("WORKER_EVIDENCE_INCOMPLETE", "WORKER_RETURN_READY"):
+        die("GATE must describe Worker evidence readiness, not BRAIN classification")
+    if not re.fullmatch(r"NONE|[A-Z][A-Z0-9_.:-]*", hot["BLOCKER"]):
+        die("BLOCKER must be NONE or a stable blocker key")
+    if not NEXT_DECISION_RE.fullmatch(hot["NEXT_DECISION"]):
+        die("NEXT_DECISION must be one valid action, wait, done, no-work, owner decision, or stop")
+
+    review = _fields(bodies["REVIEW"], "REVIEW")
+    expected_review = {
+        "BRAIN_REVIEW_STATUS": "PENDING",
+        "BRAIN_CLASSIFICATION": "UNSET",
+        "ACCEPTED_STATE": "UNSET",
+    }
+    for key, expected in expected_review.items():
+        if review.get(key) != expected:
+            die("REVIEW.%s must remain %s before BRAIN adjudication" % (key, expected))
+
+    nextstep = _fields(bodies["NEXTSTEP"], "NEXTSTEP")
+    if nextstep.get("WORKER_NEXT") != "PROPOSAL_ONLY":
+        die("NEXTSTEP.WORKER_NEXT must be PROPOSAL_ONLY")
+    active_next = nextstep.get("ACTIVE_NEXT")
+    if active_next != "NONE":
+        die("ACTIVE_NEXT must be NONE; prior BRAIN gates are not yet verifiable")
+
+    all_lines = text.splitlines()
+    field_counts = {}
+    for line in all_lines:
+        match = re.match(r"^([A-Z][A-Z0-9_]*)=(.*)$", line.strip())
+        if match:
+            key, _ = match.groups()
+            field_counts[key] = field_counts.get(key, 0) + 1
+    for key in HOT_FIELDS:
+        if field_counts.get(key) != 1:
+            die("HOT.%s must appear exactly once" % key)
+    for key in ("WORKER_NEXT", "ACTIVE_NEXT"):
+        if field_counts.get(key) != 1:
+            die("%s must appear exactly once" % key)
+    for key in expected_review:
+        if field_counts.get(key) != 1:
+            die("%s must appear exactly once" % key)
+
+    if re.search(r"<[^>\n]+>|\b(?:TBD|TODO|PLACEHOLDER|REPLACE_ME)\b", text, re.IGNORECASE):
+        die("handoff contains a pending template placeholder")
+
+    current_state = _fields(bodies["CURRENT_STATE"], "CURRENT_STATE")
+    dead_ends = []
+    malformed_dead_end_keys = [
+        key for key in current_state
+        if key.startswith("DEAD_END_") and not re.fullmatch(r"DEAD_END_\d+", key)
+    ]
+    if malformed_dead_end_keys:
+        die("CURRENT_STATE has malformed dead-end key: %s" % malformed_dead_end_keys[0])
+    for line in bodies["CURRENT_STATE"].splitlines():
+        match = re.match(r"^DEAD_END_(\d+)=(.+)$", line)
+        if match:
+            number, value = int(match.group(1)), match.group(2)
+            parts = value.split("|")
+            if (
+                len(parts) != 3
+                or not parts[0].strip()
+                or not parts[1].startswith("FAIL=")
+                or not parts[1][len("FAIL="):].strip()
+                or not parts[2].startswith("EV=")
+                or not parts[2][len("EV="):].strip()
+            ):
+                die("DEAD_END_%d must be approach|FAIL=reason|EV=ref" % number)
+            _repo_file(root, parts[2][len("EV="):].strip())
+            dead_ends.append((number, value))
+    if current_state.get("DEAD_ENDS") == "NONE":
+        if dead_ends:
+            die("DEAD_ENDS=NONE cannot be combined with DEAD_END entries")
+    elif (
+        current_state.get("DEAD_ENDS") != "LISTED"
+        or len(dead_ends) == 0
+        or len(dead_ends) > 5
+        or sorted(n for n, _ in dead_ends) != list(range(1, len(dead_ends) + 1))
+    ):
+        die("CURRENT_STATE must list no more than five active DEAD_END entries")
+
+    _validate_refs(root, bodies["COMPACT_REFS"], bodies["RAW_REFS"])
     return True
 
 def validate_whitespace(text):
@@ -167,22 +380,18 @@ def validate_whitespace(text):
     return True
 
 def fill_identity(text, filename, now, handoff_type, corrects, previous):
-    """Replace the five identity lines with publisher-authoritative values."""
-    iso = iso_timestamp(now)
+    """Replace publication identity fields with publisher-authoritative values."""
     out = []
     handoff_id = filename[:-3] if filename.endswith(".md") else filename
     for line in text.splitlines():
-        stripped = line.lstrip()
-        if stripped.startswith("- Handoff ID:"):
-            out.append("- Handoff ID: %s" % handoff_id)
-        elif stripped.startswith("- Created At:"):
-            out.append("- Created At: %s" % iso)
-        elif stripped.startswith("- Handoff Type:"):
-            out.append("- Handoff Type: %s" % handoff_type)
-        elif stripped.startswith("- Corrects Handoff:"):
-            out.append("- Corrects Handoff: %s" % corrects)
-        elif stripped.startswith("- Previous Handoff:"):
-            out.append("- Previous Handoff: %s" % previous)
+        if line.startswith("HANDOFF_ID=PUBLISHER_ASSIGNED"):
+            out.append("HANDOFF_ID=%s" % handoff_id)
+        elif line.startswith("HANDOFF_TYPE="):
+            out.append("HANDOFF_TYPE=%s" % handoff_type)
+        elif line.startswith("PREVIOUS_HANDOFF=PUBLISHER_ASSIGNED"):
+            out.append("PREVIOUS_HANDOFF=%s" % previous)
+        elif line.startswith("CORRECTS_HANDOFF=PUBLISHER_ASSIGNED"):
+            out.append("CORRECTS_HANDOFF=%s" % corrects)
         else:
             out.append(line)
     return "\n".join(out)
@@ -276,7 +485,7 @@ def publish(args):
         die("draft file not found: %s" % draft_path)
     with open(draft_path, "r", encoding="utf-8") as fh:
         draft_text = fh.read()
-    validate_handoff(draft_text)
+    validate_handoff(draft_text, root=root)
     validate_whitespace(draft_text)
 
     handoff_type = args.type.upper()
@@ -295,7 +504,12 @@ def publish(args):
 
     final_text = fill_identity(draft_text, filename, now, handoff_type,
                                args.corrects or "NONE", previous)
-    validate_handoff(final_text)
+    validate_handoff(
+        final_text,
+        root=root,
+        final=True,
+        expected_handoff_id=filename[:-3],
+    )
     validate_whitespace(final_text)
 
     # Branch@commit + status from read-only Git.
@@ -374,6 +588,17 @@ def verify(args):
             newest_text = fh.read()
         if current_text != newest_text:
             problems.append("CURRENT_HANDOFF.md does not match %s" % newest)
+        if "HMD_SCHEMA=HANDOFF_MARKDOWN" in current_text:
+            try:
+                validate_handoff(
+                    current_text,
+                    root=root,
+                    final=True,
+                    expected_handoff_id=newest[:-3],
+                )
+                validate_whitespace(current_text)
+            except SystemExit:
+                problems.append("CURRENT_HANDOFF.md fails the deterministic handoff schema")
     if newest:
         count = read_index_count(index_path, newest)
         if count != 1:
@@ -382,11 +607,20 @@ def verify(args):
         if last != newest:
             problems.append("INDEX.md last entry is %s, expected %s" % (last, newest))
 
+    pointer_path = os.path.join(root, "FST_AI", "memory", "current-priority.md")
+    if not os.path.isfile(pointer_path):
+        problems.append("current-priority.md compatibility pointer missing")
+    else:
+        with open(pointer_path, "r", encoding="utf-8") as fh:
+            pointer_text = fh.read()
+        if pointer_text != CURRENT_PRIORITY_POINTER_TEXT:
+            problems.append("current-priority.md is not a non-authoritative pointer to CURRENT")
+
     if problems:
         for p in problems:
             print("VERIFY: FAIL - %s" % p)
         return 1
-    print("VERIFY: PASS - CURRENT matches %s; INDEX has exactly 1 entry; history preserved" % newest)
+    print("VERIFY: PASS - CURRENT is the newest snapshot; pointer resolves; INDEX has exactly 1 entry; history preserved")
     return 0
 
 # ---------------------------------------------------------------- main

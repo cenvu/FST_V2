@@ -23,13 +23,12 @@ Codex is FST's main core engineering, release engineering, repository audit, doc
 - Large SwiftUI redesign unless explicitly routed.
 - New dependencies, database, cloud, queue, multi-destination, PDF, or signing/notarization expansion without Mi approval.
 
-## Required Startup Docs
+## Required Startup Context
 
-- `AGENTS.md`
-- `FST_AI/memory/COMMAND_CENTER_HANDOVER.md`
-- `FST_AI/memory/WORK_HISTORY.md`
-- `FST_AI/memory/TASK_REGISTRY.md`
-- `docs/00_AI_AGENT_START_HERE.md`
+- `AGENTS.md` L0 kernel and CURRENT's HOT header.
+- Fresh Git/worktree/upstream state and the matching GitHub Issue.
+- Search matching `TASK_REGISTRY.md` / `WORK_HISTORY.md` entries only.
+- Load direct task references and one role/skill only when its trigger applies.
 
 ## Task-Specific Docs
 

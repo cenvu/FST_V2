@@ -19,11 +19,12 @@ Use after UI changes, ViewModel presentation changes, progress display changes, 
 
 Claude or Mi reviews. Antigravity/Gemini implements UI. Codex provides core data if needed.
 
-## Required Startup Docs
+## Required Startup Context
 
-- `AGENTS.md`
-- `FST_AI/memory/COMMAND_CENTER_HANDOVER.md`
-- `FST_AI/design-system/pages/safety-status.md`
+- `AGENTS.md` L0 kernel and CURRENT's HOT header.
+- The exact UI diff/state evidence.
+- `FST_AI/design-system/pages/safety-status.md` and direct backend state
+  references only when the changed screen uses them.
 
 ## Inputs
 

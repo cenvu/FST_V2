@@ -22,7 +22,7 @@ Codex implements core progress fixes. Claude reviews. Antigravity handles UI dis
 ## Required Startup Docs
 
 - `AGENTS.md`
-- `FST_AI/memory/COMMAND_CENTER_HANDOVER.md`
+- HOT header of `handoffs/CURRENT_HANDOFF.md`; full Command Center only for an L2 trigger
 - `docs/02_FST_TECHNICAL_GUIDE.md`
 
 ## Inputs

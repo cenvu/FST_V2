@@ -92,26 +92,20 @@ Rules:
 
 ---
 
-## Required Handover Startup
+## Progressive Handover Context
 
-Before making changes, every AI agent must read:
+`AGENTS.md` is the always-on L0 governance and media-safety kernel. Read only
+the HOT header of `handoffs/CURRENT_HANDOFF.md` for the current operational
+snapshot. Confirm active tasks from GitHub Issues and repository state. Search
+matching `TASK_REGISTRY.md` / `WORK_HISTORY.md` entries for duplicate work;
+memory is history, not current authority.
 
-- `FST_AI/memory/TASK_REGISTRY.md`
-- `FST_AI/memory/COMMAND_CENTER_HANDOVER.md`
-- `FST_AI/memory/WORK_HISTORY.md`
-- `AGENTS.md`
-- `docs/00_AI_AGENT_START_HERE.md`
-
-If docs conflict, use this priority:
-1. `AGENTS.md`
-2. `FST_AI/memory/COMMAND_CENTER_HANDOVER.md`
-3. `docs/00_AI_AGENT_START_HERE.md`
-4. `FST_AI/memory/TASK_REGISTRY.md`
-5. `FST_AI/memory/WORK_HISTORY.md`
-
-Before executing a task, check `FST_AI/memory/TASK_REGISTRY.md` and `FST_AI/memory/WORK_HISTORY.md`. If the task appears already completed, ask whether to rerun it, continue it, or review previous output.
-
-After meaningful work, propose `FST_AI/memory/WORK_HISTORY.md` and `FST_AI/memory/TASK_REGISTRY.md` updates. If the baseline changes, also propose a `FST_AI/memory/COMMAND_CENTER_HANDOVER.md` update.
+Load this master guideline, the PRD, technical guide, roles, and skills only
+when the task touches their specific project rules. Do not read the full
+Command Center or history as routine startup. After meaningful work, append
+task evidence to Work History and Task Registry; update the Command Center only
+when the stable baseline or governance contract changes. Memory remains
+non-authoritative.
 
 Meaningful work includes:
 - source code changes

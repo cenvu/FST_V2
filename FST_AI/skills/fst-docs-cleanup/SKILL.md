@@ -2,7 +2,7 @@
 
 ---
 name: fst-docs-cleanup
-description: Safely audit and refactor FST docs, authority hierarchy, archive removal, links, and safety wording.
+description: Audit or repair FST documentation authority, stale links, or safety wording when the requested change is explicitly documentation-only.
 ---
 
 # Skill: fst-docs-cleanup
@@ -19,13 +19,14 @@ Use for source-of-truth cleanup, archive removal, role/skill docs, prompt/templa
 
 Codex implements docs cleanup. Mi reviews authority changes. Claude reviews safety wording when needed.
 
-## Required Startup Docs
+## Required Startup Context
 
-- `AGENTS.md`
-- `FST_AI/memory/COMMAND_CENTER_HANDOVER.md`
-- `FST_AI/memory/WORK_HISTORY.md`
-- `FST_AI/memory/TASK_REGISTRY.md`
-- `docs/00_AI_AGENT_START_HERE.md`
+- `AGENTS.md` L0 kernel and the HOT header of `handoffs/CURRENT_HANDOFF.md`.
+- Fresh Git/worktree/upstream state and the matching GitHub Issue.
+- Targeted duplicate search in `TASK_REGISTRY.md` and `WORK_HISTORY.md`.
+- Read only the authority documents, target Markdown and linked references
+  needed to resolve the specific documentation change. Load the full Command
+  Center only for its L2 triggers.
 
 ## Inputs
 

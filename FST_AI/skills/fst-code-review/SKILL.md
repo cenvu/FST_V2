@@ -2,7 +2,7 @@
 
 ---
 name: fst-code-review
-description: Review FST code changes with data safety, verify correctness, and SAFE TO EJECT priority.
+description: Independently review an FST code or documentation diff when no narrower review skill covers the changed behavior; do not implement the change.
 ---
 
 # Skill: fst-code-review
@@ -13,18 +13,21 @@ Review FST changes for safety, correctness, maintainability, and operator truth.
 
 ## When to Use
 
-Use for general code or docs review when no narrower review skill is enough.
+Use only when no narrower review skill covers the changed behavior. Prefer
+`fst-core-safety-review`, `fst-report-correctness-review`, the focused Engine
+reviews, or a UI review skill when their exact trigger matches.
 
 ## Owner Agent
 
 Claude is primary reviewer. Codex may perform secondary review. Mi gates safety-sensitive decisions.
 
-## Required Startup Docs
+## Required Startup Context
 
-- `AGENTS.md`
-- `FST_AI/memory/COMMAND_CENTER_HANDOVER.md`
-- `FST_AI/memory/TASK_REGISTRY.md`
-- `docs/00_AI_AGENT_START_HERE.md`
+- `AGENTS.md` L0 kernel and CURRENT's HOT header.
+- Fresh Git/worktree/upstream state, relevant issue, and exact diff.
+- Read only direct specifications, tests, reports, and evidence needed to
+  review the changed behavior. Load the full Command Center only for an L2
+  trigger.
 
 ## Inputs
 

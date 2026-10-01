@@ -22,10 +22,10 @@ Claude reviews. Codex collects evidence. Mi makes the final release decision.
 ## Required Startup Docs
 
 - `AGENTS.md`
-- `FST_AI/memory/COMMAND_CENTER_HANDOVER.md`
-- `FST_AI/memory/WORK_HISTORY.md`
-- `FST_AI/memory/TASK_REGISTRY.md`
-- `docs/00_AI_AGENT_START_HERE.md`
+- HOT header of `handoffs/CURRENT_HANDOFF.md`; full Command Center only for an L2 trigger
+- Search matching entries only in `FST_AI/memory/WORK_HISTORY.md`
+- Search matching task entries in `FST_AI/memory/TASK_REGISTRY.md` and `WORK_HISTORY.md`; do not load full history
+- Read only a direct project reference when the changed behavior requires it
 
 ## Inputs
 

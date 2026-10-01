@@ -19,8 +19,10 @@ No Apple rsync fallback.
 BUG:
 [paste bug intake here]
 
-RELEVANT MEMORY:
-Check FST_AI/memory/current-priority.md and FST_AI/memory/known-issues.md before changing files.
+RELEVANT CONTEXT:
+Read CURRENT's HOT header, search matching task-history entries, and check
+FST_AI/memory/known-issues.md only when the bug overlaps a recorded issue.
+`current-priority.md` is a deprecated pointer, never an active status source.
 
 USE SKILLS:
 
@@ -78,4 +80,3 @@ Known risks:
 
 Codex implementation handoff:
 Use FST_AI/templates/codex-implementation-handoff.md.
-

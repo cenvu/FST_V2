@@ -22,7 +22,7 @@ Claude reviews. Codex implements. Mi gates.
 ## Required Startup Docs
 
 - `AGENTS.md`
-- `FST_AI/memory/COMMAND_CENTER_HANDOVER.md`
+- HOT header of `handoffs/CURRENT_HANDOFF.md`; full Command Center only for an L2 trigger
 - `FST_AI/skills/fst-detailed-txt-report/SKILL.md`
 
 ## Inputs

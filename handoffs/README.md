@@ -7,8 +7,8 @@ DeepSeek V4 Flash, and future compatible agents.
 ## Purpose
 
 A handoff records what one agent run actually did, what it verified, what
-remains unknown, and the single next action — so the next agent can continue
-without re-deriving context. Handoffs are **operational evidence and
+remains unknown, and one Worker-proposed next decision — so BRAIN can review
+evidence without re-deriving context. Handoffs are **operational evidence and
 continuation context**, not replacements for Git or GitHub Issues.
 
 ## Source-of-truth boundaries
@@ -16,7 +16,8 @@ continuation context**, not replacements for Git or GitHub Issues.
 - **Task queue:** GitHub Issues.
 - **Final confirmation:** repository state, commits, tests, pull requests, and
   actual source.
-- **Operational context:** `handoffs/` files.
+- **Operational context:** `handoffs/` files. CURRENT is one project-specific
+  snapshot, not a journal or active-state authority.
 - **CodeGraph:** advisory index only; never replaces direct source inspection.
 - **Desktop bridge:** `~/Desktop/03_FST_BRAIN.md` is a non-canonical one-file transport projection only.
 - A handoff or Desktop bundle is never proof when repository evidence disagrees with it.
@@ -39,16 +40,58 @@ External BRAIN return projection (not part of repo history):
 ```
 ## Startup process (every agent, before work)
 
-1. Read the authority documents (`AGENTS.md`,
-   `FST_AI/memory/COMMAND_CENTER_HANDOVER.md`, `docs/00_AI_AGENT_START_HERE.md`,
-   `FST_AI/memory/TASK_REGISTRY.md`, `FST_AI/memory/WORK_HISTORY.md`).
-2. Read `handoffs/CURRENT_HANDOFF.md`.
-3. Check Git status and the current commit.
-4. Check the relevant GitHub Issue.
-5. Connect `fst-codegraph` and run initial context/impact queries.
-6. Read direct source before editing.
-7. Confirm the task is not already completed.
-8. Work in Sprint Mode and Lean Mode (below).
+1. Read the L0 governance/safety kernel in `AGENTS.md`.
+2. Read only the HOT header of `handoffs/CURRENT_HANDOFF.md`.
+3. Check Git branch, `HEAD`, worktree and configured upstream. Fetch before
+   remote comparison; fast-forward only a clean worktree. Never reset, clean,
+   stash, rebase or force-push to resolve drift.
+4. Search GitHub Issues for the supplied task. Search relevant
+   `TASK_REGISTRY.md` / `WORK_HISTORY.md` entries only to detect duplicates;
+   memory is history, not active state.
+5. Load the exact authority, code, tests, role and skill required by the task.
+   Connect CodeGraph only for production-source work when its MCP is available;
+   otherwise inspect source directly and record the unavailable tool.
+6. Work in Sprint Mode and Lean Mode (below).
+
+### Progressive disclosure
+
+- Default context is HOT + task + direct authority references.
+- `FST_AI/memory/BRAIN_OPERATOR_COMPACT.md` is the stable L1 governance layer
+  for BRAIN operations.
+- `FST_AI/memory/COMMAND_CENTER_HANDOVER.md` and other full project references
+  are L2, loaded only for AUDIT, POLICY_AMBIGUITY, OPERATOR_REPAIR,
+  GOVERNANCE_CONFLICT, RULE_PROMOTION or HIGH_RISK_ADJUDICATION.
+- Load one focused L3 skill only when its specific trigger matches.
+- Reuse L4 publisher/exporter/Git gates before adding a checker.
+- `handoffs/CURRENT_HANDOFF.md` is a project-specific snapshot, not a journal
+  or authority. GitHub/repository contents win. Timestamped handoffs are
+  immutable; `INDEX.md` remains append-only.
+
+### Handoff schema and ownership
+
+Generic records use `HANDOFF_MARKDOWN`; FST publishes the current snapshot as
+`handoffs/CURRENT_HANDOFF.md`. The current schema has a HOT header followed by
+`COMPACT_REFS`, `CURRENT_STATE`, `REVIEW`, `RAW_REFS`, `REPORT`, and `NEXTSTEP`.
+The HOT header carries schema/version, workstream and handoff IDs, repo/branch,
+repo and remote HEAD observations, verification time, authority, state, gate,
+blocker and one next decision. References resolve before report detail; raw
+evidence is linked and recoverable without duplicating its body.
+
+Workers may write raw references, report evidence, proposed state deltas and
+one proposed next decision. Before BRAIN review the handoff must state
+`BRAIN_REVIEW_STATUS=PENDING`, leave classification/accepted state unset, and
+leave `ACTIVE_NEXT=NONE`. A Worker must not publish itself as accepted or
+classify its own result. The publisher checks deterministic schema, workstream
+ID, reference existence, placeholders, next-decision count, freshness-field
+shape, and owner-field boundaries; it does not judge subjective acceptance or
+safety. A previous BRAIN gate cannot be authenticated by the current publisher
+and is rejected until canonical provenance can be validated.
+
+After BRAIN adjudication, preserve the decision in a new record only when a
+separate BRAIN-authorized task supplies canonical provenance. The current
+publisher cannot authenticate a ChatGPT Web decision, so this cycle records
+the exact gap and leaves the Worker handoff pending; do not simulate BRAIN
+authority.
 
 ## Publication process (after meaningful work)
 
@@ -121,8 +164,9 @@ Rules:
   overwrite, rename, or delete them.
 - `INDEX.md` is append-only: never edit, reorder, or delete history lines.
   Each publication appends exactly one line.
-- `CURRENT_HANDOFF.md` is a normal Markdown copy (not a symlink), replaced
-  atomically only by the publisher.
+- `CURRENT_HANDOFF.md` is a normal Markdown snapshot (not a symlink), replaced
+  atomically only by the publisher. It always equals the newest timestamped
+  handoff and must not become a second journal or mutable status ledger.
 - Do not fix a historical typo in place. Publish a correction handoff instead.
 
 ## Correction policy
@@ -139,8 +183,8 @@ When an old handoff is incorrect:
 ## GitHub Issues relationship
 
 - GitHub Issues are the task queue.
-- A handoff records one task's outcome and the single next action; it is not a
-  task queue.
+- A handoff records one task's evidence and one Worker-proposed next decision;
+  it is not a task queue or BRAIN adjudication.
 - Other future tasks belong in GitHub Issues, not in a handoff.
 
 ## Sprint Mode
@@ -149,7 +193,7 @@ When an old handoff is incorrect:
 - One accountable agent at a time.
 - One active GitHub Issue when available.
 - One smallest safe change surface.
-- One primary next action.
+- One proposed next decision; BRAIN owns the active next state.
 - One handoff at task completion.
 - No opportunistic refactor, no unrelated cleanup.
 - Stop after acceptance evidence is obtained.
@@ -171,14 +215,23 @@ When an old handoff is incorrect:
 
 ## Validation expectations
 
-- The publisher (`FST_AI/tools/publish_handoff.py`) validates all required
-  headings, the `Single Next Action` section, and the `Resume Prompt`; refuses
-  to overwrite an existing timestamped handoff; locks `INDEX.md` during append
-  (`fcntl.flock`); flushes and `fsync`s files; supports `--dry-run`,
-  `--verify`, and correction metadata; never runs Git mutations; never touches
-  application source.
-- The agent writes the technical content. The tool never constructs technical
-  claims.
+- The publisher (`FST_AI/tools/publish_handoff.py`) validates the versioned
+  `HANDOFF_MARKDOWN` schema; HOT/workstream/handoff identity; exactly one valid
+  next decision; current reference existence; RAW byte/hash matches;
+  placeholder absence; freshness-field shape; BRAIN-owned fields remain
+  pending/unset; and no more than five active dead ends. Each dead end must
+  match `approach|FAIL=reason|EV=repo-ref`, and its evidence ref must resolve.
+- `--verify` checks CURRENT against the newest immutable handoff, the exact
+  non-authoritative `current-priority.md` compatibility stub, schema validity
+  for new handoffs, and exactly one last INDEX entry. Any appended live status
+  text fails. Repair a projection from canonical CURRENT, never rewrite history.
+- The publisher refuses to overwrite a timestamped handoff; locks `INDEX.md`
+  during append (`fcntl.flock`); flushes and `fsync`s files; supports
+  `--dry-run`, `--verify`, and correction metadata; never runs Git mutations;
+  never touches application source.
+- These are deterministic shape and integrity checks. The publisher does not
+  adjudicate evidence, safety, acceptance, or BRAIN authority. The agent writes
+  technical content; the tool must not construct technical claims.
 
 ## Emergency / manual publication
 

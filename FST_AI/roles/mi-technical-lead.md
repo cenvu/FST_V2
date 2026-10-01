@@ -21,13 +21,12 @@ Mi / Command Center is FST's Technical Lead, Safety Gate, Prompt Architect, fina
 - Approving release without zip + checksum GitHub Release assets.
 - Reintroducing dropped workflows or unsafe wording without policy review.
 
-## Required Startup Docs
+## Required Startup Context
 
-- `AGENTS.md`
-- `FST_AI/memory/COMMAND_CENTER_HANDOVER.md`
-- `FST_AI/memory/WORK_HISTORY.md`
-- `FST_AI/memory/TASK_REGISTRY.md`
-- `docs/00_AI_AGENT_START_HERE.md`
+- `AGENTS.md` L0 kernel, `BRAIN_OPERATOR_COMPACT.md` L1 contract, and CURRENT's HOT header.
+- Fresh Git/worktree/upstream state and the matching GitHub Issue.
+- Search matching `TASK_REGISTRY.md` / `WORK_HISTORY.md` entries only.
+- Load direct task references and one role/skill only when its trigger applies.
 
 ## Task-Specific Docs
 

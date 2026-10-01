@@ -6,27 +6,26 @@ MCP stdio server for this repository only. See
 `FST_AI/memory/CODEGRAPH_INDEX_STATUS.md` for version, profile, and reindex
 procedure.
 
-## Session bootstrap
+## Load and session bootstrap
 
-Before beginning a coding task:
+This is an L2 reference. Load it only for production-source work or a task
+about CodeGraph. It is not a general startup document.
 
-1. Read the FST authority documents (AGENTS.md, `FST_AI/memory/COMMAND_CENTER_HANDOVER.md`,
-   `docs/00_AI_AGENT_START_HERE.md`, `FST_AI/memory/TASK_REGISTRY.md`,
-   `FST_AI/memory/WORK_HISTORY.md`).
-2. Check Git status (`git status --short`, current branch, HEAD).
-3. Confirm the `fst-codegraph` server is connected and the workspace is
-   `/Users/cenvu/DEV/FST_V2` (or `git rev-parse --show-toplevel`).
-4. Query CodeGraph for the target subsystem (see bootstrap queries below).
-5. Identify entry points, callers, callees, dependencies, tests, and state
-   mutations from graph results.
-6. Read the exact source files returned by CodeGraph.
-7. Compare graph results with current source before forming a plan. If the
-   graph contradicts the source, trust the source, reindex, and report the
-   discrepancy.
+For production-source work:
+
+1. Follow the L0 startup/kernel in `AGENTS.md` and read CURRENT's HOT header.
+2. Check Git status, branch, HEAD, and configured upstream.
+3. When the `fst-codegraph` MCP is available, confirm its workspace is
+   `/Users/cenvu/DEV/FST_V2` (or `git rev-parse --show-toplevel`) and query the
+   target subsystem.
+4. Identify entry points, callers, callees, dependencies, tests, and state
+   mutations from graph results; then read the exact source and tests.
+5. Compare graph results with current source. Source wins. If they disagree,
+   reindex when available and record the discrepancy.
 
 ## Before editing
 
-Before modifying any production symbol, the model must:
+Before modifying any production symbol, when CodeGraph is available, the model must:
 
 1. Request edit context: `codegraph_get_edit_context` for the target symbol/file.
 2. Request impact analysis: `codegraph_analyze_impact` for the target symbol.
@@ -60,7 +59,7 @@ The model must:
 - update or add tests for changed behavior;
 - stop when graph results contradict actual source and report the discrepancy.
 
-## After editing
+## After production-source editing
 
 The model must:
 
@@ -73,6 +72,10 @@ The model must:
 6. Record meaningful work in `FST_AI/memory/WORK_HISTORY.md` and
    `FST_AI/memory/TASK_REGISTRY.md` (propose; do not rewrite).
 7. Report changed files, tests, risks, and remaining uncertainty.
+
+For control-plane/docs-only changes, use the relevant repository sources,
+publisher/exporter tests and Git diff gates. Do not run Xcode or load this full
+reference unless the task demonstrates a need.
 
 ## Trust rules
 
@@ -143,9 +146,8 @@ documented upstream Swift defects (see `FST_AI/memory/CODEGRAPH_INDEX_STATUS.md`
 
 ## Handoff System
 
-- Read `handoffs/CURRENT_HANDOFF.md` before starting work and after resuming;
-  it is the latest operational continuation record for every agent
-  (Gemini, GPT, Claude, DeepSeek, future agents).
+- Read only the HOT header of `handoffs/CURRENT_HANDOFF.md` at startup or
+  reanchor; load other sections only when the task needs them.
 - Timestamped handoffs under `handoffs/` are immutable evidence;
   `handoffs/INDEX.md` is append-only. Never edit historical entries; publish
   a CORRECTION or VERIFICATION handoff that references the older file.

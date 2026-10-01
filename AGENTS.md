@@ -2,7 +2,7 @@
 
 # FST Agent Instructions
 
-Version: 2026-06-30  
+Version: 2026-10-01
 Status: Active root instruction file  
 Applies to: Codex, ChatGPT, Claude, and human contributors
 
@@ -42,505 +42,142 @@ Do not add features that do not reduce media-loss risk.
 
 ---
 
-## FST_AI Agent Workflow Layer
+## Always-On Agent Kernel
 
-`FST_AI/` is the primary internal AI Engineering System for this project.
+`AGENTS.md` is L0 and is loaded for every FST task. Keep governance and the
+non-negotiable media-safety rules here. Do not add a second always-on kernel.
 
-Before doing non-trivial work, agents must read the relevant files in `FST_AI/`.
+```text
+ROLE=BRAIN_PM_PLUS_TECH_LEAD;NOT_WORKER
+AUTH=REPO_GITHUB_CANONICAL
+WORKER_OUTPUT=EVIDENCE_NOT_TRUTH
+MEMORY=NON_AUTHORITY
+UNKNOWN=PRESERVE
+OWNER_LANGUAGE=VI
+WORKER_COMMS=M2M_DENSE
+RESEARCH_BEFORE_GUESS=YES
+REUSE_BEFORE_REIMPLEMENT=YES
+DIRTY_STATE=PRESERVE
+BRAIN_OWNS=REVIEW|CLASSIFICATION|ACCEPTED_STATE|ACTIVE_NEXT
+WORKER_NEXT=PROPOSAL_ONLY
+NO_AUTO_NEXT=YES
+NEXT_DECISION_COUNT=EXACTLY_ONE
+HANDOFF=CURRENT_PROJECT_SNAPSHOT;NOT_JOURNAL
+```
 
-Required handover startup:
+This role describes BRAIN / Command Center authority. A Worker follows the
+current agent role and task assignment; it cannot accept or classify its own
+result or author BRAIN-owned active-next state. Repo/GitHub evidence outranks
+Worker output and memory. Preserve unknowns and contradictions; do not infer.
 
-- `FST_AI/memory/TASK_REGISTRY.md`
-- `FST_AI/memory/COMMAND_CENTER_HANDOVER.md`
-- `FST_AI/memory/BRAIN_OPERATOR_COMPACT.md`
-- `FST_AI/memory/WORK_HISTORY.md`
-- `AGENTS.md`
-- `docs/00_AI_AGENT_START_HERE.md`
+### Startup and task discovery
 
-If docs conflict, use this priority:
-1. `AGENTS.md`
-2. `FST_AI/memory/COMMAND_CENTER_HANDOVER.md`
-3. `docs/00_AI_AGENT_START_HERE.md`
-4. `FST_AI/memory/TASK_REGISTRY.md`
-5. `FST_AI/memory/WORK_HISTORY.md`
+1. Read the HOT header of `handoffs/CURRENT_HANDOFF.md` for active project
+   context; load its other sections only when the task needs them.
+2. Check the current branch, `HEAD`, worktree, and configured upstream. Fetch
+   before a remote comparison. Fast-forward only when the worktree is clean;
+   never reset, clean, stash, rebase, or force-push to resolve drift.
+3. Search GitHub Issues for the supplied task. If no issue is available, search
+   only relevant entries in `FST_AI/memory/TASK_REGISTRY.md` and
+   `FST_AI/memory/WORK_HISTORY.md` to detect duplicate work. These files are
+   history, not active state. If the same task is already complete, ask whether
+   to rerun, continue, or review its evidence.
+4. Identify the owning layer and exact task-specific authority/source/tests.
+   Read only those references. Search or research before guessing; prefer an
+   existing repository implementation/tool over a new one.
+5. State the scope boundary, smallest safe change, and targeted verification
+   before editing. Keep unrelated dirty state untouched.
 
-Before executing a task, check `FST_AI/memory/TASK_REGISTRY.md` and `FST_AI/memory/WORK_HISTORY.md`. If the task appears already completed, ask whether to rerun it, continue it, or review previous output.
+### Progressive context
 
-After meaningful work, propose updates to `FST_AI/memory/WORK_HISTORY.md` and `FST_AI/memory/TASK_REGISTRY.md`. If the baseline changes, also propose a `FST_AI/memory/COMMAND_CENTER_HANDOVER.md` update. Meaningful work includes source, safety policy, report wording/schema, release/package/tag/GitHub Release, architecture, routing, or source-of-truth docs changes.
+- **L0 — Always-on kernel:** this file and its FST safety invariants.
+- **L1 — BRAIN compact:** `FST_AI/memory/BRAIN_OPERATOR_COMPACT.md`; stable
+  governance only, loaded when BRAIN operates.
+- **L2 — Full references:** existing Command Center, project, system, and
+  CodeGraph references, loaded only for AUDIT, POLICY_AMBIGUITY,
+  OPERATOR_REPAIR, GOVERNANCE_CONFLICT, RULE_PROMOTION, or HIGH_RISK_ADJUDICATION.
+- **L3 — Focused skills:** load only the existing skill whose trigger matches
+  the task. Do not create duplicate skills by default.
+- **L4 — Deterministic gates:** reuse and extend `publish_handoff.py`,
+  `export_brain_return.py`, handoff verification, and Git/upstream gates before
+  adding a new checker.
 
-Minimum reading:
+Default context is `HOT + task + direct authority references`. Escalate only
+when a demonstrated gap remains. Do not load full history, unrelated skills,
+or broad project references as routine startup.
 
-- `FST_AI/memory/COMMAND_CENTER_HANDOVER.md`
-- `FST_AI/memory/WORK_HISTORY.md`
-- `FST_AI/memory/TASK_REGISTRY.md`
-- `FST_AI/README.md`
-- `FST_AI/memory/current-priority.md`
-- `FST_AI/memory/agent-roles.md`
-- `FST_AI/standards/safety-first.md`
-- `FST_AI/standards/agent-boundaries.md`
-- `FST_AI/standards/minimal-safe-change.md`
-
-For core logic work, also read:
-
-- `FST_AI/roles/codex-core-engineer.md`
-- `FST_AI/roles/claude-primary-reviewer.md`
-- relevant skills under `FST_AI/skills/`
-
-For UI work, also read:
-
-- `FST_AI/roles/antigravity-gemini-ui-engineer.md`
-- `FST_AI/design-system/MASTER.md`
-- relevant design-system page override under `FST_AI/design-system/pages/`
-- relevant UI skills under `FST_AI/skills/`
-
-## Current Agent Roles
-
-- Mi / Command Center: Technical Lead, Safety Gate, Prompt Architect, Workflow Router.
-- Codex: Main Core Coding Agent, Secondary Reviewer.
-- Claude: Main QA, Main Code Reviewer, Main Safety Reviewer, Secondary Coding Agent.
-- Antigravity: Main SwiftUI/UI implementation agent for layout, components, and operator clarity.
-- Gemini Pro: Routed small UI/ViewModel experiment and low-risk polish agent.
-- Roo/RooCode: Dropped/inactive unless explicitly reintroduced by Mi.
-
-Full role boundaries live in `FST_AI/roles/`.
-
-## Routing Rules
-
-Core logic:
-
-- Codex implements.
-- Claude reviews.
-- Mi performs final safety gate.
-
-UI:
-
-- Antigravity implements UI work. Gemini Pro may assist only when routed for small UI/ViewModel experiments or low-risk polish.
-- Claude or Mi reviews UI state/safety risk.
-- Mi performs final safety gate.
-
-Safety-critical changes:
-
-- Codex implements the smallest safe change.
-- Claude performs primary safety review.
-- Mi decides accept/revise/reject/runtime QA.
+After meaningful work, record evidence in `WORK_HISTORY.md` and
+`TASK_REGISTRY.md`; update `COMMAND_CENTER_HANDOVER.md` only when the stable
+baseline or governance contract changes. Memory records do not become live
+task authority.
 
 ## Non-Negotiable Safety Rules
 
-- Source media is treated as read-only.
-- FST must never mutate, delete, rename, chmod, chown, or format source media.
-- FST must use bundled rsync 3.4.4 only.
-- Apple rsync fallback is not allowed.
-- Destructive rsync behavior is not allowed.
-- Long-running copy/verify/report work must not block the UI.
-- SAFE TO EJECT must never be true after failed, cancelled, incomplete, or uncertain copy/verify state.
+- Source media is read-only. Never mutate, delete, rename, move, chmod, chown,
+  format, clean, or write metadata on it.
+- Production transfer uses bundled rsync 3.4.4 only. Never fall back to Apple,
+  Homebrew, MacPorts, or another binary; never use destructive rsync behavior.
+- Long-running copy, verification, scan, and report work stays off the UI
+  thread. Only `TransferCoordinator` changes `TransferState`.
+- SAFE TO EJECT requires complete successful copy and required verification.
+  Failure, cancellation, incomplete or uncertain state, and verification mode
+  `none` never authorize SAFE TO EJECT. `none` means TRANSFER COMPLETE only.
+- If source or result safety is uncertain, fail safely and tell the operator
+  not to erase or reuse the source.
+- FST does not format or eject media. Data safety outranks speed and convenience.
 
 ---
 
-## Current Release State
+## Task-Specific References
 
-- Current version: v1.3.4 display 1.3.4 build 20260706
-- Current package: `dist/FishSockTransfer-v1.3.4-b20260706-local-macOS13_5plus-arm64.zip`
-- Platform: macOS 13.5+, Apple Silicon arm64 only
-- Package type: local owner-side ad-hoc build
-- Signing: ad-hoc signed, not notarized, not Developer ID signed
-- Scope: one source -> one destination -> one active job
-- Manual update check: GitHub release check from Technical Logs footer, user-triggered only
-- Notification MVP: Telegram best-effort notifications only, with v1.3.3 packaged-network entitlement fix
-- Transfer engine: bundled rsync 3.4.4 only
-- Operator-facing verified success: SAFE TO EJECT
-- Release theme: Detailed TXT Report V1 hardening and safety wording cleanup
-
-FST does not format media and does not eject media.
-
-Agent division:
-
-- Mi / Command Center: technical lead and safety gate
-- Codex: core engineer
-- Claude: primary QA/code/safety reviewer
-- Antigravity: SwiftUI/UI implementation
-- Gemini Pro: routed small UI/ViewModel experiments and low-risk polish
-- Roo/RooCode: dropped/inactive unless explicitly reintroduced
-
-Do not reintroduce dropped or deprecated agent workflows unless the user explicitly asks.
+Load only existing project documents, source, tests, role material, and skills
+that the task needs. For production Swift changes, read the relevant sections
+of `docs/01_PRD.md` and `docs/02_FST_TECHNICAL_GUIDE.md` plus exact source and
+tests. Read full project documents only for a demonstrated system-level need,
+audit, or policy conflict. Historical and prototype material is not authority
+unless explicitly requested.
 
 ---
 
-## Required Reading
-
-Before editing code, read these active docs in order:
-
-```text
-1. docs/00_AI_AGENT_START_HERE.md
-2. docs/01_PRD.md
-3. docs/02_FST_TECHNICAL_GUIDE.md
-4. docs/03_PROJECT_MASTER_GUIDELINE.md
-5. Existing Swift code relevant to the task
-```
-
-Ignore historical/prototype material unless the user explicitly asks for historical context. Archive Markdown has been removed; if `docs/archive/` exists, it is historical/prototype-only and never authoritative.
-
----
-
-## Repository Layout
-
-Expected layout:
-
-```text
-FST_V2/
-  AGENTS.md
-  README.md
-  docs/
-    00_AI_AGENT_START_HERE.md
-    01_PRD.md
-    02_FST_TECHNICAL_GUIDE.md
-    03_PROJECT_MASTER_GUIDELINE.md
-
-  FishSockTransfer/
-    FishSockTransfer.xcodeproj
-    FishSockTransfer/
-      Assets.xcassets
-      Coordinators/
-      Engines/
-      Models/
-      Services/
-      ViewModels/
-      Views/
-      FishSockTransferApp.swift
-      rsync
-    Tests/
-
-  assets/
-```
-
-Rules:
-
-- Active documentation lives in `docs/`.
-- Swift app code lives in `FishSockTransfer/FishSockTransfer/`.
-- Do not put project guides inside the app source folder.
-- Do not treat old React, Vite, AI Studio, or prototype files as production app code.
-- Historical material must not be treated as current authority unless the user explicitly asks for historical context.
-- Do not invent new folders unless the task explicitly requests file-structure cleanup.
-
----
-
-## Architecture Rules
-
-Allowed dependency flow only:
-
-```text
-SwiftUI View -> TransferViewModel -> TransferCoordinator -> Engines -> Services
-```
-
-Forbidden:
-
-- View calls Engine or Service directly.
-- ViewModel launches rsync, hashes files, or owns workflow transitions.
-- Engine imports SwiftUI.
-- Service changes `TransferState`.
-- Coordinator renders UI.
-- Hidden global workflow state.
-
-Layer ownership:
-
-| Layer | Owns | Must Not Do |
-|---|---|---|
-| Views | layout, rendering, user actions | rsync, hashing, workflow decisions |
-| ViewModel | published UI state, bindings, formatting | process execution, filesystem work, state machine ownership |
-| Coordinator | validation, orchestration, state transitions, Safe To Eject gate | SwiftUI rendering, low-level shell details |
-| Engines | transfer, progress parsing, verification, report generation | UI state, SwiftUI imports |
-| Services | macOS APIs, bookmarks, rsync lookup, logging wrappers | workflow decisions |
-| Models | data contracts | side effects |
-
-Only `TransferCoordinator` may change `TransferState`.
-
----
-
-## State Machine
-
-Allowed states only:
-
-```text
-ready, validating, copying, verifying, copyComplete, safeToFormat, error, cancelled
-```
-
-Note: `safeToFormat` is a legacy internal state name only. UI, logs, reports, and docs for operators must use `SAFE TO EJECT`, not formatting language.
-
-Success flows:
-
-```text
-ready -> validating -> copying -> verifying -> safeToFormat
-ready -> validating -> copying -> copyComplete
-```
-
-Rules:
-
-- Verification `none` ends at `copyComplete`.
-- `safeToFormat` requires copy success and verification pass.
-- No skipped validation.
-- No new or renamed states without explicit spec update.
-- No automatic reset after terminal states unless explicitly implemented and reviewed.
-
-Terminal states:
-
-```text
-copyComplete, safeToFormat, error, cancelled
-```
-
----
-
-## Rsync Rules
-
-Production transfer must use bundled rsync 3.4.4 only.
-
-Must:
-
-- Resolve the bundled rsync path through `BundledRsyncService`.
-- Validate executable permission.
-- Validate rsync version.
-- Log rsync path.
-- Log rsync version separately from app version.
-- Fail fast if bundled rsync is missing, not executable, or wrong version.
-
-Forbidden:
-
-- Silent fallback to `/usr/bin/rsync`.
-- Silent fallback to Homebrew, MacPorts, or any non-bundled rsync.
-- Destructive rsync flags.
-- Source mutation.
-- Fake success based only on UI progress.
-
-Required production flags:
-
-```text
--a
--h
---info=progress2
-```
-
-Optional:
-
-```text
---bwlimit=<converted_limit>
-```
-
----
-
-## Bandwidth Rules
-
-UI labels are MB/s.
-
-Rsync `--bwlimit` must receive converted KiB/s-style values.
-
-Required conversions:
-
-```text
-50 MB/s  -> 51200
-75 MB/s  -> 76800
-100 MB/s -> 102400
-125 MB/s -> 128000
-150 MB/s -> 153600
-175 MB/s -> 179200
-200 MB/s -> 204800
-Unlimited -> omit --bwlimit
-```
-
-Custom range:
-
-```text
-NONE (NO CUSTOM BANDWIDTH CONTROL)
-```
-
-Conversion must be covered by tests.
-
----
-
-## Verification Rules
-
-Supported modes:
-
-```text
-none, random33, full
-```
-
-Algorithms:
-
-```text
-random33 -> SHA256
-full -> xxHash64
-```
-
-Rules:
-
-- `none` means copy-only success: TRANSFER COMPLETE, not SAFE TO EJECT.
-- `random33` verifies about one third of files with SHA256, with a minimum of one file when files exist.
-- `full` verifies all files with xxHash64 fast non-cryptographic verification.
-- Compare relative paths and file sizes before hashing.
-- Any verification failure blocks SAFE TO EJECT.
-- Verify off the MainActor.
-- Do not add MD5, CRC32, MHL, database, queue, or multi-destination behavior unless the spec changes.
-
-`VerifyEngine` emits verification result. `TransferCoordinator` decides final state.
-
----
-
-## Source Safety
-
-FST must never modify source media.
-
-Forbidden on source:
-
-- delete
-- rename
-- move
-- metadata write
-- hidden cleanup
-- quarantine changes
-- destructive rsync operation
-
-If there is uncertainty, fail safely and tell the operator not to erase or reuse the source.
-
----
-
-## Current Audit Priority
-
-Fix before feature expansion:
-
-```text
-1. Bundled rsync path/version accuracy
-2. App version vs rsync version separation
-3. Speed limiter correctness
-4. .DS_Store hang investigation
-5. Progress reporting accuracy
-6. Transfer pipeline validation
-7. Cancellation safety
-8. Safe To Eject enforcement
-9. TXT report truthfulness
-```
-
----
-
-## Coding Rules
-
-Use:
-
-- simple, explicit Swift
-- clear names
-- small changes
-- guard clauses
-- async/await where appropriate
-- tests for engines, parsers, coordinators, bandwidth conversion, verification, and reports
-
-Avoid:
-
-- broad rewrites
-- clever abstractions
-- new dependencies
-- vague `Manager`, `Helper`, or `Utils` files
-- silent `catch {}`
-- unsafe `try?`
-- force unwraps unless impossible to fail and documented
-- TODO placeholders replacing required logic
-
-Never run rsync, hashing, scanning, or report generation on the MainActor.
-
----
-
-## Required Agent Response Format
-
-Detailed implementation evidence belongs in the canonical handoff and the BRAIN return bundle, not in the Worker's terminal/chat response.
-
-For every meaningful task that came from BRAIN / ChatGPT Web, the final user-visible response MUST be compact. Normal successful completion is exactly:
-
-```text
-RESULT: PASS
-TASK: <short task name>
-HANDOFF: <repo-relative canonical handoff/full report>
-BRAIN_FILE: ~/Desktop/03_FST_BRAIN.md
-SEND TO BRAIN: ~/Desktop/03_FST_BRAIN.md
-```
-
-If the task or finalization fails, use `RESULT: FAIL`. Keep the return compact; put diagnosis, tests, diffs, RAW evidence, blockers, risks, and the exact one next action in the handoff / BRAIN file instead of pasting them into chat.
-
-Final BRAIN-routed sequence:
-
-```text
-MUTATE/VERIFY -> TEST -> HANDOFF -> COMMIT -> PUSH -> FETCH/VERIFY -> 03_FST_BRAIN.md -> RETURN_TO_BRAIN
-```
-
-Generate the single Desktop bridge only through:
-
-```bash
-python3 FST_AI/tools/export_brain_return.py \
-  --task "<task>" \
-  --result PASS
-```
-
-Use `--result FAIL` for a failed/blocked Worker result. PASS is fail-closed and is automatically downgraded to FAIL when the handoff is not verified, the worktree is not clean, or local HEAD does not equal its configured upstream.
-
-For non-BRAIN direct owner work, agents may still use the traditional internal summary fields when useful:
-
-```text
-PHASE:
-FILES:
-LAYER CHECK:
-PATCH:
-TESTS:
-VERIFY:
-```
-
-Before editing:
-
-```text
-1. Inspect existing files.
-2. Identify the owning layer.
-3. Patch the smallest safe surface.
-4. Add or update tests when changing engine/parser/coordinator/report behavior.
-5. Provide a verification command or manual verification step.
-```
-## Forbidden Scope Creep
-
-Do not add unless explicitly requested:
-
-- transfer queue
-- multi-destination copy
-- mirrored copy
-- NAS, RAID, LTO, MHL, proxy workflow
-- cloud sync
-- DAM/MAM
-- history database
-- AI features inside the app
-- React/Vite frontend revival
-- Node/Gemini/AI Studio deployment workflow
+## Scope Boundaries
+
+Do not add queues, multi-destination or mirrored copies, NAS/RAID/LTO,
+MHL/proxy workflows, cloud sync, DAM/MAM, history databases, in-app AI,
+prototype frontends, or new deployment paths unless the owner changes project
+scope. Active agent role and safety-review routing live in the existing
+`FST_AI/roles/` and `FST_AI/memory/BRAIN_OPERATOR_COMPACT.md` references.
 
 ---
 
 ## Final Rule
 
-At 3:00 AM on set, with a producer behind the DIT, choose the implementation that is easiest to inspect, explain, cancel, and verify.
-
-Data safety beats everything.
+At 3:00 AM on set, with a producer behind the DIT, choose the implementation
+that is easiest to inspect, explain, cancel, and verify. Data safety beats
+everything.
 
 ---
 
 ## CodeGraph MCP (fst-codegraph)
 
-- The CodeGraph MCP server name is `fst-codegraph`, project-scoped to this repository.
-- Read `FST_AI/memory/CODEGRAPH_OPERATING_RULES.md` and `FST_AI/memory/CODEGRAPH_INDEX_STATUS.md` before coding.
-- Run CodeGraph pre-edit context and impact analysis (`codegraph_get_edit_context`, `codegraph_analyze_impact`, `codegraph_get_callers`, `codegraph_get_callees`, `codegraph_find_related_tests`) before production edits.
-- CodeGraph is an index, not the source of truth: actual source, tests, Git state, AGENTS.md, and FST authority documents win.
-- Fall back to direct source inspection when CodeGraph is unavailable; never block emergency inspection merely because MCP is unavailable.
-- Never edit blindly. State the owning layer and the smallest safe change surface before editing.
+CodeGraph is an on-demand advisory index for production-source or graph-tooling
+work. Use its edit context, impact, caller/callee, and related-test queries
+before production edits when available; read its L2 operating rules then. The
+actual source, tests, repository state, and FST authorities win. If unavailable,
+inspect source directly and record the limitation; do not block inspection.
 
 ---
 
 ## Handoff System (cross-agent)
 
-- `handoffs/CURRENT_HANDOFF.md` is the latest operational continuation record. Read it before starting work and after resuming work.
-- Timestamped handoffs under `handoffs/` are immutable evidence. `handoffs/INDEX.md` is append-only. Never edit, reorder, or delete historical entries; correct errors with a new CORRECTION or VERIFICATION handoff.
-- GitHub Issues are the task queue. Git, tests, commits, pull requests, and actual source are the final confirmation sources; a handoff is never proof when repository evidence disagrees.
-- Before work: read authority documents, read `handoffs/CURRENT_HANDOFF.md`, check Git status and the current commit, check the relevant GitHub Issue, connect `fst-codegraph`, read direct source, confirm the task is not already completed, and work in Sprint Mode and Lean Mode.
-- After meaningful work: run required verification, inspect the Git diff and status, update the GitHub Issue when authorized, publish one complete handoff through `FST_AI/tools/publish_handoff.py`, confirm the timestamped file + CURRENT + exactly one INDEX entry, and never edit a historical handoff.
-- For every BRAIN-routed task, commit/push/fetch-verify the final repository state, then run `FST_AI/tools/export_brain_return.py`. It writes only `~/Desktop/03_FST_BRAIN.md` as FST_BRAIN_RETURN_V2_1: V2 metadata/gates/pointers plus the exact UTF-8 compact BRAIN Operator snapshot, repository path, byte length, and SHA256. The snapshot is fallback only; GitHub/repository content is canonical. Full handoff/report and RAW evidence bodies are omitted.
-- No agent may create, copy, export, or generate any other Desktop file for FST. Repository artifacts stay in repository-authorized locations; `03_FST_BRAIN.md` is a non-canonical transport projection only.
-- The Worker's final user-visible response is the exporter's compact PASS/FAIL return; its last line points Hùng to `~/Desktop/03_FST_BRAIN.md` for ChatGPT Web BRAIN.
-- Full rules: `handoffs/README.md`, `FST_AI/skills/fst-brain-return-finalizer/SKILL.md`, and `FST_AI/memory/CODEGRAPH_OPERATING_RULES.md`.
+- `handoffs/CURRENT_HANDOFF.md` is a project-specific snapshot, not repository
+  truth or a journal; read HOT at startup and load details by need.
+- GitHub Issues are the task queue. Memory and Worker output are evidence, not
+  authority. Preserve unknowns and contradictions.
+- Timestamped handoffs are immutable; `handoffs/INDEX.md` is append-only.
+- For BRAIN-routed work, use the existing publisher, one coherent commit,
+  push/fetch verification, then the existing exporter. Its only Desktop target
+  is `~/Desktop/03_FST_BRAIN.md`; the finalizer skill carries the exact flow.
+- Never let a Worker self-accept, self-classify, or author BRAIN active-next
+  state. Return exactly one proposed next decision and stop.
+- Full publication and finalization rules live in `handoffs/README.md` and
+  `FST_AI/skills/fst-brain-return-finalizer/SKILL.md`.

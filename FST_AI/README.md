@@ -22,46 +22,33 @@ This folder standardizes:
 - Prompt templates
 - Release gates
 
-## Command Center Memory Files
+## Context and Memory Boundaries
 
-Before starting any task, read:
+`AGENTS.md` is the L0 always-on governance and media-safety kernel. Read the
+HOT header of `handoffs/CURRENT_HANDOFF.md` for current project context, then
+confirm task and GitHub/repository facts from their canonical sources. Search
+only relevant entries in `TASK_REGISTRY.md` and `WORK_HISTORY.md` for duplicate
+work. These files record history; they do not define active state.
 
-- `FST_AI/memory/TASK_REGISTRY.md`
-- `FST_AI/memory/COMMAND_CENTER_HANDOVER.md`
-- `FST_AI/memory/BRAIN_OPERATOR_COMPACT.md`
-- `FST_AI/memory/WORK_HISTORY.md`
-- `AGENTS.md`
-- `docs/00_AI_AGENT_START_HERE.md`
+`BRAIN_OPERATOR_COMPACT.md` is L1 stable BRAIN governance. The existing
+`COMMAND_CENTER_HANDOVER.md` is an L2 on-demand reference for audits, policy
+ambiguity, operator repair, governance conflicts, rule promotion, or high-risk
+adjudication. Roles, standards, project docs, design references, and skills
+load only when their specific task trigger applies. `current-priority.md` is a
+deprecated pointer to CURRENT, not another current-state record.
 
-If docs conflict, use this priority:
-1. `AGENTS.md`
-2. `FST_AI/memory/COMMAND_CENTER_HANDOVER.md`
-3. `docs/00_AI_AGENT_START_HERE.md`
-4. `FST_AI/memory/TASK_REGISTRY.md`
-5. `FST_AI/memory/WORK_HISTORY.md`
-
-Before executing a task, check `TASK_REGISTRY.md` and `WORK_HISTORY.md`. If the same or substantially similar task already exists, ask whether to rerun it, continue it, or review prior output.
-
-After meaningful work, propose new `WORK_HISTORY.md` and `TASK_REGISTRY.md` entries. If the baseline changes, also propose a `COMMAND_CENTER_HANDOVER.md` update. Meaningful work includes source, safety policy, report wording/schema, release/package/tag/GitHub Release, architecture, routing, or source-of-truth docs changes.
+After meaningful work, append task evidence to `WORK_HISTORY.md` and
+`TASK_REGISTRY.md`. Update the Command Center only when the stable baseline or
+governance contract changes. Memory remains non-authoritative.
 
 Reusable Codex prompt starter:
 
 ```text
-Before doing anything, read:
-- FST_AI/memory/TASK_REGISTRY.md
-- FST_AI/memory/COMMAND_CENTER_HANDOVER.md
-- FST_AI/memory/WORK_HISTORY.md
-- AGENTS.md
-- docs/00_AI_AGENT_START_HERE.md
-
-Then confirm:
-- current branch
-- git status
-- latest commit
-- whether a similar task already appears in TASK_REGISTRY.md or WORK_HISTORY.md
-- whether the task changes safety truth, transfer truth, operator truth, or docs only
-
-Do not proceed if the task conflicts with Command Center safety rules.
+Start with AGENTS.md and the CURRENT HOT header. Check fresh Git identity,
+worktree, upstream, the supplied GitHub Issue, and targeted task-history matches.
+Load only direct authority, source, tests, roles, and skills justified by the
+task. Preserve dirty state and stop if the task conflicts with the L0 safety
+kernel or requires an unapproved policy decision.
 ```
 
 ## FST BRAIN Return Bridge

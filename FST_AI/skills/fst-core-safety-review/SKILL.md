@@ -2,7 +2,7 @@
 
 ---
 name: fst-core-safety-review
-description: Review safety-critical FST changes affecting copy, verify, state, reports, rsync, or SAFE TO EJECT.
+description: Independently review a diff that touches FST copy, verification, TransferState, cancellation, rsync, source access, report safety, or SAFE TO EJECT.
 ---
 
 # Skill: fst-core-safety-review
@@ -19,11 +19,13 @@ Use for changes touching transfer, verify, state machine, cancellation, error ha
 
 Claude reviews. Codex implements. Mi gates.
 
-## Required Startup Docs
+## Required Startup Context
 
-- `AGENTS.md`
-- `FST_AI/memory/COMMAND_CENTER_HANDOVER.md`
-- `docs/02_FST_TECHNICAL_GUIDE.md`
+- `AGENTS.md` L0 kernel and CURRENT's HOT header.
+- Fresh Git/worktree/upstream state and the exact change diff.
+- Load only the relevant sections of `docs/02_FST_TECHNICAL_GUIDE.md`, direct
+  source, tests, reports, and safety evidence. Load the full Command Center
+  only for an L2 trigger.
 
 ## Inputs
 
