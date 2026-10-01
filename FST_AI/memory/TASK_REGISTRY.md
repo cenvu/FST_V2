@@ -33,6 +33,18 @@ This appears to have been run before as <entry>. Do you want to rerun it, contin
 
 ## Recent Tasks
 
+### 2026-10-01 - Destination Capacity Policy Production Implementation
+
+- Task ID: DESTINATION_CAPACITY_POLICY_PRODUCTION_IMPLEMENTATION
+- Agent: Codex local Worker / exact model UNVERIFIED; implementer, not independent reviewer
+- Status: implementation and required verification complete; BRAIN review pending, classification/accepted state unset
+- Files changed: DriveService, StorageMetadata, TransferCoordinator, TransferViewModel, StorageAnalysisView; PrivacyInfo.xcprivacy; two canonical XCTest files; scoped evidence, memory, one canonical NORMAL handoff
+- Safety impact: validated machine apfs + runtime4096 uses checked per-file R hard floor; exFAT/unvalidated/unknown WARN+L; L remains copy/observer truth; fresh Coordinator evidence; wording-only UI. Owner separately authorized redacting capacity details from Telegram failure summary for Apple reason restrictions.
+- Checks: Debug PASS; focused138/138; image runtime2/2; full canonical277/277, zero failures/skips; actual APFS L<=F<R block before rsync; exFAT512 public signal WARN+L and actual ENOSPC=>TRANSFER ERROR, never SAFE TO EJECT; successful SHA256 pairs8192 APFS/512 exFAT; schema and built manifest PASS; native actual StorageAnalysisView Light/Dark nominal rendering inspected; image cleanup and diff check PASS.
+- Evidence: handoffs/evidence/destination-capacity-production/IMPLEMENTATION_EVIDENCE.md; exact compressed production/test diffs plus hashes; verification/runtime/privacy/cleanup artifacts and four native screenshots
+- Commit/tag/release: one coherent production/evidence commit via finalizer; exact final SHA/upstream/clean gates in V2.1 BRAIN packet; no tag/release
+- Notes: snapshot/floor cannot prove fit; no raw-device production probes or arbitrary margin; unchanged engines/exclusions/verification/TransferState/report safety/OpenDesign. Single Worker proposal: RETURN_TO_BRAIN_FOR_POST_IMPLEMENT_INDEPENDENT_REVIEW.
+
 ### 2026-10-01 - Destination Capacity Policy Independent Review
 
 - Date: 2026-10-01

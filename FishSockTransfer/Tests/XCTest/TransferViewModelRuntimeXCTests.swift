@@ -34,6 +34,8 @@ final class TransferViewModelRuntimeXCTests: XCTestCase {
         viewModel.destinationURL = destination
         viewModel.sourceMetadata = metadata
         viewModel.destinationMetadata = DestinationStorageMetadata(freeSpaceBytes: logical - 1, filesystem: "Test", isWritable: true)
+        viewModel.capacityAssessment = try DestinationCapacityAssessment.make(source: source, destination: destination,
+            logicalPayloadBytes: logical, roundedPayloadBytes: nil, snapshot: viewModel.destinationMetadata!)
         viewModel.bundledRsyncInfo = BundledRsyncInfo(executableURL: root.appendingPathComponent("rsync"), version: "3.4.4", diagnostics: [])
         XCTAssertEqual(viewModel.sourceMetadata?.totalSizeBytes, logical)
         XCTAssertTrue(viewModel.hasInsufficientDestinationSpace)
@@ -41,6 +43,8 @@ final class TransferViewModelRuntimeXCTests: XCTestCase {
         XCTAssertTrue(viewModel.startBlockedReason?.contains("1,073,741,824 bytes") == true)
 
         viewModel.destinationMetadata = DestinationStorageMetadata(freeSpaceBytes: logical, filesystem: "Test", isWritable: true)
+        viewModel.capacityAssessment = try DestinationCapacityAssessment.make(source: source, destination: destination,
+            logicalPayloadBytes: logical, roundedPayloadBytes: nil, snapshot: viewModel.destinationMetadata!)
         XCTAssertFalse(viewModel.hasInsufficientDestinationSpace)
         XCTAssertTrue(viewModel.canStartTransfer)
         viewModel.applyTransferState(.copying)
@@ -48,6 +52,34 @@ final class TransferViewModelRuntimeXCTests: XCTestCase {
         XCTAssertEqual(viewModel.copyRuntimeSnapshot?.totalBytes, logical)
         XCTAssertEqual(viewModel.copyRuntimeSnapshot?.copiedBytes, logical / 2)
         XCTAssertEqual(viewModel.progress, 50, accuracy: 0.0001)
+    }
+
+    func testDestinationSelectionInvalidatesAndRecomputesCapacityPreview() async throws {
+        let fm = FileManager.default
+        let root = fm.temporaryDirectory.appendingPathComponent("FSTCapacityPreview-\(UUID())", isDirectory: true)
+        try fm.createDirectory(at: root, withIntermediateDirectories: true)
+        defer { try? fm.removeItem(at: root) }
+        let source = root.appendingPathComponent("source"), first = root.appendingPathComponent("first"), second = root.appendingPathComponent("second")
+        for url in [source, first, second] { try fm.createDirectory(at: url, withIntermediateDirectories: true) }
+        try Data([0x41]).write(to: source.appendingPathComponent("clip"))
+        let vm = makeViewModel()
+        XCTAssertTrue(vm.selectSourceFolder(source))
+        XCTAssertTrue(vm.selectDestinationFolder(first))
+        await vm.sourceMetadataTaskForTesting?.value
+        await vm.destinationMetadataTaskForTesting?.value
+        await vm.capacityAssessmentTaskForTesting?.value
+        let old = try XCTUnwrap(vm.currentCapacityAssessment)
+        XCTAssertEqual(old.logicalPayloadBytes, 1)
+        XCTAssertTrue(vm.selectDestinationFolder(second))
+        XCTAssertNil(vm.currentCapacityAssessment)
+        XCTAssertFalse(old.matches(source: source, destination: second))
+        await vm.destinationMetadataTaskForTesting?.value
+        await vm.capacityAssessmentTaskForTesting?.value
+        let fresh = try XCTUnwrap(vm.currentCapacityAssessment)
+        XCTAssertTrue(fresh.matches(source: source, destination: second))
+        XCTAssertEqual(fresh.filesystemIdentity, vm.destinationMetadata?.filesystemIdentity)
+        XCTAssertEqual(fresh.allocationUnit, vm.destinationMetadata?.allocationUnit)
+        XCTAssertEqual(fresh.availableSnapshotBytes, vm.destinationMetadata?.freeSpaceBytes)
     }
 
     func testActivePhaseHeroTitlesAndSeparateSecondaryAverage() throws {
@@ -951,20 +983,13 @@ final class TransferViewModelRuntimeXCTests: XCTestCase {
         await viewModel.sourceMetadataTaskForTesting?.value
         XCTAssertNotNil(viewModel.sourceMetadata)
 
-        // Replace the real destination metadata with a free-space figure that
-        // cannot fit the source, then re-select the Source so the real
-        // metadata apply path re-derives the warning against the current
-        // (insufficient) destination metadata and publishes it.
         viewModel.destinationURL = destination
-        viewModel.destinationMetadata = DestinationStorageMetadata(
-            freeSpaceBytes: 64,
-            filesystem: "Test",
-            isWritable: true
-        )
+        viewModel.destinationMetadata = DestinationStorageMetadata(freeSpaceBytes: 64, filesystem: "Test", isWritable: true)
+        viewModel.capacityAssessment = try DestinationCapacityAssessment.make(source: source, destination: destination,
+            logicalPayloadBytes: 4096, roundedPayloadBytes: nil, snapshot: viewModel.destinationMetadata!)
+        viewModel.storageWarningMessage = viewModel.startBlockedReason
         XCTAssertTrue(viewModel.hasInsufficientDestinationSpace)
-        XCTAssertTrue(viewModel.selectSourceFolder(source))
-        await viewModel.sourceMetadataTaskForTesting?.value
-        XCTAssertNotNil(viewModel.storageWarningMessage, "Insufficient-space warning must be visible")
+        XCTAssertNotNil(viewModel.storageWarningMessage)
         XCTAssertFalse(viewModel.canStartTransfer)
 
         viewModel.clearDestinationFolder()

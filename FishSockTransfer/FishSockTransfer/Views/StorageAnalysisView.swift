@@ -14,7 +14,7 @@ public struct StorageAnalysisView: View {
             HStack(spacing: 8) {
                 Image(systemName: "externaldrive")
                     .foregroundStyle(.secondary)
-                Text("STORAGE READINESS")
+                Text("CAPACITY PRECHECK")
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(.secondary)
             }
@@ -39,7 +39,7 @@ public struct StorageAnalysisView: View {
                 systemImage: "exclamationmark.triangle.fill",
                 tint: .orange
             )
-        } else if viewModel.sourceMetadata == nil || viewModel.destinationMetadata == nil {
+        } else if viewModel.sourceMetadata == nil || viewModel.destinationMetadata == nil || viewModel.currentCapacityAssessment == nil {
             HStack(spacing: 8) {
                 ProgressView()
                     .controlSize(.small)
@@ -47,7 +47,7 @@ public struct StorageAnalysisView: View {
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             }
-        } else if let sourceMetadata = viewModel.sourceMetadata,
+        } else if let assessment = viewModel.currentCapacityAssessment,
                   let destinationMetadata = viewModel.destinationMetadata {
             VStack(alignment: .leading, spacing: 8) {
                 if viewModel.hasInsufficientDestinationSpace {
@@ -74,24 +74,33 @@ public struct StorageAnalysisView: View {
 
                 if !viewModel.hasInsufficientDestinationSpace && destinationMetadata.isWritable {
                     readinessStatus(
-                        "STORAGE READY",
-                        systemImage: "checkmark.circle.fill",
-                        tint: .green,
-                        help: "Based on current storage metadata. Transfer preflight remains authoritative."
+                        DestinationCapacityAssessment.passedStatus,
+                        systemImage: assessment.hasUnvalidatedAllocation ? "exclamationmark.triangle.fill" : "info.circle",
+                        tint: assessment.hasUnvalidatedAllocation ? .orange : .secondary,
+                        help: "Capacity is a snapshot, not a reservation. Transfer preflight remains authoritative."
                     )
                 }
 
-                valueRow("Required", value: formatBytes(sourceMetadata.totalSizeBytes))
-                valueRow("Available", value: formatBytes(destinationMetadata.freeSpaceBytes))
+                if assessment.passesCapacityPrecheck {
+                    Text(assessment.supportingText)
+                        .font(.footnote)
+                        .foregroundStyle(assessment.hasUnvalidatedAllocation ? Color.orange : Color.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
 
-                if let remaining = remainingAfterCopyBytes {
-                    valueRow("Remaining After Copy", value: formatBytes(remaining))
+                valueRow("Payload", value: formatBytes(assessment.logicalPayloadBytes))
+                valueRow("Admission Floor", value: formatBytes(assessment.admissionFloorBytes))
+                valueRow("Available", value: formatBytes(assessment.availableSnapshotBytes))
+
+                if let margin = assessment.marginAboveFloorBytes {
+                    valueRow("Margin Above Floor", value: formatBytes(margin))
                 }
             }
         }
     }
 
     private var metadataErrorMessage: String? {
+        if let error = viewModel.capacityAssessmentError { return error }
         if viewModel.sourceMetadata == nil,
            viewModel.errorMessage == "Unable to analyze source folder." {
             return "Unable to analyze source metadata."
@@ -101,15 +110,6 @@ public struct StorageAnalysisView: View {
             return "Unable to analyze destination metadata."
         }
         return nil
-    }
-
-    private var remainingAfterCopyBytes: Int64? {
-        guard let sourceMetadata = viewModel.sourceMetadata,
-              let destinationMetadata = viewModel.destinationMetadata,
-              destinationMetadata.freeSpaceBytes >= sourceMetadata.totalSizeBytes else {
-            return nil
-        }
-        return destinationMetadata.freeSpaceBytes - sourceMetadata.totalSizeBytes
     }
 
     private func readinessStatus(

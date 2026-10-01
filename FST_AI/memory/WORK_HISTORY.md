@@ -21,6 +21,18 @@ Each entry must include:
 
 ## Recent History
 
+### 2026-10-01 - Destination Capacity Policy Production Implementation
+
+- Agent/model: Codex local Worker; exact model UNVERIFIED; implementer only
+- Branch/start: main / 67e28a06b267f7da741b58cd848aee2ebcb56ddb; clean HEAD=origin/main preflight after fetch; no matching GitHub capacity issue or duplicate implementation record
+- Change: checked same-enumeration logical L and destination-specific APFS R; runtime statfs machine identity/fundamental unit; strict apfs+4096 branch only; fresh mount/profile/capacity checks in authoritative Coordinator preflight. Preview invalidates on selection change and consumes core floor. SourceStorageMetadata stays source-only; L remains all progress denominators.
+- Safety boundary: safety wording only, no visual convergence; existing source exclusions, rsync3.4.4 args/no-sparse/xattrs, verification, ETA, TransferState, report safety and SAFE TO EJECT unchanged. Owner explicitly allowed capacity detail redaction solely in outgoing Telegram failure summary to satisfy current Apple E174.1/85F4.1 restrictions. Manifest packages automatically through app synchronized group and contains exact DiskSpace reasons only.
+- Files: five production Swift files plus manifest, two canonical XCTest files, scoped evidence/diffs/screenshots, these history/registry records and one NORMAL handoff
+- Validation: Debug PASS; focused138 passed; runtime2 passed; canonical277 passed, all zero failed/skipped. APFS8192tinyfiles L8192/R33554432/F14282752 blocked before rsync; successful SHA2568192pairs. exFAT machineexfat/public512 stays floorL512; F8126464 logical admission then real ENOSPC28/rsync11 => Coordinator TRANSFER ERROR, never SAFE TO EJECT/TRANSFER COMPLETE; subsequent successful512hashpairs. Manifest lint/exact schema/built-byte equality PASS. Actual native storage view600x300pt Light/Dark inspected. Detached images and removed fixtures; no owner media touched.
+- Evidence/limitations: handoffs/evidence/destination-capacity-production/IMPLEMENTATION_EVIDENCE.md plus verification.json/runtime-evidence.txt/privacy-research.json/cleanup-verification.json/exact compressed diffs/native snapshots. Earlier failed fixture/build/test attempts preserved, including larger exFAT fit counterexample. Capacity not reservation; R not sufficient; overhead/shared writers/source growth remain uncertain; CodeGraph unavailable; full-app navigation/owner-device QA and macOS distribution enforcement not inferred.
+- Publication: one coherent commit/push/fetch/export flow; final exact SHA, clean/upstream gates and verified handoff in V2.1 03_FST_BRAIN.md; no tag/release; BRAIN review PENDING, classification/accepted state UNSET
+- Single Worker proposal: RETURN_TO_BRAIN_FOR_POST_IMPLEMENT_INDEPENDENT_REVIEW.
+
 ### 2026-10-01 - Destination Capacity Policy Independent Review artifact recovery
 
 - Agent/model: Codex local Worker / exact runtime model UNVERIFIED

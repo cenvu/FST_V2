@@ -157,17 +157,12 @@ public actor TransferCoordinator {
         await log(category: .info, message: "Validating transfer requirements...")
         
         do {
-            try await driveService.validateSource(at: source)
-            let scannedSourceMetadata = try await driveService.sourceMetadata(for: source)
-            sourceMetadata = scannedSourceMetadata
-            try await driveService.validateDestination(at: destination)
-            let freeSpace = try await driveService.calculateReliableFreeSpace(at: destination)
-            _ = try TransferPreflightValidator.validate(
-                source: source,
-                destination: destination,
-                sourceMetadata: scannedSourceMetadata,
-                destinationFreeSpaceBytes: freeSpace
-            )
+            let evidence = try await driveService.preparePreflight(source: source, destination: destination)
+            sourceMetadata = evidence.source
+            _ = try TransferPreflightValidator.validate(source: source, destination: destination,
+                sourceMetadata: evidence.source,
+                destinationFreeSpaceBytes: evidence.assessment.availableSnapshotBytes,
+                capacityAssessment: evidence.assessment)
         } catch {
             let message = "TRANSFER ERROR: \(error.localizedDescription)"
             await log(category: .error, message: message)

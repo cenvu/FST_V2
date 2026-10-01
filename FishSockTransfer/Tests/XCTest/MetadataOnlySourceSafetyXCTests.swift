@@ -1,6 +1,7 @@
 // FST / CenVu | (+84) 842 841 222
 
 import XCTest
+import CryptoKit
 
 private final class VerificationEventRecorder: @unchecked Sendable {
     private let lock = NSLock()
@@ -94,6 +95,9 @@ final class MetadataOnlySourceSafetyXCTests: XCTestCase {
         let calculated = try await drive.calculateFolderSize(at: source)
         XCTAssertEqual(metadata.totalSizeBytes, logical)
         XCTAssertEqual(calculated, logical)
+        let assessment = try await drive.assessCapacity(source: source, destination: temporaryRoot)
+        XCTAssertEqual(assessment.assessment.logicalPayloadBytes, logical)
+        XCTAssertEqual(assessment.assessment.admissionFloorBytes, logical)
         XCTAssertEqual(metadata.fileCount, 1)
         let after = try URL(fileURLWithPath: file.path).resourceValues(forKeys: [.fileSizeKey, .totalFileAllocatedSizeKey, .contentModificationDateKey])
         XCTAssertEqual(after.fileSize, before.fileSize)
@@ -135,6 +139,9 @@ final class MetadataOnlySourceSafetyXCTests: XCTestCase {
         XCTAssertEqual(metadata.totalSizeBytes, logical + 333 + 8192)
         XCTAssertEqual(metadata.fileCount, 4)
         XCTAssertEqual(metadata.folderCount, 1)
+        let assessment = try await DriveService().assessCapacity(source: source, destination: temporaryRoot)
+        XCTAssertEqual(assessment.assessment.logicalPayloadBytes, logical + 333 + 8192)
+        XCTAssertEqual(assessment.assessment.admissionFloorBytes, logical + 4096 + 8192)
     }
 
     func testSparseLogicalPreflightBlocksInsufficientSpaceAndAllowsEnough() async throws {
@@ -211,6 +218,9 @@ final class MetadataOnlySourceSafetyXCTests: XCTestCase {
 
         let metadata = try await DriveService().sourceMetadata(for: source)
         XCTAssertEqual(metadata.totalSizeBytes, Int64(contents.count))
+        let assessment = try await DriveService().assessCapacity(source: source, destination: temporaryRoot)
+        XCTAssertEqual(assessment.assessment.logicalPayloadBytes, Int64(contents.count))
+        XCTAssertEqual(assessment.assessment.admissionFloorBytes, Int64(contents.count))
         XCTAssertEqual(try Data(contentsOf: compressed), contents)
     }
 
@@ -467,7 +477,7 @@ final class MetadataOnlySourceSafetyXCTests: XCTestCase {
         ) { error in
             XCTAssertEqual(error as? TransferPreflightError, .insufficientDestinationSpace(required: 2048, available: 1024))
             let message = (error as? TransferPreflightError)?.errorDescription ?? ""
-            XCTAssertTrue(message.contains("Required: 2 KB"))
+            XCTAssertTrue(message.contains("Floor: 2 KB"))
             XCTAssertTrue(message.contains("Available: 1 KB"))
             XCTAssertTrue(message.contains("2,048 bytes"))
             XCTAssertTrue(message.contains("1,024 bytes"))
@@ -856,5 +866,382 @@ final class MetadataOnlySourceSafetyXCTests: XCTestCase {
     private func writeFile(_ name: String, contents: String, in folderURL: URL) throws {
         let fileURL = folderURL.appendingPathComponent(name)
         try contents.write(to: fileURL, atomically: true, encoding: .utf8)
+    }
+}
+
+final class DestinationCapacityPolicyXCTests: XCTestCase {
+    private let source = URL(fileURLWithPath: "/tmp/fst-capacity-policy/source")
+    private let destination = URL(fileURLWithPath: "/tmp/fst-capacity-policy/destination")
+
+    private func assessment(identity: String? = "apfs", unit: Int64? = 4096,
+                            logical: Int64 = 1, rounded: Int64? = 4096, available: Int64 = 4096,
+                            display: String = "Localized display") throws -> DestinationCapacityAssessment {
+        try .make(source: source, destination: destination, logicalPayloadBytes: logical,
+                  roundedPayloadBytes: rounded,
+                  snapshot: .init(freeSpaceBytes: available, filesystem: display, isWritable: true,
+                                  filesystemIdentity: identity, allocationUnit: unit))
+    }
+
+    func testRoundingBoundaries() throws {
+        for (size, expected): (Int64, Int64) in [(0,0),(1,4096),(4095,4096),(4096,4096),(4097,8192),
+                                                (16_777_339,16_781_312)] {
+            XCTAssertEqual(try CapacityArithmetic.roundUp(size, unit: 4096), expected)
+        }
+    }
+    func testManySmallRoundedSum() throws {
+        var logical: Int64 = 0, rounded: Int64 = 0
+        for _ in 0..<1024 {
+            logical = try CapacityArithmetic.add(logical, 1)
+            rounded = try CapacityArithmetic.add(rounded, CapacityArithmetic.roundUp(1, unit: 4096))
+        }
+        XCTAssertEqual(logical, 1024)
+        XCTAssertEqual(rounded, 4_194_304)
+    }
+    func testNearInt64OverflowFailsSafely() throws {
+        XCTAssertEqual(try CapacityArithmetic.roundUp(Int64.max - 4095, unit: 4096), Int64.max - 4095)
+        XCTAssertThrowsError(try CapacityArithmetic.roundUp(Int64.max, unit: 4096)) {
+            XCTAssertEqual($0 as? TransferPreflightError, .capacityArithmeticOverflow)
+        }
+    }
+    func testSumOverflowFailsSafely() {
+        XCTAssertThrowsError(try CapacityArithmetic.add(Int64.max, 1)) {
+            XCTAssertEqual($0 as? TransferPreflightError, .capacityArithmeticOverflow)
+        }
+    }
+    func testInvalidUnitAndNegativeSizeFail() {
+        for unit: Int64 in [0, -1] { XCTAssertThrowsError(try CapacityArithmetic.roundUp(1, unit: unit)) }
+        XCTAssertThrowsError(try CapacityArithmetic.roundUp(-1, unit: 4096))
+        XCTAssertThrowsError(try CapacityArithmetic.add(-1, 1))
+    }
+    func testAPFSValidatedUsesRoundedFloor() throws {
+        let a = try assessment()
+        XCTAssertEqual(a.admissionFloorBytes, 4096)
+        XCTAssertEqual(a.logicalPayloadBytes, 1)
+        XCTAssertEqual(a.policyKind, .validatedAPFSRounded)
+        XCTAssertFalse(a.hasUnvalidatedAllocation)
+    }
+    func testLocalizedDisplayNeverControlsPolicy() throws {
+        XCTAssertEqual(try assessment(display: "日本語").policyKind, .validatedAPFSRounded)
+        XCTAssertEqual(try assessment(identity: "exfat", unit: 512, display: "APFS").admissionFloorBytes, 1)
+        XCTAssertEqual(try assessment(identity: nil, unit: nil, display: "APFS").policyKind, .logicalOnlyUnvalidated)
+    }
+    func testUnexpectedOrMissingAPFSUnitWarnsWithLogicalFloor() throws {
+        for unit: Int64? in [nil, 0, -1, 512, 8192] {
+            let a = try assessment(unit: unit)
+            XCTAssertEqual(a.admissionFloorBytes, 1)
+            XCTAssertTrue(a.hasUnvalidatedAllocation)
+        }
+    }
+    func testExfat512AndUnknownWarnWithLogicalFloor() throws {
+        for identity: String? in ["exfat", "futurefs", nil] {
+            let a = try assessment(identity: identity, unit: 512, rounded: nil, available: 1)
+            XCTAssertEqual(a.admissionFloorBytes, 1)
+            XCTAssertTrue(a.passesCapacityPrecheck)
+            XCTAssertEqual(a.uncertaintyKind, .allocationOverheadUnvalidated)
+        }
+    }
+    func testProbeFailureIsUnvalidated() throws {
+        XCTAssertNil(DriveService.filesystemProfile(at: URL(fileURLWithPath: "/nonexistent/fst-\(UUID())")))
+        XCTAssertEqual(try assessment(identity: nil, unit: nil, rounded: nil).policyKind, .logicalOnlyUnvalidated)
+    }
+    func testEqualityPassesAndFloorMinusOneFailsForBothPolicies() throws {
+        for identity in ["apfs", "exfat", "unknown"] {
+            let floor: Int64 = identity == "apfs" ? 4096 : 1
+            XCTAssertTrue(try assessment(identity: identity, available: floor).passesCapacityPrecheck)
+            XCTAssertFalse(try assessment(identity: identity, available: floor - 1).passesCapacityPrecheck)
+        }
+    }
+    func testTinyFileAPFSBlocksOldLogicalAdmission() throws {
+        let a = try assessment(logical: 1024, rounded: 4_194_304, available: 1024)
+        XCTAssertFalse(a.passesCapacityPrecheck)
+        let metadata = SourceStorageMetadata(folderName: "source", fullPath: source.path, totalSizeBytes: 1024,
+                                             fileCount: 1024, folderCount: 0)
+        XCTAssertThrowsError(try TransferPreflightValidator.validate(source: source, destination: destination,
+            sourceMetadata: metadata, destinationFreeSpaceBytes: 1024, capacityAssessment: a)) {
+            XCTAssertEqual($0 as? TransferPreflightError, .insufficientDestinationSpace(required: 4_194_304, available: 1024))
+        }
+    }
+    func testAlignedAPFSAndPlanKeepLogicalProgress() throws {
+        for (logical, rounded): (Int64, Int64) in [(4096,4096),(1,4096)] {
+            let a = try assessment(logical: logical, rounded: rounded)
+            let metadata = SourceStorageMetadata(folderName: "source", fullPath: source.path,
+                totalSizeBytes: logical, fileCount: 1, folderCount: 0)
+            let plan = try TransferPreflightValidator.validate(source: source, destination: destination,
+                sourceMetadata: metadata, destinationFreeSpaceBytes: 4096, capacityAssessment: a)
+            XCTAssertEqual(plan.transferableBytes, logical)
+            XCTAssertEqual(plan.admissionFloorBytes, rounded)
+        }
+    }
+    func testChangedDestinationRejectsOldAssessment() throws {
+        let a = try assessment()
+        let newDestination = destination.appendingPathComponent("new")
+        XCTAssertFalse(a.matches(source: source, destination: newDestination))
+        let metadata = SourceStorageMetadata(folderName: "source", fullPath: source.path,
+            totalSizeBytes: 1, fileCount: 1, folderCount: 0)
+        XCTAssertThrowsError(try TransferPreflightValidator.validate(source: source, destination: newDestination,
+            sourceMetadata: metadata, destinationFreeSpaceBytes: 4096, capacityAssessment: a)) {
+            XCTAssertEqual($0 as? TransferPreflightError, .invalidCapacityEvidence)
+        }
+    }
+    func testMissingRoundedEvidenceAndInvalidCapacityFailSafely() {
+        XCTAssertThrowsError(try assessment(rounded: nil))
+        XCTAssertThrowsError(try assessment(logical: 4097))
+        XCTAssertThrowsError(try assessment(available: -1))
+    }
+    func testSafetyPresentationAndPrivacyRedaction() throws {
+        XCTAssertEqual(DestinationCapacityAssessment.passedStatus, "CAPACITY PRECHECK PASSED")
+        let apfs = try assessment(), exfat = try assessment(identity: "exfat", unit: 512)
+        XCTAssertTrue(apfs.supportingText.contains("may still require additional space"))
+        XCTAssertTrue(exfat.supportingText.contains("does not guarantee"))
+        XCTAssertTrue(exfat.hasUnvalidatedAllocation)
+        XCTAssertEqual(apfs.marginAboveFloorBytes, 0)
+        let error = TransferPreflightError.insufficientDestinationSpace(required: 4096, available: 1).localizedDescription
+        XCTAssertTrue(error.contains("Floor:"))
+        XCTAssertFalse(error.contains("Required:"))
+        XCTAssertEqual(DestinationCapacityAssessment.notificationFailureSummary("TRANSFER ERROR: " + error),
+                       "Transfer failed. Keep the source media.")
+        XCTAssertEqual(DestinationCapacityAssessment.notificationFailureSummary("I/O failure"), "I/O failure")
+        XCTAssertNil(DestinationCapacityAssessment.notificationFailureSummary(nil))
+        let repo = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+        let view = try String(contentsOf: repo.appendingPathComponent("FishSockTransfer/Views/StorageAnalysisView.swift"), encoding: .utf8)
+        XCTAssertFalse(view.contains("STORAGE READY"))
+        XCTAssertFalse(view.contains("Remaining After Copy"))
+        XCTAssertFalse(view.contains("SAFE TO EJECT"))
+        XCTAssertFalse(view.contains("== \"apfs\""))
+        XCTAssertTrue(view.contains("exclamationmark.triangle.fill"))
+    }
+    func testCancelledDestinationAssessmentDoesNotReturnEvidence() async throws {
+        let task = Task {
+            withUnsafeCurrentTask { $0?.cancel() }
+            return try await DriveService().assessCapacity(source: source, destination: destination)
+        }
+        do { _ = try await task.value; XCTFail("Cancelled assessment must fail") }
+        catch is CancellationError {}
+    }
+
+    @MainActor func testRoundedFloorDrivesViewModelWhileObserverAndProgressKeepLogicalPayload() throws {
+        let fm = FileManager.default
+        let root = fm.temporaryDirectory.appendingPathComponent("FSTCapacityObserver-\(UUID())", isDirectory: true)
+        try fm.createDirectory(at: root, withIntermediateDirectories: true)
+        defer { try? fm.removeItem(at: root) }
+        try Data(repeating: 0x41, count: 8192).write(to: root.appendingPathComponent("clip"))
+        let vm = TransferViewModel(bundledRsyncService: BundledRsyncService(bundledExecutableURL: nil))
+        vm.sourceURL = source; vm.destinationURL = destination
+        vm.capacityAssessment = try assessment(available: 1)
+        XCTAssertTrue(vm.hasInsufficientDestinationSpace)
+        XCTAssertTrue(vm.startBlockedReason?.contains("Bundled") == true)
+        vm.bundledRsyncInfo = .init(executableURL: root.appendingPathComponent("unused-rsync"), version: "3.4.4", diagnostics: [])
+        XCTAssertFalse(vm.canStartTransfer)
+        XCTAssertTrue(vm.startBlockedReason?.contains("4,096 bytes") == true)
+        vm.capacityAssessment = try assessment()
+        XCTAssertFalse(vm.hasInsufficientDestinationSpace)
+        let observed = try DestinationActivitySnapshotter.snapshot(destinationRootURL: root,
+            totalBytes: vm.capacityAssessment!.logicalPayloadBytes, totalFiles: 1,
+            copyStartedAt: Date().addingTimeInterval(-10), previousSamples: []).snapshot
+        XCTAssertEqual(observed.copiedBytes, 1)
+        XCTAssertEqual(observed.totalBytes, 1)
+        vm.applyTransferState(.copying)
+        vm.applyCopyRuntimeSnapshot(observed)
+        XCTAssertEqual(vm.progress, 99, "Existing active-copy cap remains; only Coordinator terminal completion reaches 100%.")
+        XCTAssertEqual(vm.capacityAssessment?.admissionFloorBytes, 4096)
+    }
+
+    func testPrivacyManifestExactSchemaAndReasons() throws {
+        let repo = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+        let data = try Data(contentsOf: repo.appendingPathComponent("FishSockTransfer/PrivacyInfo.xcprivacy"))
+        let plist = try XCTUnwrap(PropertyListSerialization.propertyList(from: data, format: nil) as? [String: Any])
+        XCTAssertEqual(Set(plist.keys), ["NSPrivacyAccessedAPITypes"])
+        let types = try XCTUnwrap(plist["NSPrivacyAccessedAPITypes"] as? [[String: Any]])
+        XCTAssertEqual(types.count, 1)
+        XCTAssertEqual(types[0]["NSPrivacyAccessedAPIType"] as? String, "NSPrivacyAccessedAPICategoryDiskSpace")
+        XCTAssertEqual(types[0]["NSPrivacyAccessedAPITypeReasons"] as? [String], ["E174.1", "85F4.1"])
+        XCTAssertEqual(Set(types[0].keys), ["NSPrivacyAccessedAPIType", "NSPrivacyAccessedAPITypeReasons"])
+    }
+}
+
+/// All writes are restricted to UUID fixtures and disposable hdiutil-created images.
+final class DestinationCapacityImageRuntimeXCTests: XCTestCase {
+    private func command(_ executable: String, _ arguments: [String]) throws -> Data {
+        let process = Process(), output = Pipe()
+        process.executableURL = URL(fileURLWithPath: executable)
+        process.arguments = arguments
+        process.standardOutput = output
+        process.standardError = output
+        try process.run()
+        let data = output.fileHandleForReading.readDataToEndOfFile()
+        process.waitUntilExit()
+        guard process.terminationStatus == 0 else {
+            throw NSError(domain: "FSTImageQA", code: Int(process.terminationStatus),
+                          userInfo: [NSLocalizedDescriptionKey: String(decoding: data.suffix(4096), as: UTF8.self)])
+        }
+        return data
+    }
+
+    func testDisposableAPFSAdmissionAndVerifiedCopy() async throws { try await runImageQA(filesystem: "APFS") }
+    func testDisposableExfatLogicalWarningAndVerifiedCopy() async throws { try await runImageQA(filesystem: "ExFAT") }
+
+    private func runImageQA(filesystem: String) async throws {
+        let fm = FileManager.default
+        let root = fm.temporaryDirectory.appendingPathComponent("FSTCapacityImageQA-\(UUID())", isDirectory: true)
+        try fm.createDirectory(at: root, withIntermediateDirectories: true)
+        var attached = false
+        defer {
+            if attached { XCTFail("Mounted image preserved after detach failure") }
+            else {
+            do { try fm.removeItem(at: root) }
+            catch { XCTFail("Fixture cleanup failed: \(error)") }
+            XCTAssertFalse(fm.fileExists(atPath: root.path))
+            print("FST_CAPACITY_QA CLEANUP=PASS ROOT=\(root.path) OWNER_MEDIA_TOUCHED=NONE")
+            }
+        }
+        let image = root.appendingPathComponent("destination.dmg")
+        let mount = root.appendingPathComponent("mount", isDirectory: true)
+        if filesystem == "APFS" {
+            _ = try command("/usr/bin/hdiutil", ["create", "-size", "128m", "-fs", "APFS",
+                "-volname", "FSTCapacityQA", "-type", "UDIF", "-nospotlight", image.path])
+        } else {
+            _ = try command("/usr/bin/hdiutil", ["create", "-size", "512m", "-layout", "NONE", "-type", "UDIF", image.path])
+            let receipt = try command("/usr/bin/hdiutil", ["attach", "-nomount", "-plist", image.path])
+            let plist = try XCTUnwrap(PropertyListSerialization.propertyList(from: receipt, format: nil) as? [String: Any])
+            let entities = try XCTUnwrap(plist["system-entities"] as? [[String: Any]])
+            let device = try XCTUnwrap(entities.first?["dev-entry"] as? String)
+            // Prove this exact device came from our new image before filesystem creation.
+            let allImages = try command("/usr/bin/hdiutil", ["info", "-plist"])
+            let imageInfo = try XCTUnwrap(PropertyListSerialization.propertyList(from: allImages, format: nil) as? [String: Any])
+            let images = try XCTUnwrap(imageInfo["images"] as? [[String: Any]])
+            guard images.contains(where: { item in
+                (item["image-path"] as? String) == image.path &&
+                (item["system-entities"] as? [[String: Any]])?.contains(where: { ($0["dev-entry"] as? String) == device }) == true
+            }) else { throw NSError(domain: "FSTImageQA", code: 2) }
+            do {
+                _ = try command("/sbin/newfs_exfat", ["-v", "FSTQA", device])
+                _ = try command("/usr/bin/hdiutil", ["detach", device])
+            } catch {
+                _ = try? command("/usr/bin/hdiutil", ["detach", device])
+                throw error
+            }
+        }
+        _ = try command("/usr/bin/hdiutil", ["attach", "-nobrowse", "-mountpoint", mount.path, image.path])
+        attached = true
+        defer {
+            if attached {
+                do { _ = try command("/usr/bin/hdiutil", ["detach", mount.path]); attached = false }
+                catch { XCTFail("Image detach failed: \(error)") }
+            }
+        }
+        let source = root.appendingPathComponent("source", isDirectory: true)
+        try fm.createDirectory(at: source, withIntermediateDirectories: true)
+        let count = filesystem == "APFS" ? 8192 : 512
+        for i in 0..<count { try Data([UInt8(i % 251)]).write(to: source.appendingPathComponent("clip-\(i).bin")) }
+        try Data(repeating: 0xaa, count: 8192).write(to: source.appendingPathComponent(".DS_Store"))
+        let drive = DriveService()
+        let ample = try await drive.assessCapacity(source: source, destination: mount)
+        XCTAssertEqual(ample.source.totalSizeBytes, Int64(count))
+        XCTAssertEqual(ample.source.fileCount, count)
+        XCTAssertEqual(ample.assessment.filesystemIdentity, filesystem == "APFS" ? "apfs" : "exfat")
+        print("FST_CAPACITY_QA FS=\(ample.assessment.filesystemIdentity ?? "nil") UNIT=\(ample.assessment.allocationUnit ?? -1) L=\(ample.assessment.logicalPayloadBytes) FLOOR=\(ample.assessment.admissionFloorBytes) F=\(ample.assessment.availableSnapshotBytes) POLICY=\(ample.assessment.policyKind)")
+        if filesystem == "APFS" {
+            XCTAssertEqual(ample.assessment.policyKind, .validatedAPFSRounded)
+            XCTAssertEqual(ample.assessment.admissionFloorBytes, 33_554_432)
+            let filler = mount.appendingPathComponent("qa-filler")
+            XCTAssertTrue(fm.createFile(atPath: filler.path, contents: nil))
+            let handle = try FileHandle(forWritingTo: filler)
+            let chunk = Data(repeating: 0x51, count: 1_048_576)
+            // Bounded image-only fill; never write source media or a raw device.
+            for _ in 0..<128 {
+                let free = try await drive.calculateReliableFreeSpace(at: mount)
+                if free < 25_165_824 { break }
+                try handle.write(contentsOf: chunk)
+            }
+            try handle.close()
+            let tight = try await drive.assessCapacity(source: source, destination: mount)
+            XCTAssertGreaterThanOrEqual(tight.assessment.availableSnapshotBytes, tight.assessment.logicalPayloadBytes)
+            XCTAssertLessThan(tight.assessment.availableSnapshotBytes, tight.assessment.admissionFloorBytes)
+            do {
+                _ = try await drive.preflight(source: source, destination: mount)
+                XCTFail("Authoritative preflight must block F>=L but F<R")
+            } catch TransferPreflightError.insufficientDestinationSpace(let floor, let available) {
+                XCTAssertEqual(floor, 33_554_432)
+                print("FST_CAPACITY_QA APFS_BLOCK_BEFORE_RSYNC=PASS FLOOR=\(floor) F=\(available)")
+            }
+            let recorder = TransferCoordinatorRecorder()
+            let coordinator = TransferCoordinator(driveService: drive)
+            await coordinator.configureCallbacks(onStateChanged: { recorder.appendState($0) },
+                onProgress: { _ in }, onSpeed: { _ in }, onTransferTime: { _ in }, onCurrentFile: { _ in },
+                onError: { recorder.appendError($0) }, onLog: { recorder.appendLog($0) })
+            await coordinator.startTransfer(source: source, destination: mount, bandwidthLimit: nil, mode: .none)
+            for _ in 0..<300 {
+                if recorder.snapshotStates().contains(.error) { break }
+                try await Task.sleep(for: .milliseconds(10))
+            }
+            XCTAssertTrue(recorder.snapshotStates().contains(.error))
+            XCTAssertFalse(recorder.snapshotStates().contains(.copying))
+            XCTAssertFalse(recorder.snapshotStates().contains(.safeToFormat))
+            XCTAssertFalse(fm.fileExists(atPath: mount.appendingPathComponent("source").path))
+            try fm.removeItem(at: filler)
+        } else {
+            XCTAssertEqual(ample.assessment.policyKind, .logicalOnlyUnvalidated)
+            XCTAssertEqual(ample.assessment.admissionFloorBytes, Int64(count))
+            XCTAssertEqual(ample.assessment.allocationUnit, 512)
+            XCTAssertTrue(ample.assessment.supportingText.contains("does not guarantee"))
+        }
+        let repo = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+        let service = BundledRsyncService(bundledExecutableURL: repo.appendingPathComponent("FishSockTransfer/rsync"))
+        if filesystem == "ExFAT" {
+            let filler = mount.appendingPathComponent("qa-filler")
+            XCTAssertTrue(fm.createFile(atPath: filler.path, contents: nil))
+            let handle = try FileHandle(forWritingTo: filler)
+            for _ in 0..<512 {
+                if try await drive.calculateReliableFreeSpace(at: mount) < 8_388_608 { break }
+                try handle.write(contentsOf: Data(repeating: 0x51, count: 1_048_576))
+            }
+            try handle.close()
+            let admitted = try await drive.preflight(source: source, destination: mount)
+            XCTAssertEqual(admitted.plan.admissionFloorBytes, Int64(count))
+            let recorder = TransferCoordinatorRecorder()
+            let coordinator = TransferCoordinator(driveService: drive, bundledRsyncService: service)
+            await coordinator.configureCallbacks(onStateChanged: { recorder.appendState($0) },
+                onProgress: { _ in }, onSpeed: { _ in }, onTransferTime: { _ in }, onCurrentFile: { _ in },
+                onError: { recorder.appendError($0) }, onLog: { recorder.appendLog($0) })
+            await coordinator.startTransfer(source: source, destination: mount, bandwidthLimit: nil, mode: .none)
+            for _ in 0..<6000 {
+                if recorder.snapshotStates().contains(.error) { break }
+                try await Task.sleep(for: .milliseconds(10))
+            }
+            XCTAssertTrue(recorder.snapshotStates().contains(.copying))
+            XCTAssertTrue(recorder.snapshotStates().contains(.error))
+            XCTAssertFalse(recorder.snapshotStates().contains(.safeToFormat))
+            XCTAssertFalse(recorder.snapshotStates().contains(.copyComplete))
+            XCTAssertTrue(recorder.snapshotErrors().contains(where: { $0.contains("TRANSFER ERROR:") }))
+            print("FST_CAPACITY_QA EXFAT_F_GE_L=\(admitted.plan.destinationFreeSpaceBytes) RUNTIME_ENOSPC=TRANSFER_ERROR SAFE_TO_EJECT=NEVER SOURCE_RETAINED=YES")
+            try fm.removeItem(at: mount.appendingPathComponent("source"))
+            try fm.removeItem(at: filler)
+        }
+        let preflight = try await drive.preflight(source: source, destination: mount)
+        XCTAssertEqual(preflight.plan.transferableBytes, Int64(count))
+        XCTAssertTrue(preflight.plan.capacityAssessment.passesCapacityPrecheck)
+        let info = await service.bundledInfo()
+        XCTAssertTrue(info.isAvailable)
+        let commandSpec = try RsyncCommand(bundledInfo: info,
+            request: TransferRequest(sourceURL: source, destinationURL: mount, bandwidthLimit: nil))
+        XCTAssertFalse(commandSpec.arguments.contains("--sparse"))
+        _ = try command(try XCTUnwrap(info.executableURL).path, commandSpec.arguments)
+        let copied = mount.appendingPathComponent("source")
+        for i in 0..<count {
+            let name = "clip-\(i).bin"
+            let original = try Data(contentsOf: source.appendingPathComponent(name))
+            XCTAssertEqual(SHA256.hash(data: original), SHA256.hash(data: try Data(contentsOf: copied.appendingPathComponent(name))))
+        }
+        XCTAssertFalse(fm.fileExists(atPath: copied.appendingPathComponent(".DS_Store").path))
+        let observer = try DestinationActivitySnapshotter.snapshot(destinationRootURL: copied,
+            totalBytes: preflight.plan.transferableBytes, totalFiles: count,
+            copyStartedAt: Date().addingTimeInterval(-10), previousSamples: []).snapshot
+        XCTAssertEqual(observer.totalBytes, Int64(count))
+        XCTAssertEqual(observer.copiedBytes, Int64(count))
+        print("FST_CAPACITY_QA FS=\(filesystem) F_GE_FLOOR_PASS=YES RSYNC=3.4.4 HASH_FILES=\(count) HASH=PASS OBSERVER_L=\(count) GUARANTEED_FIT_CLAIM=NONE")
+        _ = try command("/usr/bin/hdiutil", ["detach", mount.path])
+        attached = false
+        let devices = try command("/usr/bin/hdiutil", ["info", "-plist"])
+        XCTAssertFalse(String(decoding: devices, as: UTF8.self).contains(image.path))
     }
 }

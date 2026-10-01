@@ -1,6 +1,7 @@
 // FST / CenVu | (+84) 842 841 222
 
 import Foundation
+import Darwin
 
 public actor DriveService {
     private let fileManager = FileManager.default
@@ -45,7 +46,8 @@ public actor DriveService {
     public func calculateReliableFreeSpace(at url: URL) throws -> Int64 {
         let values: URLResourceValues
         do {
-            values = try url.resourceValues(forKeys: [.volumeAvailableCapacityForImportantUsageKey, .volumeAvailableCapacityKey])
+            let snapshotURL = URL(fileURLWithPath: url.path, isDirectory: true)
+            values = try snapshotURL.resourceValues(forKeys: [.volumeAvailableCapacityForImportantUsageKey, .volumeAvailableCapacityKey])
         } catch {
             throw TransferPreflightError.unableToDetermineDestinationFreeSpace
         }
@@ -103,26 +105,94 @@ public actor DriveService {
         )
     }
 
+    /// Machine identity and allocation evidence are obtained from the same public statfs result.
+    /// f_bsize is the fundamental block size (Darwin statvfs.f_frsize), not preferred I/O size.
+    nonisolated static func filesystemProfile(at url: URL) -> (identity: String, unit: Int64, volume: String)? {
+        var info = statfs()
+        guard url.withUnsafeFileSystemRepresentation({ path in
+            guard let path else { return false }
+            return statfs(path, &info) == 0
+        }) else { return nil }
+        let identity = withUnsafeBytes(of: info.f_fstypename) { bytes in
+            String(decoding: bytes.prefix { $0 != 0 }, as: UTF8.self)
+        }
+        guard !identity.isEmpty else { return nil }
+        return (identity, Int64(info.f_bsize), "\(info.f_fsid.val.0):\(info.f_fsid.val.1)")
+    }
+
     public func destinationMetadata(for url: URL) throws -> DestinationStorageMetadata {
-        DestinationStorageMetadata(
-            freeSpaceBytes: try calculateFreeSpace(at: url),
-            filesystem: try getFilesystemType(at: url),
-            isWritable: isWritable(at: url)
+        // Fresh URL avoids reusing cached Foundation resource values from a UI preview.
+        let freshURL = URL(fileURLWithPath: url.path, isDirectory: true)
+        let before = Self.filesystemProfile(at: freshURL)
+        let available = try calculateFreeSpace(at: freshURL)
+        let after = Self.filesystemProfile(at: freshURL)
+        guard before?.volume == after?.volume, before?.identity == after?.identity,
+              before?.unit == after?.unit else { throw TransferPreflightError.destinationCapacityChanged }
+        return DestinationStorageMetadata(
+            freeSpaceBytes: available,
+            filesystem: (try? getFilesystemType(at: freshURL)) ?? "Unknown",
+            isWritable: isWritable(at: freshURL),
+            filesystemIdentity: after?.identity, allocationUnit: after?.unit, volumeIdentity: after?.volume
         )
     }
 
-    private func scanFolder(at url: URL) throws -> (totalSizeBytes: Int64, fileCount: Int, folderCount: Int) {
+    /// Source metadata stays intrinsic to the source; rounded bytes exist only in this assessment.
+    public func assessCapacity(source: URL, destination: URL) throws
+        -> (source: SourceStorageMetadata, destination: DestinationStorageMetadata, assessment: DestinationCapacityAssessment) {
+        try Task.checkCancellation()
+        let before = try destinationMetadata(for: destination)
+        let unit = DestinationCapacityAssessment.validatedAllocationUnit(
+            filesystemIdentity: before.filesystemIdentity, allocationUnit: before.allocationUnit)
+        let scan = try scanFolder(at: source, allocationUnit: unit)
+        try Task.checkCancellation()
+        // Refresh immediately before admission and reject a mount/profile change during enumeration.
+        let snapshot = try destinationMetadata(for: destination)
+        guard before.volumeIdentity == snapshot.volumeIdentity,
+              before.filesystemIdentity == snapshot.filesystemIdentity,
+              before.allocationUnit == snapshot.allocationUnit else {
+            throw TransferPreflightError.destinationCapacityChanged
+        }
+        let metadata = SourceStorageMetadata(folderName: source.lastPathComponent, fullPath: source.path,
+            totalSizeBytes: scan.totalSizeBytes, fileCount: scan.fileCount, folderCount: scan.folderCount)
+        let assessment = try DestinationCapacityAssessment.make(source: source, destination: destination,
+            logicalPayloadBytes: scan.totalSizeBytes, roundedPayloadBytes: scan.roundedBytes, snapshot: snapshot)
+        return (metadata, snapshot, assessment)
+    }
+
+    public func preparePreflight(source: URL, destination: URL) throws
+        -> (source: SourceStorageMetadata, destination: DestinationStorageMetadata, assessment: DestinationCapacityAssessment) {
+        var isDirectory: ObjCBool = false
+        guard fileManager.fileExists(atPath: source.path, isDirectory: &isDirectory),
+              isDirectory.boolValue, fileManager.isReadableFile(atPath: source.path) else {
+            throw TransferError.sourceUnavailable
+        }
+        try validateDestination(at: destination)
+        return try assessCapacity(source: source, destination: destination)
+    }
+
+    public func preflight(source: URL, destination: URL) throws -> (plan: TransferPreflightPlan, source: SourceStorageMetadata) {
+        let evidence = try preparePreflight(source: source, destination: destination)
+        let plan = try TransferPreflightValidator.validate(source: source, destination: destination,
+            sourceMetadata: evidence.source, destinationFreeSpaceBytes: evidence.assessment.availableSnapshotBytes,
+            capacityAssessment: evidence.assessment)
+        return (plan, evidence.source)
+    }
+
+    private func scanFolder(at url: URL, allocationUnit: Int64? = nil) throws -> (totalSizeBytes: Int64, fileCount: Int, folderCount: Int, roundedBytes: Int64?) {
+        try Task.checkCancellation()
         let keys: [URLResourceKey] = [.isDirectoryKey, .isRegularFileKey, .fileSizeKey]
+        var enumerationError: Error?
         guard let enumerator = fileManager.enumerator(
             at: url,
             includingPropertiesForKeys: keys,
             options: [],
-            errorHandler: nil
+            errorHandler: { _, error in enumerationError = error; return false }
         ) else {
             throw TransferError.sourceUnavailable
         }
 
         var totalSizeBytes: Int64 = 0
+        var roundedBytes: Int64 = 0
         var fileCount = 0
         var folderCount = 0
 
@@ -138,7 +208,9 @@ public actor DriveService {
             }
 
             if values.isDirectory == true {
-                folderCount += 1
+                let (count, overflow) = folderCount.addingReportingOverflow(1)
+                guard !overflow else { throw TransferPreflightError.capacityArithmeticOverflow }
+                folderCount = count
                 continue
             }
 
@@ -147,12 +219,19 @@ public actor DriveService {
             guard let logicalSize = values.fileSize, logicalSize >= 0 else {
                 throw TransferError.sourceUnavailable
             }
-            fileCount += 1
+            let (count, overflow) = fileCount.addingReportingOverflow(1)
+            guard !overflow else { throw TransferPreflightError.capacityArithmeticOverflow }
+            fileCount = count
             // Rsync without --sparse writes logical contents, regardless of source allocation.
-            totalSizeBytes += Int64(logicalSize)
+            totalSizeBytes = try CapacityArithmetic.add(totalSizeBytes, Int64(logicalSize))
+            if let allocationUnit {
+                roundedBytes = try CapacityArithmetic.add(roundedBytes, CapacityArithmetic.roundUp(Int64(logicalSize), unit: allocationUnit))
+            }
         }
 
-        return (totalSizeBytes, fileCount, folderCount)
+        if let enumerationError { throw enumerationError }
+        try Task.checkCancellation()
+        return (totalSizeBytes, fileCount, folderCount, allocationUnit == nil ? nil : roundedBytes)
     }
 }
 
@@ -163,9 +242,14 @@ nonisolated public struct TransferPreflightPlan: Equatable, Sendable {
     public let transferableBytes: Int64
     public let transferableFileCount: Int
     public let destinationFreeSpaceBytes: Int64
+    public let capacityAssessment: DestinationCapacityAssessment
+    public var admissionFloorBytes: Int64 { capacityAssessment.admissionFloorBytes }
 }
 
 nonisolated public enum TransferPreflightError: Error, Equatable, LocalizedError, Sendable {
+    case capacityArithmeticOverflow
+    case invalidCapacityEvidence
+    case destinationCapacityChanged
     case sameSourceAndDestination
     case destinationInsideSource
     case sourceInsideDestination
@@ -176,6 +260,12 @@ nonisolated public enum TransferPreflightError: Error, Equatable, LocalizedError
 
     public var errorDescription: String? {
         switch self {
+        case .capacityArithmeticOverflow:
+            return "Capacity preflight arithmetic overflow. Do not erase or reuse the source."
+        case .invalidCapacityEvidence:
+            return "Invalid capacity preflight evidence. Do not erase or reuse the source."
+        case .destinationCapacityChanged:
+            return "Destination capacity profile changed during preflight. Select the destination again; do not erase or reuse the source."
         case .sameSourceAndDestination:
             return "Source and destination cannot be the same folder. Choose a separate destination."
         case .destinationInsideSource:
@@ -189,7 +279,7 @@ nonisolated public enum TransferPreflightError: Error, Equatable, LocalizedError
         case .unableToDetermineDestinationFreeSpace:
             return "Unable to determine destination free space. FST cannot safely start without confirming available space."
         case .insufficientDestinationSpace(let required, let available):
-            return "Insufficient destination space. Required: \(Self.formatBytes(required)), Available: \(Self.formatBytes(available))."
+            return "Destination capacity is below the required preflight floor. Floor: \(Self.formatBytes(required)), Available: \(Self.formatBytes(available))."
         }
     }
 
@@ -243,6 +333,7 @@ nonisolated public enum TransferPreflightValidator {
         destination: URL,
         sourceMetadata: SourceStorageMetadata,
         destinationFreeSpaceBytes: Int64?,
+        capacityAssessment: DestinationCapacityAssessment? = nil,
         fileManager: FileManager = .default
     ) throws -> TransferPreflightPlan {
         let sourceURL = canonicalDirectoryURL(source)
@@ -273,9 +364,18 @@ nonisolated public enum TransferPreflightValidator {
             throw TransferPreflightError.unableToDetermineDestinationFreeSpace
         }
 
-        guard availableBytes >= sourceMetadata.totalSizeBytes else {
+        let assessment = try capacityAssessment ?? DestinationCapacityAssessment.make(
+            source: source, destination: destination, logicalPayloadBytes: sourceMetadata.totalSizeBytes,
+            roundedPayloadBytes: nil,
+            snapshot: DestinationStorageMetadata(freeSpaceBytes: availableBytes, filesystem: "Unknown", isWritable: true))
+        guard assessment.matches(source: source, destination: destination),
+              assessment.logicalPayloadBytes == sourceMetadata.totalSizeBytes,
+              assessment.availableSnapshotBytes == availableBytes else {
+            throw TransferPreflightError.invalidCapacityEvidence
+        }
+        guard assessment.passesCapacityPrecheck else {
             throw TransferPreflightError.insufficientDestinationSpace(
-                required: sourceMetadata.totalSizeBytes,
+                required: assessment.admissionFloorBytes,
                 available: availableBytes
             )
         }
@@ -286,7 +386,8 @@ nonisolated public enum TransferPreflightValidator {
             destinationJobFolderURL: jobFolderURL,
             transferableBytes: sourceMetadata.totalSizeBytes,
             transferableFileCount: sourceMetadata.fileCount,
-            destinationFreeSpaceBytes: availableBytes
+            destinationFreeSpaceBytes: availableBytes,
+            capacityAssessment: assessment
         )
     }
 

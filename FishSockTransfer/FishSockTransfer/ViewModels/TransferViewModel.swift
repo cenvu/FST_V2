@@ -165,8 +165,8 @@ public actor BookmarkAccessCoordinator {
 
 @MainActor
 public final class TransferViewModel: ObservableObject {
-    @Published public var sourceURL: URL?
-    @Published public var destinationURL: URL?
+    @Published public var sourceURL: URL? { didSet { invalidateCapacityPreview() } }
+    @Published public var destinationURL: URL? { didSet { invalidateCapacityPreview() } }
     /// Operator-facing MB/s; nil means Unlimited. Convert once when submitting to the Coordinator.
     @Published public var bandwidthLimit: Int? = nil
     @Published public var verificationMode: VerificationMode = .random33
@@ -180,6 +180,8 @@ public final class TransferViewModel: ObservableObject {
     @Published public var errorMessage: String? = nil
     @Published public var sourceMetadata: SourceStorageMetadata?
     @Published public var destinationMetadata: DestinationStorageMetadata?
+    @Published public var capacityAssessment: DestinationCapacityAssessment?
+    @Published public var capacityAssessmentError: String?
     @Published public var storageWarningMessage: String? = nil
     @Published public var reportStatusMessage: String? = nil
     @Published public var workflowPhaseTitle: String = ""
@@ -205,6 +207,7 @@ public final class TransferViewModel: ObservableObject {
     private let notificationCoordinator: NotificationCoordinator
     private let notificationSettingsStore: NotificationSettingsStore
     private var callbacksConfiguredTask: Task<Void, Never>?
+    private var capacityAssessmentTask: Task<Void, Never>?
     private var sourceMetadataTask: Task<Void, Never>?
     private var destinationMetadataTask: Task<Void, Never>?
     private var sourceRestoreTask: Task<Void, Never>?
@@ -723,12 +726,8 @@ public final class TransferViewModel: ObservableObject {
             return
         }
 
-        guard !hasInsufficientDestinationSpace else {
-            let message = insufficientDestinationSpaceMessage ?? "Insufficient destination space."
-            errorMessage = message
-            addLog(category: .warning, message: message)
-            return
-        }
+        // A UI capacity preview never admits or vetoes this request. The Coordinator
+        // refreshes destination evidence and applies the authoritative admission floor.
 
         let bandwidthLimitKiB: Int?
         do {
@@ -1025,7 +1024,7 @@ public final class TransferViewModel: ObservableObject {
             progressPercent: displayProgress,
             elapsedSeconds: elapsedSeconds,
             etaSeconds: eta > 0 ? eta : nil,
-            failureSummary: failureSummary
+            failureSummary: DestinationCapacityAssessment.notificationFailureSummary(failureSummary)
         )
     }
 
@@ -1189,8 +1188,7 @@ public final class TransferViewModel: ObservableObject {
     }
 
     public var hasInsufficientDestinationSpace: Bool {
-        guard let sourceMetadata, let destinationMetadata else { return false }
-        return sourceMetadata.totalSizeBytes > destinationMetadata.freeSpaceBytes
+        currentCapacityAssessment.map { !$0.passesCapacityPrecheck } ?? false
     }
 
     public var isTransferConfigurationLocked: Bool {
@@ -1264,10 +1262,10 @@ public final class TransferViewModel: ObservableObject {
     }
 
     private var insufficientDestinationSpaceMessage: String? {
-        guard let sourceMetadata, let destinationMetadata else { return nil }
+        guard let assessment = currentCapacityAssessment else { return nil }
         return TransferPreflightError.insufficientDestinationSpace(
-            required: sourceMetadata.totalSizeBytes,
-            available: destinationMetadata.freeSpaceBytes
+            required: assessment.admissionFloorBytes,
+            available: assessment.availableSnapshotBytes
         ).errorDescription
     }
 
@@ -1323,8 +1321,39 @@ public final class TransferViewModel: ObservableObject {
         }
     }
 
+    public var currentCapacityAssessment: DestinationCapacityAssessment? {
+        guard let sourceURL, let destinationURL, let capacityAssessment,
+              capacityAssessment.matches(source: sourceURL, destination: destinationURL) else { return nil }
+        return capacityAssessment
+    }
+
+    private func invalidateCapacityPreview() {
+        capacityAssessmentTask?.cancel()
+        capacityAssessment = nil
+        capacityAssessmentError = nil
+        storageWarningMessage = nil
+    }
+
     private func refreshStorageWarning() {
-        storageWarningMessage = hasInsufficientDestinationSpace ? insufficientDestinationSpaceMessage : nil
+        invalidateCapacityPreview()
+        guard let sourceURL, let destinationURL, sourceMetadata != nil, destinationMetadata != nil else { return }
+        capacityAssessmentTask = Task { [driveService, weak self] in
+            do {
+                let evidence = try await driveService.assessCapacity(source: sourceURL, destination: destinationURL)
+                try Task.checkCancellation()
+                guard let self, self.sourceURL == sourceURL, self.destinationURL == destinationURL else { return }
+                self.sourceMetadata = evidence.source
+                self.destinationMetadata = evidence.destination
+                self.capacityAssessment = evidence.assessment
+                self.storageWarningMessage = evidence.assessment.passesCapacityPrecheck
+                    ? nil : self.insufficientDestinationSpaceMessage
+            } catch is CancellationError {
+                return
+            } catch {
+                guard let self, self.sourceURL == sourceURL, self.destinationURL == destinationURL else { return }
+                self.capacityAssessmentError = error.localizedDescription
+            }
+        }
     }
 
     private func refreshBundledRsyncInfo() {
@@ -1355,6 +1384,7 @@ public final class TransferViewModel: ObservableObject {
 
     // Lets deterministic tests await the in-flight metadata tasks to prove a
     // stale completion can never repopulate a cleared folder selection.
+    internal var capacityAssessmentTaskForTesting: Task<Void, Never>? { capacityAssessmentTask }
     internal var sourceMetadataTaskForTesting: Task<Void, Never>? { sourceMetadataTask }
     internal var destinationMetadataTaskForTesting: Task<Void, Never>? { destinationMetadataTask }
 
