@@ -1,0 +1,82 @@
+{
+  "contentGeometryPoints": [
+    1120,
+    760
+  ],
+  "appearance": "darkAqua",
+  "method": "NSHostingView bitmapImageRepForCachingDisplay/cacheDisplay; native production SwiftUI; content region only",
+  "images": [
+    {
+      "file": "BEFORE_READY.png",
+      "pixels": [
+        2240,
+        1520
+      ],
+      "bytes": 248528,
+      "sha256": "4ce7188d4eae7ad04cf82a4e0d989a2fbaa066e194cc1f25678640f3eff5d3fb"
+    },
+    {
+      "file": "BEFORE_COPYING.png",
+      "pixels": [
+        2240,
+        1520
+      ],
+      "bytes": 262573,
+      "sha256": "b19a2c88876b9941c57cf13ab3cad8b70ec779182030904ba36bdf43638c37d9"
+    },
+    {
+      "file": "BEFORE_VERIFYING.png",
+      "pixels": [
+        2240,
+        1520
+      ],
+      "bytes": 262627,
+      "sha256": "6a34d2f2e196a69bb8a09fdf7457381df773707cdfd166836e2fbb2619e6fa83"
+    },
+    {
+      "file": "BEFORE_SAFE_TO_EJECT.png",
+      "pixels": [
+        2240,
+        1520
+      ],
+      "bytes": 254211,
+      "sha256": "fbf3037308e1882598500fcc2b5419e2f38f2d233520fb2a5360a8bca75c2c52"
+    },
+    {
+      "file": "AFTER_READY.png",
+      "pixels": [
+        2240,
+        1520
+      ],
+      "bytes": 297345,
+      "sha256": "818cde50b2801e4465a7c1ebb18b4a3023aa1338dcd4de11b6a4e6dcec2bed18"
+    },
+    {
+      "file": "AFTER_COPYING.png",
+      "pixels": [
+        2240,
+        1520
+      ],
+      "bytes": 325777,
+      "sha256": "0d7ab19f78090cf329a1adce336deb3ecc41877ab70f10e2e31fd10b24b403e7"
+    },
+    {
+      "file": "AFTER_VERIFYING.png",
+      "pixels": [
+        2240,
+        1520
+      ],
+      "bytes": 317069,
+      "sha256": "0baf3aa328f6c9ffe16768c0fa13cbe966428df03fb5dff89074c2e72b681e21"
+    },
+    {
+      "file": "AFTER_SAFE_TO_EJECT.png",
+      "pixels": [
+        2240,
+        1520
+      ],
+      "bytes": 308225,
+      "sha256": "248c12da3a3ce5dd87120cc24d1db6e51c78a8d485d1d7cd4d2919572233e4cd"
+    }
+  ]
+}

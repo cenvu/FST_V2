@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>FST — Hybrid Progressive</title>
+  <!-- Approved C final UI handoff: phase progress and phase-specific telemetry. See FINAL_UI_HANDOFF.md. -->
+  <style>
+/* OD-LAYOUT-PRIMITIVES v1 — structure only: display, flex/grid, overflow, wrapping, ratio.
+   Put this @layer first; product CSS outside the layer always wins. */
+@layer od-layout {
+  :where(.od-stack,.od-row,.od-row-top,.od-cluster,.od-grid,.od-field,.od-stat,.od-cell,.od-tile) > :where(*) { min-width: 0; }
+
+  /* containers */
+  .od-stack   { display: flex; flex-direction: column; gap: var(--od-gap, 8px); }
+  .od-row     { display: flex; align-items: center; gap: var(--od-gap, 8px); }
+  .od-row-top { display: flex; align-items: flex-start; gap: var(--od-gap, 8px); }
+  .od-cluster { display: flex; flex-wrap: wrap; align-items: center; gap: var(--od-gap, 8px); }
+  .od-fill    { flex: 1 1 0; min-width: 0; }
+  .od-fixed   { flex: none; }
+  .od-grid    { display: grid; gap: var(--od-gap, 12px); grid-template-columns: repeat(var(--od-cols, 3), minmax(0, 1fr)); }
+
+  /* stacked information: each piece is its own line — never sibling inline spans */
+  .od-stat, .od-field, .od-cell { display: grid; gap: var(--od-gap, 2px); }
+  :where(.od-stat,.od-field,.od-cell) > :where(*) { display: block; }
+  .od-tile { display: grid; grid-template-rows: auto 1fr; }
+  :where(.od-tile) > :where(*) { display: block; }
+
+  /* media keeps its intrinsic ratio by default; never a distorted or cropped
+     cover by accident. height:auto lets the ratio win over an <img height="…">
+     attribute. Cropping to a uniform box is an explicit opt-in: set --od-ratio
+     AND add .od-media-cover together (per the core rule, only where a crop is
+     deliberate — tile thumbs, decorative fills — never on full-frame content). */
+  .od-media { display: block; width: 100%; height: auto; aspect-ratio: var(--od-ratio, auto); }
+  .od-media-cover { object-fit: cover; }
+
+  /* data text only — authored copy is rewritten to its budget instead */
+  .od-truncate { display: block; max-width: 100%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  .od-clamp-2, .od-clamp-3 { display: -webkit-box; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
+  .od-clamp-2 { -webkit-line-clamp: 2; }
+  .od-clamp-3 { -webkit-line-clamp: 3; }
+  .od-lines-2 { min-height: calc(2 * 1.4em); }   /* block-level reservation for a shared baseline */
+  .od-nowrap  { white-space: nowrap; }           /* 数字+单位 · 价格+起 · 日期+星期 */
+  .od-keep    { word-break: keep-all; overflow-wrap: anywhere; } /* CJK labels break at spaces / <wbr> first */
+
+  /* screen skeleton (optional): bars take their own space, the middle scrolls — no padding guessed for chrome */
+  .od-screen { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; height: 100%; }
+  .od-scroll { overflow-y: auto; overscroll-behavior: contain; min-height: 0; }
+
+  /* horizontal rail: the next item peeks at the edge; trailing room survives overflow */
+  .od-rail { display: flex; gap: var(--od-gap, 8px); overflow-x: auto; scroll-snap-type: x proximity; scrollbar-width: none;
+             padding-inline: var(--od-rail-pad, 16px); scroll-padding-inline: var(--od-rail-pad, 16px); }
+  .od-rail::-webkit-scrollbar { display: none; }
+  :where(.od-rail) > :where(*) { flex: none; scroll-snap-align: start; }
+  :where(.od-rail) > :where(:last-child) { margin-inline-end: var(--od-rail-pad, 16px); }
+
+  .od-spacer { flex: none; visibility: hidden; pointer-events: none; }
+  .od-touch  { min-width: 44px; min-height: 44px; }
+}
+/* /OD-LAYOUT-PRIMITIVES v1 */
+
+  </style>
+  <link rel="stylesheet" href="assets/fst-c.css">
+  <script src="assets/fst-c.js" defer></script>
+</head>
+<body data-direction="hybrid">
+  <div class="app-window od-screen" aria-label="FishSock Transfer application">
+    <header class="app-header">
+      <div class="titlebar">
+        <div class="window-lights" aria-hidden="true"><i></i><i></i><i></i></div>
+        <span class="titlebar-title">FishSock Transfer</span>
+        <div class="titlebar-end tools-signature">CenVu D.I.T Tools</div>
+      </div>
+      <div class="toolbar">
+        <div class="brand">
+          <span class="wordmark">FST</span>
+          <span class="brand-rule" aria-hidden="true"></span>
+          <!-- Local logos: existing FST assets; LinkedIn by Font Awesome, CC BY 4.0 (attribution retained in SVG). -->
+          <nav class="social-links od-cluster" aria-label="CenVu social links">
+            <a class="social-link social-facebook" href="https://fb.com/cenvu" target="_blank" rel="noopener noreferrer" aria-label="Open CenVu Facebook in a new tab" title="CenVu · Facebook">
+              <span class="social-glyph" aria-hidden="true"><span class="social-glow"></span></span>
+            </a>
+            <a class="social-link social-instagram" href="https://www.instagram.com/cenvu/" target="_blank" rel="noopener noreferrer" aria-label="Open CenVu Instagram in a new tab" title="CenVu · Instagram">
+              <span class="social-glyph" aria-hidden="true"><span class="social-glow"></span></span>
+            </a>
+            <a class="social-link social-linkedin" href="https://www.linkedin.com/in/h%C3%B9ng-v%C5%A9-10b99a74/" target="_blank" rel="noopener noreferrer" aria-label="Open CenVu LinkedIn in a new tab" title="CenVu · LinkedIn">
+              <span class="social-glyph" aria-hidden="true"><span class="social-glow"></span></span>
+            </a>
+            <a class="social-link social-whatsapp" href="https://wa.me/84842841222" target="_blank" rel="noopener noreferrer" aria-label="Message CenVu on WhatsApp in a new tab" title="CenVu · WhatsApp">
+              <span class="social-glyph" aria-hidden="true"><span class="social-glow"></span></span>
+            </a>
+            <a class="social-link social-telegram" href="https://t.me/+84842841222" target="_blank" rel="noopener noreferrer" aria-label="Message CenVu on Telegram in a new tab" title="CenVu · Telegram">
+              <span class="social-glyph" aria-hidden="true"><span class="social-glow"></span></span>
+            </a>
+          </nav>
+        </div>
+        <nav class="tabs" role="tablist" aria-label="FST sections">
+          <button type="button" class="tab" id="tab-transfer" role="tab" data-tab="transfer" aria-selected="true" aria-controls="content">TRANSFER</button>
+          <button type="button" class="tab" id="tab-notification" role="tab" data-tab="notification" aria-selected="false" aria-controls="content" tabindex="-1">NOTIFICATION</button>
+          <button type="button" class="tab" id="tab-logs" role="tab" data-tab="logs" aria-selected="false" aria-controls="content" tabindex="-1">TECHNICAL LOG <span class="log-count" id="log-count">0</span></button>
+        </nav>
+      </div>
+    </header>
+    <main class="od-scroll" id="content" aria-label="FST workspace">
+      <section class="tab-surface">
+        <h1>Media offload</h1>
+        <p>Source → Destination → Copy → Verify → Final result</p>
+        <noscript><p>Enable JavaScript to use this editable visual prototype. It uses local sample data and performs no transfer.</p></noscript>
+      </section>
+    </main>
+    <footer class="app-footer">
+      <div class="footer-left"><span class="footer-state" id="footer-state">Ready</span><span id="footer-phase">No job started</span></div>
+      <div class="footer-right"><span>Source protection · Read-only</span><span class="footer-rsync mono" id="footer-rsync" role="status" hidden></span></div>
+    </footer>
+  </div>
+  <dialog id="dialog" aria-label="FST action dialog"></dialog>
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+  <div class="sr-only" id="announcer" role="status" aria-live="polite" aria-atomic="true"></div>
+</body>
+</html>

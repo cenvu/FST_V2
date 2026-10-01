@@ -5,14 +5,14 @@
 HMD_SCHEMA=HANDOFF_MARKDOWN
 HMD_VERSION=1
 WORKSTREAM_ID=OPENDESIGN_LIVE_TRANSFER_P1
-HANDOFF_ID=20261002-014609_codex4-exec_opendesign-live-transfer-convergence-phase-1
-HANDOFF_TYPE=CORRECTION
+HANDOFF_ID=20261002-014318_codex4-exec_opendesign-live-transfer-convergence-phase-1
+HANDOFF_TYPE=NORMAL
 REPO=cenvu/FST_V2
 BRANCH=main
 REPO_HEAD=0c230033eaa413629459c1495c84e26d94bdf1c2
 REMOTE_HEAD=0c230033eaa413629459c1495c84e26d94bdf1c2
 HANDOFF_AT_HEAD=NO
-LAST_VERIFIED_AT=2026-10-02T01:45:37+07:00
+LAST_VERIFIED_AT=2026-10-02T01:41:32+07:00
 AUTH=REPO_GITHUB_CANONICAL
 STATE=WORKER_REPORT_COMPLETE
 GATE=WORKER_RETURN_READY
@@ -46,13 +46,11 @@ ACCEPTED_STATE=UNSET
 
 ## RAW_REFS
 
-RAW_REF=PATH=handoffs/evidence/opendesign-live-transfer-p1/LIVE_SOURCE_MAP.md;BYTES=4988;SHA256=7dbd96b144bf487ad267c8658c8c9fd247f7533211e4af536335b25da38bb102
+RAW_REF=PATH=handoffs/evidence/opendesign-live-transfer-p1/LIVE_SOURCE_MAP.md;BYTES=4765;SHA256=ffa50ba4e4bde6ac96a4440fcf54d31d15f8b2543b39d00a02abc0aeb422936d
 RAW_REF=PATH=handoffs/evidence/opendesign-live-transfer-p1/VISUAL_GAP_REPORT.md;BYTES=13376;SHA256=d127460161764d48c0d86ee988307fcfb5216f42efa295c52a0c73c4a53ba6f9
 RAW_REF=PATH=handoffs/evidence/opendesign-live-transfer-p1/VERIFICATION.md;BYTES=6138;SHA256=cc5ad8bcb458fe74a4b4e195345a5ad1b5198dd781390af7ba90fd0b075e9842
 
 ## REPORT
-
-CORRECTION_REASON=Initial LIVE_SOURCE_MAP HTML and early CSS line offsets were inaccurate; file/selector mappings and implementation evidence were correct. Coordinates now verified directly against exact MCP snapshots. Prior map bytes retained in handoffs/evidence/opendesign-live-transfer-p1/LIVE_SOURCE_MAP_INITIAL.md with the original published hash. Initial immutable handoff retained; its original source-map digest resolves to this preserved initial artifact. Current RAW source-map reference uses corrected bytes. No production change or test-result change.
 
 ROLE=IMPLEMENTER;TASK_ID=OPENDESIGN_LIVE_TRANSFER_CONVERGENCE_PHASE_1
 PREFLIGHT=FETCH_PASS;MAIN;HEAD_EQUALS_ORIGIN_MAIN_EQUALS_START_HEAD;CLEAN_AT_START

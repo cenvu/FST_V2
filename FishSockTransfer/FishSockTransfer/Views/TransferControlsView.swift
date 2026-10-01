@@ -20,7 +20,7 @@ public struct TransferControlsView: View {
     }
     
     public var body: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: 8) {
             settingsPanel
 
             switch viewModel.transferState {
@@ -29,6 +29,8 @@ public struct TransferControlsView: View {
             case .copyComplete, .safeToFormat, .error, .cancelled:
                 terminalControlBar
             }
+
+            progressPanel
 
             if let storageWarningMessage = viewModel.storageWarningMessage {
                 HStack(spacing: 8) {
@@ -68,9 +70,6 @@ public struct TransferControlsView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
 
-            if shouldShowProgressDetails {
-                progressPanel
-            }
         }
         .confirmationDialog("Cancel Transfer?", isPresented: $isShowingCancelConfirmation, titleVisibility: .visible) {
             Button("Cancel Transfer", role: .destructive) {
@@ -91,103 +90,116 @@ public struct TransferControlsView: View {
 
     private var progressPanel: some View {
         VStack(alignment: .leading, spacing: 12) {
-            if let titles = TransferRuntimeMetricPresentation.heroTitles(for: viewModel.transferState) {
-                heroMetricsRow(titles: titles)
-
-                ProgressView(value: displayProgress, total: 100)
-                    .progressViewStyle(.linear)
+            HStack {
+                Text("Job Status").font(.system(size: 14, weight: .semibold))
+                Spacer()
+                Text(TransferControlsActionPresentation.stateTitle(
+                    for: viewModel.transferState,
+                    canStartTransfer: viewModel.canStartTransfer,
+                    errorMessage: viewModel.errorMessage
+                ))
+                .font(.caption)
+                .foregroundStyle(TransferControlsActionPresentation.stateColor(
+                    for: viewModel.transferState, errorMessage: viewModel.errorMessage
+                ))
             }
 
-            if shouldShowProgressDetails {
-                if !viewModel.workflowPhaseTitle.isEmpty {
-                    HStack(spacing: 8) {
-                        Image(systemName: "magnifyingglass")
-                        Text(viewModel.workflowPhaseTitle)
-                            .fontWeight(.semibold)
-                        Text(viewModel.workflowPhaseMessage)
-                        Spacer(minLength: 0)
-                        Text("Elapsed: \(formatElapsed(viewModel.workflowElapsedSeconds))")
-                            .font(.system(.footnote, design: .monospaced))
-                    }
-                    .font(.system(.footnote, design: .rounded))
-                    .foregroundColor(.secondary)
-                }
+            HStack(alignment: .top, spacing: 16) {
+                heroMetric(title: jobHeroTitles.progress,
+                           value: jobDisplayProgress.map { "\(Int($0.rounded()))%" } ?? "—")
+                heroMetric(title: jobHeroTitles.eta, value: phaseETA)
+                heroMetric(title: jobHeroTitles.third, value: phaseThirdMetric)
+            }
 
-                VStack(spacing: 12) {
-                    if viewModel.transferState == .copying {
-                        copyRuntimeMetrics
-                    } else if viewModel.transferState == .verifying {
-                        verifyRuntimeMetrics
-                    }
+            ProgressView(value: jobDisplayProgress ?? 0, total: 100)
+                .progressViewStyle(FSTThinProgressStyle(tint:
+                    TransferControlsActionPresentation.stateColor(for: viewModel.transferState, errorMessage: viewModel.errorMessage)
+                ))
+                .accessibilityLabel(jobHeroTitles.progress)
+                .accessibilityValue(jobDisplayProgress.map { "\(Int($0.rounded())) percent" } ?? "Unavailable")
+
+            HStack(spacing: 12) {
+                Text(TransferControlsActionPresentation.stateSubtitle(
+                    for: viewModel.transferState,
+                    canStartTransfer: viewModel.canStartTransfer,
+                    workflowPhaseTitle: viewModel.workflowPhaseTitle,
+                    workflowPhaseMessage: viewModel.workflowPhaseMessage,
+                    errorMessage: viewModel.errorMessage
+                ))
+                if shouldShowProgressDetails && !viewModel.workflowPhaseTitle.isEmpty {
+                    Spacer(minLength: 0)
+                    Text("Elapsed: \(formatElapsed(viewModel.workflowElapsedSeconds))")
+                        .monospacedDigit()
                 }
+            }
+            .font(.caption)
+            .foregroundStyle(FSTPalette.muted)
+
+            Divider().overlay(FSTPalette.line)
+            HStack(alignment: .top, spacing: 16) {
+                runtimeMetric(title: "AVERAGE COPY SPEED", value: TransferRuntimeMetricPresentation.averageCopySpeedValue(snapshot: viewModel.copyRuntimeSnapshot))
+                runtimeMetric(title: "COPY ELAPSED", value: viewModel.copyRuntimeSnapshot == nil ? "—" : formatElapsed(copyElapsedSeconds))
+                runtimeMetric(title: "COPIED", value: copiedBytesValue)
+                runtimeMetric(title: "FILES", value: copiedFilesValue)
+            }
+            Divider().overlay(FSTPalette.line)
+            HStack(alignment: .firstTextBaseline, spacing: 12) {
+                Text(runtimeFileMetricTitle).font(.caption).foregroundStyle(FSTPalette.muted)
+                Text(displayCurrentFile)
+                    .font(.system(.footnote, design: .monospaced))
+                    .foregroundStyle(FSTPalette.muted)
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+                    .help(viewModel.currentFile.isEmpty ? displayCurrentFile : viewModel.currentFile)
+                    .textSelection(.enabled)
             }
         }
-        .standardPanel()
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
-    private func heroMetricsRow(titles: TransferRuntimeMetricPresentation.HeroTitles) -> some View {
-        HStack(alignment: .bottom, spacing: 12) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(titles.progress)
-                    .font(.caption2)
-                    .foregroundColor(.secondary)
-                    .bold()
-                Text("\(Int(displayProgress.rounded()))%")
-                    .font(.system(.title3, design: .monospaced, weight: .semibold))
-                    .foregroundColor(viewModel.transferState == .verifying ? .orange : (viewModel.transferState == .copying ? .blue : viewModel.transferState.statusColor))
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
+    private var jobHeroTitles: TransferRuntimeMetricPresentation.HeroTitles {
+        TransferJobStatusPresentation.heroTitles(for: viewModel.transferState)
+    }
 
-            VStack(alignment: .leading, spacing: 4) {
-                Text(titles.eta)
-                    .font(.caption2)
-                    .foregroundColor(.secondary)
-                    .bold()
-                Text(viewModel.transferState == .verifying ? verifyEtaValue : copyEtaValue)
-                    .font(.system(.title3, design: .monospaced, weight: .semibold))
-                    .foregroundColor(.primary)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.8)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
+    private var jobDisplayProgress: Double? {
+        TransferJobStatusPresentation.percentage(for: viewModel.transferState, observedProgress: viewModel.progress)
+    }
 
-            VStack(alignment: .leading, spacing: 4) {
-                if viewModel.transferState == .verifying {
-                    Text(titles.third)
-                        .font(.caption2)
-                        .foregroundColor(.secondary)
-                        .bold()
-                    Text(formatElapsed(viewModel.verifyElapsedSeconds))
-                        .font(.system(.title3, design: .monospaced, weight: .semibold))
-                        .foregroundColor(.primary)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.8)
-                } else {
-                    Text(titles.third)
-                        .font(.caption2)
-                        .foregroundColor(.secondary)
-                        .bold()
-                    Text(currentSpeedValue)
-                        .font(.system(.title3, design: .monospaced, weight: .semibold))
-                        .foregroundColor(.primary)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.8)
-                }
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
+    private var phaseETA: String {
+        switch viewModel.transferState {
+        case .copying: return copyEtaValue
+        case .verifying: return verifyEtaValue
+        default: return "—"
         }
+    }
+
+    private var phaseThirdMetric: String {
+        switch viewModel.transferState {
+        case .copying: return currentSpeedValue
+        case .verifying: return formatElapsed(viewModel.verifyElapsedSeconds)
+        default: return "—"
+        }
+    }
+
+    private func heroMetric(title: String, value: String) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(title).font(.system(size: 12)).foregroundStyle(FSTPalette.muted)
+            Text(value)
+                .font(.system(size: 28, weight: .semibold))
+                .monospacedDigit()
+                .lineLimit(1)
+                .minimumScaleFactor(0.65)
+                .help(value)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private var settingsPanel: some View {
         HStack(alignment: .top, spacing: 14) {
-            Text("Transfer Settings")
-                .font(.headline)
-                .foregroundColor(.primary)
-                .padding(.top, 2)
-                .frame(maxWidth: .infinity, alignment: .leading)
-
             VStack(alignment: .leading, spacing: 4) {
-                Text("Bandwidth Limit")
+                Text("Bandwidth")
                     .font(.caption)
                     .foregroundColor(.secondary)
                     .fontWeight(.semibold)
@@ -204,14 +216,13 @@ public struct TransferControlsView: View {
                 Text("Copy speed cap")
                     .font(.caption)
                     .foregroundColor(.secondary)
-                    .opacity(0.6)
                     .lineLimit(1)
                     .truncationMode(.tail)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
 
             VStack(alignment: .leading, spacing: 4) {
-                Text("Verification Mode")
+                Text("Verification")
                     .font(.caption)
                     .foregroundColor(.secondary)
                     .fontWeight(.semibold)
@@ -229,16 +240,15 @@ public struct TransferControlsView: View {
                     .help(viewModel.verificationMode.operatorDescription)
                     .font(.system(.footnote, design: .rounded))
                     .foregroundColor(.secondary)
-                    .opacity(0.6)
                     .lineLimit(1)
                     .truncationMode(.tail)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .disabled(viewModel.isTransferConfigurationLocked)
-        .opacity(viewModel.isTransferConfigurationLocked ? 0.70 : 1)
-        .standardPanel()
-        .frame(minHeight: 72)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 10)
+        .overlay(alignment: .bottom) { Divider().overlay(FSTPalette.line) }
     }
 
     private var activeControlBar: some View {
@@ -291,7 +301,7 @@ public struct TransferControlsView: View {
                 .accessibilityLabel(accessibilityActionLabel)
             }
         }
-        .standardPanel()
+        .operationalPanel()
     }
 
     private var terminalControlBar: some View {
@@ -347,7 +357,7 @@ public struct TransferControlsView: View {
                 }
             }
         }
-        .standardPanel(strokeColor: stateColor.opacity(0.25))
+        .operationalPanel(tint: stateColor)
     }
 
     // The same callback supplied by ContentView is used directly by the native Button.
@@ -370,17 +380,6 @@ public struct TransferControlsView: View {
         )
     }
 
-    private var displayProgress: Double {
-        let rawProgress: Double
-        if viewModel.transferState == .verifying {
-            rawProgress = viewModel.progress <= 1 ? viewModel.progress * 100 : viewModel.progress
-        } else {
-            rawProgress = viewModel.progress
-        }
-
-        return min(max(rawProgress, 0), 100)
-    }
-
     private var displayCurrentFile: String {
         TransferRuntimeMetricPresentation.currentFileValue(
             currentFile: viewModel.currentFile,
@@ -393,31 +392,6 @@ public struct TransferControlsView: View {
             currentFile: viewModel.currentFile,
             state: viewModel.transferState
         )
-    }
-
-    private var copyRuntimeMetrics: some View {
-        Grid(horizontalSpacing: 12, verticalSpacing: 12) {
-            GridRow {
-                runtimeMetric(title: "COPY ELAPSED", value: formatElapsed(copyElapsedSeconds))
-                if let title = TransferRuntimeMetricPresentation.averageCopySpeedTitle(for: viewModel.transferState) {
-                    runtimeMetric(
-                        title: title,
-                        value: TransferRuntimeMetricPresentation.averageCopySpeedValue(snapshot: viewModel.copyRuntimeSnapshot)
-                    )
-                }
-                runtimeMetric(title: "COPIED", value: copiedBytesValue)
-                runtimeMetric(title: "FILES", value: copiedFilesValue)
-            }
-
-            GridRow {
-                runtimeMetric(title: runtimeFileMetricTitle, value: displayCurrentFile)
-                    .gridCellColumns(4)
-            }
-        }
-    }
-
-    private var verifyRuntimeMetrics: some View {
-        runtimeMetric(title: runtimeFileMetricTitle, value: displayCurrentFile)
     }
 
     private var verifyEtaValue: String {
@@ -433,7 +407,7 @@ public struct TransferControlsView: View {
     private func runtimeMetric(title: String, value: String) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(title)
-                .font(.caption2)
+                .font(.system(size: 12))
                 .foregroundColor(.secondary)
                 .bold()
             Text(value)
@@ -443,10 +417,7 @@ public struct TransferControlsView: View {
                 .truncationMode(.middle)
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .padding(10)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color(NSColor.controlBackgroundColor).opacity(0.34))
-        .cornerRadius(7)
     }
 
     private func formatSpeed(_ speed: Double) -> String {
@@ -551,6 +522,33 @@ public extension VerificationMode {
     }
 }
 
+/// Formatting only. Terminal success comes exclusively from canonical state.
+nonisolated public enum TransferJobStatusPresentation {
+    public static func heroTitles(for state: TransferState) -> TransferRuntimeMetricPresentation.HeroTitles {
+        if let active = TransferRuntimeMetricPresentation.heroTitles(for: state) { return active }
+        switch state {
+        case .safeToFormat:
+            return .init(progress: "VERIFY PROGRESS", eta: "VERIFY ETA", third: "VERIFY ELAPSED")
+        case .error, .cancelled:
+            return .init(progress: "PHASE PROGRESS", eta: "PHASE ETA", third: "CURRENT SPEED")
+        default:
+            return .init(progress: "COPY PROGRESS", eta: "COPY ETA", third: "CURRENT COPY SPEED")
+        }
+    }
+
+    public static func percentage(for state: TransferState, observedProgress: Double) -> Double? {
+        switch state {
+        case .ready, .validating: return 0
+        case .copyComplete, .safeToFormat: return 100
+        case .error, .cancelled: return nil // Backend does not expose the stopped phase here.
+        case .copying, .verifying:
+            guard observedProgress.isFinite else { return nil }
+            let percent = state == .verifying && observedProgress <= 1 ? observedProgress * 100 : observedProgress
+            return min(max(percent, 0), 100)
+        }
+    }
+}
+
 nonisolated public enum TransferControlsVisualRole: Equatable, Sendable {
     case idle
     case preparing
@@ -623,9 +621,9 @@ nonisolated public enum TransferControlsActionPresentation {
         case .idle:
             return .secondary
         case .preparing, .transferring:
-            return .blue
+            return FSTPalette.active
         case .verifying:
-            return .orange
+            return FSTPalette.warning
         case .copyOnlyComplete, .safeToFormat, .manualCheckRequired, .error, .cancelled:
             return buttonColor(for: state, errorMessage: errorMessage)
         }
@@ -763,15 +761,15 @@ nonisolated public enum TransferControlsActionPresentation {
     public static func buttonColor(for state: TransferState, errorMessage: String? = nil) -> Color {
         switch visualRole(for: state, errorMessage: errorMessage) {
         case .preparing, .transferring, .verifying:
-            return .orange
+            return FSTPalette.warning
         case .copyOnlyComplete, .idle:
-            return .blue
+            return FSTPalette.active
         case .safeToFormat:
-            return .green
+            return FSTPalette.verified
         case .manualCheckRequired:
-            return .orange
+            return FSTPalette.warning
         case .error:
-            return .red
+            return FSTPalette.error
         case .cancelled:
             return .gray
         }

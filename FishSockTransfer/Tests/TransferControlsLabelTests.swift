@@ -2,6 +2,13 @@
 
 import Foundation
 
+// Presentation checks must never consult operator Keychain credentials.
+nonisolated private final class PresentationEmptyTokenStore: TelegramTokenStore {
+    func loadToken() throws -> String { "" }
+    func saveToken(_ token: String) throws {}
+    func deleteToken() throws {}
+}
+
 private func assertEqual<T: Equatable>(_ actual: T, _ expected: T, _ message: String) {
     guard actual == expected else {
         fatalError("\(message): expected \(expected), got \(actual)")
@@ -34,6 +41,16 @@ private func assertNil<T>(_ value: T?, _ message: String) {
 
 @main
 struct TransferControlsLabelTests {
+    @MainActor
+    private static func makeViewModel() -> TransferViewModel {
+        TransferViewModel(
+            bundledRsyncService: BundledRsyncService(bundledExecutableURL: nil),
+            notificationSettingsStore: NotificationSettingsStore(
+                userDefaults: UserDefaults(suiteName: "FSTPresentationTests-\(UUID())")!,
+                tokenStore: PresentationEmptyTokenStore()
+            )
+        )
+    }
     static func main() async throws {
         try await MainActor.run {
             try testBandwidthPickerUsesMegabytesPerSecond()
@@ -46,6 +63,7 @@ struct TransferControlsLabelTests {
         testActiveStateAndActionSeparation()
         testTerminalStateAndActionSeparation()
         testPhaseMetricContract()
+        testJobStatusConvergencePresentation()
         testDistinctCopySpeedValues()
         testCinemaDNGSuppression()
         try await MainActor.run {
@@ -56,9 +74,23 @@ struct TransferControlsLabelTests {
         print("TransferControlsLabelTests passed")
     }
 
+    private static func testJobStatusConvergencePresentation() {
+        assertEqual(TransferJobStatusPresentation.percentage(for: .copying, observedProgress: 45), 45, "Copy uses logical phase percent")
+        assertEqual(TransferJobStatusPresentation.percentage(for: .verifying, observedProgress: 0.62), 62, "Verify fraction formats as phase percent")
+        assertEqual(TransferJobStatusPresentation.percentage(for: .verifying, observedProgress: 62), 62, "Verify percentage remains supported")
+        assertEqual(TransferJobStatusPresentation.percentage(for: .safeToFormat, observedProgress: 1), 100, "Canonical verified terminal result")
+        assertEqual(TransferJobStatusPresentation.percentage(for: .copyComplete, observedProgress: 100), 100, "Canonical copy-only terminal result")
+        assertNil(TransferJobStatusPresentation.percentage(for: .error, observedProgress: 100), "Error never displays successful phase percent without stopped-phase evidence")
+        assertNil(TransferJobStatusPresentation.percentage(for: .cancelled, observedProgress: 100), "Cancellation never displays successful phase percent")
+        assertNil(TransferJobStatusPresentation.percentage(for: .copying, observedProgress: .nan), "Unknown telemetry stays unknown")
+        assertEqual(TransferJobStatusPresentation.heroTitles(for: .verifying).third, "VERIFY ELAPSED", "No fabricated verification throughput")
+        assertEqual(TransferControlsActionPresentation.stateTitle(for: .copyComplete), "TRANSFER COMPLETE", "NONE stays copy-only")
+        assertEqual(TransferControlsActionPresentation.stateTitle(for: .safeToFormat), "SAFE TO EJECT", "Only canonical verified state authorizes eject wording")
+    }
+
     @MainActor
     private static func testBandwidthPickerUsesMegabytesPerSecond() throws {
-        let viewModel = TransferViewModel(bundledRsyncService: BundledRsyncService(bundledExecutableURL: nil))
+        let viewModel = makeViewModel()
         viewModel.sourceURL = URL(fileURLWithPath: "/test/source")
         viewModel.destinationURL = URL(fileURLWithPath: "/test/destination")
         viewModel.bundledRsyncInfo = BundledRsyncInfo(
@@ -507,7 +539,7 @@ struct TransferControlsLabelTests {
 
     @MainActor
     private static func testTechnicalLogCallback() {
-        let viewModel = TransferViewModel(bundledRsyncService: BundledRsyncService(bundledExecutableURL: nil))
+        let viewModel = makeViewModel()
         var navigations = 0
         let view = TransferControlsView(viewModel: viewModel, onOpenTechnicalLog: { navigations += 1 })
         for error in ["MANUAL CHECK REQUIRED: File mismatch.", "Transfer process exited with error code 23."] {
@@ -539,7 +571,7 @@ struct TransferControlsLabelTests {
         let alternateSourceURL = try folder(named: "ALT_SOURCE", in: temporaryRoot)
         let alternateDestinationURL = try folder(named: "ALT_DESTINATION", in: temporaryRoot)
 
-        let viewModel = TransferViewModel()
+        let viewModel = makeViewModel()
         viewModel.bundledRsyncInfo = BundledRsyncInfo(
             executableURL: URL(fileURLWithPath: "/tmp/fst-test-rsync"),
             version: "3.4.4",
@@ -624,10 +656,14 @@ struct TransferControlsLabelTests {
             filesystem: "TestFS",
             isWritable: true
         )
+        viewModel.capacityAssessment = try DestinationCapacityAssessment.make(
+            source: sourceURL, destination: destinationURL, logicalPayloadBytes: 2048,
+            roundedPayloadBytes: nil, snapshot: viewModel.destinationMetadata!
+        )
         assertFalse(viewModel.canStartTransfer, "insufficient space must disable start")
         assertEqual(
             viewModel.startBlockedReason,
-            "Insufficient destination space. Required: 2 KB (2,048 bytes), Available: 1 KB (1,024 bytes).",
+            "Destination capacity is below the required preflight floor. Floor: 2 KB (2,048 bytes), Available: 1 KB (1,024 bytes).",
             "insufficient space should use human-readable units"
         )
     }

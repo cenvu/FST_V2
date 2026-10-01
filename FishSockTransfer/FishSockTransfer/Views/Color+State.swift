@@ -37,17 +37,17 @@ public extension TransferState {
         case .idle:
             return .gray
         case .copying:
-            return .blue
+            return FSTPalette.active
         case .verifying:
-            return .orange
+            return FSTPalette.warning
         case .copyOnlyComplete:
-            return .blue
+            return FSTPalette.active
         case .safeToFormat:
-            return .green
+            return FSTPalette.verified
         case .error:
-            return .red
+            return FSTPalette.error
         case .cancelled:
-            return .yellow
+            return FSTPalette.warning
         }
     }
 }

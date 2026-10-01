@@ -11,18 +11,11 @@ public struct StorageAnalysisView: View {
     
     public var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            HStack(spacing: 8) {
-                Image(systemName: "externaldrive")
-                    .foregroundStyle(.secondary)
-                Text("CAPACITY PRECHECK")
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(.secondary)
-            }
-
             readinessContent
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .standardPanel()
+        .padding(.horizontal, 16)
+        .padding(.vertical, 10)
     }
 
     @ViewBuilder
@@ -88,12 +81,13 @@ public struct StorageAnalysisView: View {
                         .fixedSize(horizontal: false, vertical: true)
                 }
 
-                valueRow("Payload", value: formatBytes(assessment.logicalPayloadBytes))
-                valueRow("Admission Floor", value: formatBytes(assessment.admissionFloorBytes))
-                valueRow("Available", value: formatBytes(assessment.availableSnapshotBytes))
-
-                if let margin = assessment.marginAboveFloorBytes {
-                    valueRow("Margin Above Floor", value: formatBytes(margin))
+                HStack(alignment: .top, spacing: 16) {
+                    valueRow("Payload", value: formatBytes(assessment.logicalPayloadBytes))
+                    valueRow("Admission Floor", value: formatBytes(assessment.admissionFloorBytes))
+                    valueRow("Available", value: formatBytes(assessment.availableSnapshotBytes))
+                    if let margin = assessment.marginAboveFloorBytes {
+                        valueRow("Margin Above Floor", value: formatBytes(margin))
+                    }
                 }
             }
         }
@@ -130,10 +124,9 @@ public struct StorageAnalysisView: View {
     }
 
     private func valueRow(_ title: String, value: String) -> some View {
-        HStack(spacing: 12) {
+        VStack(alignment: .leading, spacing: 2) {
             Text(title)
                 .foregroundStyle(.secondary)
-            Spacer(minLength: 8)
             Text(value)
                 .font(.system(.footnote, design: .monospaced))
                 .foregroundStyle(.primary)

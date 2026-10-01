@@ -27,8 +27,8 @@ public struct ContentView: View {
         VStack(spacing: 0) {
             headerBar
                 .padding(.horizontal, 16)
-                .padding(.top, 12)
-                .padding(.bottom, 12)
+                .padding(.vertical, 10)
+            Divider().overlay(FSTPalette.line)
 
             Group {
                 if selectedTab == .transfer {
@@ -41,6 +41,8 @@ public struct ContentView: View {
             }
             .frame(maxWidth: .infinity, alignment: .top)
             .frame(maxHeight: .infinity, alignment: .top)
+
+            operationalFooter
         }
         .frame(
             minWidth: 900,
@@ -50,33 +52,43 @@ public struct ContentView: View {
             idealHeight: 760,
             alignment: .top
         )
-        .background(Color(NSColor.windowBackgroundColor))
+        .foregroundStyle(FSTPalette.text)
+        .background(FSTPalette.background)
     }
 
     private var headerBar: some View {
-        let headerFont = Font.system(.caption, weight: .semibold)
-        
-        return ZStack {
-            HStack(spacing: 0) {
-                Text("CenVu D.I.T Tools")
-                    .font(headerFont)
-                    .foregroundColor(.secondary)
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 4)
-                    .background(Color.secondary.opacity(0.12))
-                    .clipShape(Capsule())
-
-                Spacer(minLength: 16)
-
-                HeaderSocialLinksView()
-            }
-            .frame(maxWidth: .infinity)
-
+        HStack(spacing: 16) {
+            Text("FST")
+                .font(.system(size: 22, weight: .heavy))
+                .tracking(-0.8)
+            Divider().frame(height: 24).overlay(FSTPalette.line)
+            HeaderSocialLinksView()
+            Spacer(minLength: 12)
             tabSelector
-                .fixedSize(horizontal: true, vertical: false)
         }
-        .frame(height: 44)
-        .layoutPriority(1)
+        .frame(height: 40)
+    }
+
+    private var operationalFooter: some View {
+        VStack(spacing: 0) {
+            Divider().overlay(FSTPalette.line)
+            HStack(spacing: 12) {
+                Text(TransferControlsActionPresentation.stateTitle(
+                    for: viewModel.transferState,
+                    canStartTransfer: viewModel.canStartTransfer,
+                    errorMessage: viewModel.errorMessage
+                ))
+                Text("Source protection · Read-only")
+                Spacer(minLength: 8)
+                Text("CenVu D.I.T Tools")
+                    .foregroundStyle(FSTPalette.muted.opacity(0.6))
+            }
+            .font(.system(size: 11))
+            .foregroundStyle(FSTPalette.muted)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 8)
+        }
+        .background(FSTPalette.surface)
     }
 
     private var tabSelector: some View {
@@ -84,9 +96,10 @@ public struct ContentView: View {
             Button(action: { selectedTab = .transfer }) {
                 Text("TRANSFER")
                     .fontWeight(selectedTab == .transfer ? .bold : .semibold)
-                    .padding(.horizontal, 24)
-                    .padding(.vertical, 6)
-                    .background(selectedTab == .transfer ? Color.secondary.opacity(0.15) : Color.clear)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 8)
+                    .background(selectedTab == .transfer ? FSTPalette.raised : Color.clear)
+                .clipShape(RoundedRectangle(cornerRadius: 4))
                     .foregroundColor(selectedTab == .transfer ? .primary : .secondary)
             }
             .buttonStyle(.plain)
@@ -94,9 +107,10 @@ public struct ContentView: View {
             Button(action: { selectedTab = .notification }) {
                 Text("NOTIFICATION")
                     .fontWeight(selectedTab == .notification ? .bold : .semibold)
-                    .padding(.horizontal, 24)
-                    .padding(.vertical, 6)
-                    .background(selectedTab == .notification ? Color.secondary.opacity(0.15) : Color.clear)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 8)
+                    .background(selectedTab == .notification ? FSTPalette.raised : Color.clear)
+                .clipShape(RoundedRectangle(cornerRadius: 4))
                     .foregroundColor(selectedTab == .notification ? .primary : .secondary)
             }
             .buttonStyle(.plain)
@@ -112,40 +126,44 @@ public struct ContentView: View {
                         .clipShape(Capsule())
                 }
                 .fontWeight(selectedTab == .logs ? .bold : .semibold)
-                .padding(.horizontal, 24)
-                .padding(.vertical, 6)
-                .background(selectedTab == .logs ? Color.secondary.opacity(0.15) : Color.clear)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 8)
+                .background(selectedTab == .logs ? FSTPalette.raised : Color.clear)
+                .clipShape(RoundedRectangle(cornerRadius: 4))
                 .foregroundColor(selectedTab == .logs ? .primary : .secondary)
             }
             .buttonStyle(.plain)
         }
-        .background(Color(NSColor.controlBackgroundColor).opacity(0.5))
-        .clipShape(RoundedRectangle(cornerRadius: 8))
+        .background(FSTPalette.inset)
+        .padding(4)
+        .clipShape(RoundedRectangle(cornerRadius: 6))
         .overlay(
-            RoundedRectangle(cornerRadius: 8)
-                .stroke(Color.secondary.opacity(0.2), lineWidth: 1)
+            RoundedRectangle(cornerRadius: 6)
+                .stroke(FSTPalette.line, lineWidth: 1)
         )
         .layoutPriority(1)
     }
 
     private var transferTabContent: some View {
         ScrollView {
-            VStack(spacing: 12) {
-                SourceCardView(viewModel: viewModel)
-                    .frame(maxWidth: .infinity)
-
-                DestinationCardView(viewModel: viewModel)
-                    .frame(maxWidth: .infinity)
-
-                StorageAnalysisView(viewModel: viewModel)
-                    .frame(maxWidth: .infinity)
+            VStack(spacing: 8) {
+                VStack(spacing: 0) {
+                    SourceCardView(viewModel: viewModel)
+                    Divider().overlay(FSTPalette.line)
+                    DestinationCardView(viewModel: viewModel)
+                    Divider().overlay(FSTPalette.line)
+                    StorageAnalysisView(viewModel: viewModel)
+                }
+                .background(FSTPalette.surface)
+                .clipShape(RoundedRectangle(cornerRadius: 4))
 
                 TransferControlsView(viewModel: viewModel, onOpenTechnicalLog: {
                     selectedTab = .logs
                 })
                     .frame(maxWidth: .infinity)
             }
-            .padding(.horizontal, 16)
+            .padding(.horizontal, 24)
+            .padding(.top, 12)
             .padding(.bottom, 16)
             .frame(maxWidth: .infinity, alignment: .top)
         }

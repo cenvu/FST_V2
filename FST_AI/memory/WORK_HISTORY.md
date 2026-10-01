@@ -21,6 +21,20 @@ Each entry must include:
 
 ## Recent History
 
+### 2026-10-02 - OpenDesign Live Transfer Convergence Phase 1
+
+- Task ID: OPENDESIGN_LIVE_TRANSFER_CONVERGENCE_PHASE_1; workstream OPENDESIGN_LIVE_TRANSFER_P1
+- Agent/model: Codex4 local Worker / exact model UNVERIFIED; IMPLEMENTER
+- Branch/start: clean main at fetched HEAD=origin/main=0c230033eaa413629459c1495c84e26d94bdf1c2; no matching issue/duplicate task
+- Status: implementation and visual evidence complete; BRAIN review PENDING, classification/accepted state UNSET; no visual parity acceptance
+- Change/files: seven production View/presentation files; native flat Transfer route, adaptive OpenDesign palette, shared FST/tab/footer shell, two-field setup, explicit control strip, three equal hero metrics/thin phase progress/four secondary metrics/current item. Standalone presentation tests plus scoped live-source/capture/gap evidence and canonical handoff.
+- Safety: backend/capacity formulas/admission/verification/rsync/Telegram/reports/privacy and canonical success ownership unchanged. NONE remains TRANSFER COMPLETE; only safeToFormat maps SAFE TO EJECT. No fake production telemetry, WebView, JS port or owner media. Harness configuration/OpenDesign project read-only.
+- Checks: actual OpenDesign MCP list_projects and three get_file calls, exact project 988fea7b-beea-4916-a10e-5368a120417e; Debug PASS; full285/0/0; focused127/0/0; full/default standalone presentation suite PASS; eight 1120x760 native before/after PNGs, 900x660/Light captures and native picker/tab QA; diff check PASS. Missing state references/backend constraints/material gaps documented; bottom-current-item minimum capture limitation and partial AX audit preserved.
+- Evidence: handoffs/evidence/opendesign-live-transfer-p1/LIVE_SOURCE_MAP.md; VISUAL_GAP_REPORT.md; VERIFICATION.md and hashed PNG/MCP manifests. Test-only empty token store and canonical assessment fix prior standalone fixture defects.
+- Commit/tag/release: one coherent implementation/evidence/handoff commit and push/fetch/export finalization; exact resulting SHA/sync/clean state in V2.1 packet; no tag/release.
+- Single Worker proposal: RETURN_TO_BRAIN_FOR_VISUAL_ADJUDICATION; ACTIVE_NEXT=NONE; no Phase 2.
+
+
 ### 2026-10-01 - Destination Capacity Final Writability Freshness Repair
 
 - Agent/model: Codex local Worker; exact model UNVERIFIED; implementer, not reviewer

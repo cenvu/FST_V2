@@ -1,0 +1,11 @@
+Optional(AXUnknown) |  | nil
+Optional(AXScrollArea) |  | nil
+Optional(AXPopUpButton) |  | Optional(Unlimited)
+Optional(AXPopUpButton) |  | Optional(SAMPLE 33% — Balanced)
+Optional(AXStaticText) |  | Optional(-)
+Optional(AXScrollBar) |  | Optional(0)
+Optional(AXValueIndicator) |  | Optional(0)
+Optional(AXButton) |  | nil
+Optional(AXButton) |  | nil
+Optional(AXButton) |  | nil
+Optional(AXButton) |  | nil

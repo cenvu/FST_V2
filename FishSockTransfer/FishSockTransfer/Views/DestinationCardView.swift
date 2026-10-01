@@ -11,30 +11,20 @@ public struct DestinationCardView: View {
     }
     
     public var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack(spacing: 8) {
-                Image(systemName: "tray.and.arrow.down")
-                    .foregroundStyle(.secondary)
-                Text("DESTINATION")
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(.secondary)
-                Spacer()
-                if viewModel.isTransferConfigurationLocked {
-                    Label("Selection locked during transfer", systemImage: "lock.fill")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
-                }
-            }
+        HStack(alignment: .center, spacing: 16) {
+            Text("DESTINATION")
+                .font(.system(size: 12, weight: .medium))
+                .foregroundStyle(FSTPalette.muted)
+                .frame(width: 88, alignment: .leading)
             VStack(alignment: .leading, spacing: 4) {
                 if let url = viewModel.destinationURL {
                     Text(url.lastPathComponent)
-                        .font(.headline)
+                        .font(.system(size: 16, weight: .semibold))
                         .foregroundStyle(.primary)
                         .lineLimit(1)
                     Text(url.path)
                         .font(.system(.footnote, design: .monospaced))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(FSTPalette.muted)
                         .lineLimit(1)
                         .truncationMode(.middle)
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -42,7 +32,7 @@ public struct DestinationCardView: View {
                         .accessibilityLabel("Destination path: \(url.path)")
 
                     if let destinationMetadata = viewModel.destinationMetadata {
-                        HStack(alignment: .top, spacing: 20) {
+                        HStack(alignment: .firstTextBaseline, spacing: 12) {
                             metadataValue(title: "FILESYSTEM", value: destinationMetadata.filesystem)
                             metadataValue(title: "FREE SPACE", value: formatBytes(destinationMetadata.freeSpaceBytes))
                             metadataValue(
@@ -62,7 +52,7 @@ public struct DestinationCardView: View {
                     if let destinationTargetPreview = viewModel.destinationTargetPreview {
                         Label(destinationTargetPreview, systemImage: "arrow.turn.down.right")
                             .font(.system(.footnote, design: .monospaced))
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(FSTPalette.muted)
                             .lineLimit(1)
                             .truncationMode(.middle)
                             .help(destinationTargetPreview)
@@ -71,11 +61,11 @@ public struct DestinationCardView: View {
                 } else {
                     VStack(alignment: .leading, spacing: 4) {
                         Text("Select Destination")
-                            .font(.headline)
+                            .font(.system(size: 16, weight: .semibold))
                             .foregroundStyle(.primary)
                         Text("Drop folder here")
                             .font(.subheadline)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(FSTPalette.muted)
                     }
                 }
             }
@@ -87,32 +77,33 @@ public struct DestinationCardView: View {
                     guard let url = FolderPicker.chooseFolder() else { return }
                     viewModel.selectDestinationFolder(url)
                 } label: {
-                    Label("Choose Folder", systemImage: "folder")
+                    Text(viewModel.destinationURL == nil ? "Choose…" : "Change…")
                 }
                 .buttonStyle(.bordered)
-                .controlSize(.small)
+                .controlSize(.regular)
+                .accessibilityLabel("Choose Destination Folder")
                 .disabled(viewModel.isTransferConfigurationLocked)
                 .fixedSize()
 
                 Button {
                     viewModel.clearDestinationFolder()
                 } label: {
-                    Label("Clear Folder", systemImage: "xmark.square")
+                    Image(systemName: viewModel.isTransferConfigurationLocked ? "lock.fill" : "xmark")
                 }
                 .buttonStyle(.bordered)
-                .controlSize(.small)
+                .controlSize(.regular)
                 .disabled(viewModel.destinationURL == nil || viewModel.isTransferConfigurationLocked)
                 .fixedSize()
-                .accessibilityLabel("Clear Folder")
+                .accessibilityLabel("Clear Destination Folder")
                 .help("Removes this destination selection from FST only. The folder or drive on disk is never deleted or modified.")
 
-                Spacer(minLength: 0)
             }
         }
-        .standardPanel(
-            strokeColor: isDropTargeted ? Color.accentColor.opacity(0.50) : Color.secondary.opacity(viewModel.isTransferConfigurationLocked ? 0.28 : 0.15),
-            strokeWidth: isDropTargeted ? 2 : 1,
-            strokeDash: isDropTargeted ? [5] : []
+        .padding(.horizontal, 16)
+        .padding(.vertical, 10)
+        .overlay(
+            RoundedRectangle(cornerRadius: 4)
+                .stroke(isDropTargeted ? Color.accentColor : Color.clear, style: StrokeStyle(lineWidth: 2, dash: [5]))
         )
         .dropDestination(for: URL.self) { urls, _ in
             guard !viewModel.isTransferConfigurationLocked else { return false }
@@ -128,10 +119,10 @@ public struct DestinationCardView: View {
     }
 
     private func metadataValue(title: String, value: String, isWarning: Bool = false) -> some View {
-        VStack(alignment: .leading, spacing: 2) {
+        HStack(spacing: 4) {
             Text(title)
-                .font(.caption2.weight(.semibold))
-                .foregroundStyle(.secondary)
+                .font(.caption)
+                .foregroundStyle(FSTPalette.muted)
             Text(value)
                 .font(.system(.footnote, design: .monospaced))
                 .fontWeight(.semibold)
