@@ -1,5 +1,21 @@
 # FST Command Center Handover
 
+## Current Control Plane — BRAIN Return V2.1 Fallback Resilience (2026-10-01)
+
+TASK=BRAIN_RETURN_V2_1_FALLBACK_RESILIENCE;STATUS=IMPLEMENTED_VERIFIED
+START_HEAD=64717e0e3fcd33d9951d05dea574af73a57247d4;SCOPE=CONTROL_PLANE_ONLY
+PACKET=FST_BRAIN_RETURN_V2_1;V2_FIELDS+EXACT_UTF8_OPERATOR_SNAPSHOT+PATH+SHA256+VALIDATION
+AUTHORITY=REPO_GITHUB_CANONICAL;EMBEDDED_OPERATOR=FALLBACK_SNAPSHOT_ONLY;OWNER_READS=BRAIN_VIETNAMESE_REVIEW_ONLY
+OMIT=FULL_CURRENT_HANDOFF+HISTORICAL_HANDOFFS+RAW_BODIES+FULL_COMMAND_CENTER+FULL_WORK_HISTORY+FULL_TASK_REGISTRY
+FAIL_CLOSED=MISSING|UNREADABLE|INVALID_UTF8|HASH_FAILURE;NO_OPERATOR_BYTE_CEILING
+TEST=STDLIB_18/18;DRY_RUN_NO_DESKTOP;ONLY_AUTHORIZED_PATH;FIVE_LINE_RETURN;OLD_GATES_PRESERVED
+SIZE=V2_ACTUAL_1441_BYTES;V2_1_REPRESENTATIVE_6889_BYTES;OPERATOR_SNAPSHOT_5459_BYTES;NO_HEADROOM_POLICY_CHANGE
+OPERATOR_PATH=FST_AI/memory/BRAIN_OPERATOR_COMPACT.md;SHA256=72ce1a62e36886149c668dc8ebb642e8c99d57d5f7e449a9128618d6ccbaba6b
+SCOPE=EXPORTER+STDLIB_TESTS+CONTROL_PLANE_DOCS;NO_SWIFT+NO_XCODE+NO_UI8
+GIT=ONE_COMMIT_PUSH_FETCH_VERIFY;FINAL_HEAD_AND_EXPORT_GATES_IN_03_FST_BRAIN.md
+HANDOFF=20261001-110825_codex-local-worker_brain-return-v2-1-fallback-resilience.md;VERIFICATION;PUBLISHER_VERIFY_PASS;CURRENT_MATCH;INDEX_ONE_ENTRY
+NEXT=RETURN_TO_BRAIN;CANONICAL=handoffs/CURRENT_HANDOFF.md
+
 ## Current Safety Research — Destination Capacity Headroom Decision (2026-10-01)
 
 TASK=DESTINATION_CAPACITY_HEADROOM_DECISION;STATUS=RESEARCH_COMPLETE_POLICY_PENDING;START_HEAD=3d8d8a251533d22f57cb141a28c4bae9f6154a31
@@ -22,12 +38,12 @@ SCOPE=DriveService.swift+StorageMetadata_comment+2_XCTest_files;NO_RSYNC_FLAGS_C
 LIMIT=logical_content_floor_not_physical_metadata_allocation_or_space_reservation
 NEXT=RETURN_TO_BRAIN
 
-## Current Control Plane — M2M Brain Return V2 (2026-09-30)
+## Historical Control Plane — M2M Brain Return V2 (2026-09-30)
 
 - Status: implementation and NORMAL handoff complete; exporter suite 12/12 PASS; publisher dry-run and post-publish verify PASS; BRAIN review pending.
 - Published handoff: handoffs/20260930-215015_codex-local-worker_m2m-brain-return-v2.md; CURRENT matches; INDEX added exactly one row.
 - Contract source: BRAIN_OPERATOR_COMPACT.md and BRAIN ↔ WORKER Transport Policy below.
-- Packet sizing: V1 prior packet 33,185 bytes; V2 target 1,239 bytes; no default verbatim bodies or handoff interpretation.
+- Packet sizing at V2 launch: V1 prior packet 33,185 bytes; V2 target 1,239 bytes; no default verbatim bodies or handoff interpretation.
 - PASS remains fail-closed on handoff verification, worktree, upstream equality, and Git observation. FAIL remains exportable.
 - Size gate: previous V1 Desktop packet 33,185 bytes; V2 packet target 1,239 bytes; final export confirms packet length.
 - No production Swift/Xcode changes and no historical handoff edits in this M2M batch; UI-7 was unauthorized at that point.
@@ -141,7 +157,7 @@ Primary users:
 ## Superseded Record — FST BRAIN Return Bridge v1 (2026-09-30)
 
 - V1 established the single Desktop path and fail-closed PASS gates.
-- V1 embedded handoff, RAW, and BRAIN Operator bodies verbatim. M2M Brain Return V2 above supersedes that payload contract with repository pointers and hashes.
+- V1 embedded handoff, RAW, and BRAIN Operator bodies verbatim. V2 replaced that with metadata; V2.1 adds only the compact operator fallback snapshot while full handoff and RAW bodies remain omitted.
 - Desktop remains transport-only; GitHub remains canonical. The path stays ~/Desktop/03_FST_BRAIN.md.
 - V1 did not change Swift/runtime/Xcode/entitlement/rsync/transfer/verify/report/SAFE TO EJECT behavior.
 ## Current Baseline After v1.3.4
@@ -617,8 +633,8 @@ AI roles: Mi/Command Center is technical lead/safety gate/prompt architect. Code
 
 OWNER_VISIBLE=BRAIN_VI_REVIEW_ONLY
 WORKER_PROMPT=M2M_DENSE
-03_FST_BRAIN=M2M_DENSE_FALLBACK;TRANSPORT_ONLY
+03_FST_BRAIN=M2M_DENSE_METADATA+COMPACT_OPERATOR_SNAPSHOT;FALLBACK_ONLY;TRANSPORT_ONLY
 REPO_CANONICAL=GITHUB
-PACKET=FST_BRAIN_RETURN_V2;POINTERS+SHA256+GATES+RAW_MANIFEST+EXPLICIT_HANDOFF_FACTS
-DEFAULT_PAYLOAD=NO_VERBATIM;NO_SUMMARY_OR_INFERENCE
+PACKET=FST_BRAIN_RETURN_V2_1;V2_FIELDS+OPERATOR_SNAPSHOT+PATH+SHA256
+DEFAULT_PAYLOAD=NO_FULL_HANDOFF_OR_RAW_BODIES;EXPLICIT_FACTS_ONLY;NO_SUMMARY_OR_INFERENCE
 NEXT_ACTION_COUNT=1

@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 # FST / CenVu | (+84) 842 841 222
 #
-# export_brain_return.py — metadata-only FST BRAIN return transport.
+# export_brain_return.py — FST BRAIN return transport.
 #
 # GitHub and repository artifacts are canonical. This tool writes exactly one
-# Desktop transport file: ~/Desktop/03_FST_BRAIN.md. V2 contains pointers,
-# hashes, Git/handoff gates, and explicit handoff facts only. It does not
-# summarize handoffs or embed repository file bodies.
+# Desktop transport file: ~/Desktop/03_FST_BRAIN.md. V2.1 retains the V2
+# metadata contract and embeds only the exact compact BRAIN Operator snapshot.
+# It never embeds full handoff or raw evidence bodies.
 
 import argparse
 import codecs
@@ -162,12 +162,13 @@ def git_snapshot(root):
     }
 
 
-def inspect_repo_text(root, value, metadata_only=False):
+def inspect_repo_text(root, value, metadata_only=False, max_bytes=MAX_TEXT_BYTES):
     result = {
         "path": None,
         "size_bytes": None,
         "sha256": None,
         "text": None,
+        "data": None,
         "error": None,
     }
     try:
@@ -187,7 +188,7 @@ def inspect_repo_text(root, value, metadata_only=False):
             return result
         size = candidate.stat().st_size
         result["size_bytes"] = size
-        if size > MAX_TEXT_BYTES and not metadata_only:
+        if max_bytes is not None and size > max_bytes and not metadata_only:
             result["error"] = "file_too_large"
             return result
     except OSError:
@@ -195,7 +196,11 @@ def inspect_repo_text(root, value, metadata_only=False):
         return result
 
     if metadata_only:
-        digest = hashlib.sha256()
+        try:
+            digest = hashlib.sha256()
+        except Exception:
+            result["error"] = "hash_failed"
+            return result
         decoder = codecs.getincrementaldecoder("utf-8")()
         encoding_error = False
         nul_found = False
@@ -224,8 +229,16 @@ def inspect_repo_text(root, value, metadata_only=False):
             result["size_bytes"] = total
             result["error"] = "file_unreadable"
             return result
+        except Exception:
+            result["size_bytes"] = total
+            result["error"] = "hash_failed"
+            return result
         result["size_bytes"] = total
-        result["sha256"] = digest.hexdigest()
+        try:
+            result["sha256"] = digest.hexdigest()
+        except Exception:
+            result["error"] = "hash_failed"
+            return result
         if nul_found:
             result["error"] = "text_contains_nul"
         elif encoding_error:
@@ -238,10 +251,14 @@ def inspect_repo_text(root, value, metadata_only=False):
         result["error"] = "file_unreadable"
         return result
     result["size_bytes"] = len(data)
-    result["sha256"] = sha256_bytes(data)
-    if len(data) > MAX_TEXT_BYTES:
+    if max_bytes is not None and len(data) > max_bytes:
         result["error"] = "file_too_large"
         return result
+    hash_failed = False
+    try:
+        result["sha256"] = sha256_bytes(data)
+    except Exception:
+        hash_failed = True
     if b"\x00" in data:
         result["error"] = "text_contains_nul"
         return result
@@ -250,6 +267,9 @@ def inspect_repo_text(root, value, metadata_only=False):
     except UnicodeDecodeError:
         result["error"] = "text_not_utf8"
         return result
+    result["data"] = data
+    if hash_failed:
+        result["error"] = "hash_failed"
     return result
 
 
@@ -276,13 +296,42 @@ def explicit_handoff_facts(handoff_text):
     return not_executed, blockers
 
 
+def collect_gate_failures(report, brain_operator, raw_files, snapshot, handoff_ok):
+    failures = []
+    if not handoff_ok:
+        failures.append("handoff_verify_fail")
+    if not snapshot["clean"]:
+        failures.append("dirty_worktree")
+    if not snapshot["remote_sync"]:
+        failures.append("head_not_upstream")
+    if snapshot["errors"]:
+        failures.append("git_observation_fail")
+    if report["error"] is not None:
+        failures.append("handoff_artifact_invalid")
+    if brain_operator["error"] is not None:
+        failures.append("brain_operator_artifact_invalid")
+    if any(raw["error"] is not None for raw in raw_files):
+        failures.append("raw_evidence_invalid")
+    return failures
+
+
+def effective_result(requested_result, gate_failures):
+    if requested_result == "PASS" and gate_failures:
+        return "FAIL"
+    return requested_result
+
+
 def render_packet(task, requested_result, effective_result, report, brain_operator,
                   raw_files, snapshot, handoff_ok, gate_failures):
     not_executed, blockers = explicit_handoff_facts(report["text"])
     manifest_files = [raw for raw in raw_files if raw["path"] is not None]
     rejected_files = [raw for raw in raw_files if raw["path"] is None]
+    operator_data = brain_operator.get("data")
+    operator_text = brain_operator.get("text")
+    operator_error = brain_operator["error"]
+    operator_is_embedded = operator_data is not None and operator_text is not None
     lines = [
-        "PACKET=FST_BRAIN_RETURN_V2",
+        "PACKET=FST_BRAIN_RETURN_V2_1",
         "VALUE_ENCODING=PERCENT_UTF8_RFC3986",
         "AUTHORITY_STATUS=WORKER_EVIDENCE;REPO_GITHUB_CANONICAL;DESKTOP_TRANSPORT_ONLY",
         "REQUESTED_RESULT=%s" % requested_result,
@@ -308,7 +357,16 @@ def render_packet(task, requested_result, effective_result, report, brain_operat
             if brain_operator["path"]
             else BRAIN_OPERATOR_RELATIVE_PATH
         ),
+        "BRAIN_OPERATOR_ROLE=FALLBACK_ONLY",
         "BRAIN_OPERATOR_SHA256=%s" % (brain_operator["sha256"] or "UNAVAILABLE"),
+        "BRAIN_OPERATOR_ENCODING=EXACT_UTF8",
+        "BRAIN_OPERATOR_VALIDATION=%s" % ("PASS" if operator_error is None else "FAIL"),
+        "BRAIN_OPERATOR_ERROR=%s" % (
+            "NONE" if operator_error is None else encoded(operator_error, safe="-._~")
+        ),
+        "BRAIN_OPERATOR_UTF8_BYTES=%s" % (
+            len(operator_data) if operator_is_embedded else "UNAVAILABLE"
+        ),
         "GATE_FAILURES=%s" % (",".join(gate_failures) if gate_failures else "NONE"),
         "RAW_EVIDENCE_MANIFEST[path,size,sha256]",
         "RAW_EVIDENCE_COUNT=%d" % len(manifest_files),
@@ -357,9 +415,17 @@ def render_packet(task, requested_result, effective_result, report, brain_operat
     lines.extend([
         "NEXT_ACTION_POINTER=%s" % NEXT_ACTION_POINTER,
         "DESKTOP_PATH=~/Desktop/%s" % BRAIN_DESKTOP_FILENAME,
-        "",
     ])
-    return "\n".join(lines)
+    prefix = ("\n".join(lines) + "\nBRAIN_OPERATOR_BEGIN\n").encode("utf-8")
+    if operator_is_embedded:
+        body = operator_data
+    else:
+        reason = operator_error or "unavailable"
+        body = (
+            "BRAIN_OPERATOR_BODY=UNAVAILABLE;REASON=%s\n"
+            % encoded(reason, safe="-._~")
+        ).encode("ascii")
+    return (prefix + body + b"\nBRAIN_OPERATOR_END\n").decode("utf-8")
 
 
 def write_desktop_packet(packet, task, dry_run):
@@ -394,7 +460,7 @@ def write_desktop_packet(packet, task, dry_run):
 
 def main(argv=None):
     parser = argparse.ArgumentParser(
-        description="Write the metadata-only FST BRAIN RETURN V2 transport packet."
+        description="Write the FST BRAIN RETURN V2.1 transport packet."
     )
     parser.add_argument("--task", required=True, help="short task identifier")
     parser.add_argument(
@@ -428,37 +494,30 @@ def main(argv=None):
 
     root = require_repo_root(task)
     report = inspect_repo_text(root, args.full_report)
-    brain_operator = inspect_repo_text(root, BRAIN_OPERATOR_RELATIVE_PATH)
+    brain_operator = inspect_repo_text(
+        root,
+        BRAIN_OPERATOR_RELATIVE_PATH,
+        max_bytes=None,
+    )
     raw_files = [inspect_repo_text(root, path, metadata_only=True) for path in args.raw]
     raw_files.sort(key=lambda item: (item["path"] is None, item["path"] or ""))
 
     snapshot = git_snapshot(root)
     handoff_ok = verify_handoff(root)
 
-    gate_failures = []
-    if not handoff_ok:
-        gate_failures.append("handoff_verify_fail")
-    if not snapshot["clean"]:
-        gate_failures.append("dirty_worktree")
-    if not snapshot["remote_sync"]:
-        gate_failures.append("head_not_upstream")
-    if snapshot["errors"]:
-        gate_failures.append("git_observation_fail")
-    if report["error"] is not None:
-        gate_failures.append("handoff_artifact_invalid")
-    if brain_operator["error"] is not None:
-        gate_failures.append("brain_operator_artifact_invalid")
-    if any(raw["error"] is not None for raw in raw_files):
-        gate_failures.append("raw_evidence_invalid")
-
-    effective_result = args.result
-    if args.result == "PASS" and gate_failures:
-        effective_result = "FAIL"
+    gate_failures = collect_gate_failures(
+        report,
+        brain_operator,
+        raw_files,
+        snapshot,
+        handoff_ok,
+    )
+    result = effective_result(args.result, gate_failures)
 
     packet = render_packet(
         task=task,
         requested_result=args.result,
-        effective_result=effective_result,
+        effective_result=result,
         report=report,
         brain_operator=brain_operator,
         raw_files=raw_files,
@@ -468,8 +527,8 @@ def main(argv=None):
     )
     handoff_display = report["path"] or DEFAULT_FULL_REPORT
     write_desktop_packet(packet, task, args.dry_run)
-    compact_return(effective_result, task, handoff_display)
-    return 0 if effective_result == "PASS" else 1
+    compact_return(result, task, handoff_display)
+    return 0 if result == "PASS" else 1
 
 
 if __name__ == "__main__":

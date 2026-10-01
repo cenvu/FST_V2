@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Standard-library contract tests for export_brain_return.py."""
 
+import ast
 import hashlib
 import os
 from pathlib import Path
@@ -11,6 +12,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from unittest import mock
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -128,11 +130,25 @@ class ExporterFixture(unittest.TestCase):
 
     @staticmethod
     def fields(packet):
+        header = packet.split("BRAIN_OPERATOR_BEGIN\n", 1)[0]
         return dict(
             line.split("=", 1)
-            for line in packet.splitlines()
+            for line in header.splitlines()
             if "=" in line and not line.startswith("[")
         )
+
+    @staticmethod
+    def embedded_operator_bytes(packet):
+        packet_bytes = packet.encode("utf-8")
+        fields = ExporterFixture.fields(packet)
+        body_start = packet_bytes.index(b"BRAIN_OPERATOR_BEGIN\n") + len(
+            b"BRAIN_OPERATOR_BEGIN\n"
+        )
+        body_size = int(fields["BRAIN_OPERATOR_UTF8_BYTES"])
+        body_end = body_start + body_size
+        if packet_bytes[body_end:].startswith(b"\nBRAIN_OPERATOR_END\n"):
+            return packet_bytes[body_start:body_end]
+        raise AssertionError("operator body length does not align with END marker")
 
     @staticmethod
     def raw_manifest(packet):
@@ -159,7 +175,7 @@ class ExporterFixture(unittest.TestCase):
         )
 
 
-class ExportBrainReturnV2Tests(ExporterFixture):
+class ExportBrainReturnV2_1Tests(ExporterFixture):
     def test_github_remote_normalizes_to_canonical_repo_id(self):
         exporter = runpy.run_path(str(EXPORTER_SOURCE))
         normalize = exporter["canonical_repo"]
@@ -172,10 +188,13 @@ class ExportBrainReturnV2Tests(ExporterFixture):
             "cenvu/FST_V2",
         )
 
-    def test_clean_synced_pass_renders_metadata_only_packet(self):
+    def test_clean_synced_pass_embeds_exact_operator_and_keeps_other_bodies_out(self):
         (self.repo / "raw").mkdir()
         report = self.repo / "handoffs" / "CURRENT_HANDOFF.md"
         brain = self.repo / "FST_AI" / "memory" / "BRAIN_OPERATOR_COMPACT.md"
+        command_center = self.repo / "FST_AI" / "memory" / "COMMAND_CENTER_HANDOVER.md"
+        work_history = self.repo / "FST_AI" / "memory" / "WORK_HISTORY.md"
+        task_registry = self.repo / "FST_AI" / "memory" / "TASK_REGISTRY.md"
         raw_z = self.repo / "raw" / "z.log"
         raw_a = self.repo / "raw" / "a.log"
         raw_z.write_text("RAW_Z_BODY_MUST_NOT_APPEAR\n", encoding="utf-8")
@@ -186,7 +205,15 @@ class ExportBrainReturnV2Tests(ExporterFixture):
             "BLOCKERS=none\n",
             encoding="utf-8",
         )
-        brain.write_text("BRAIN_OPERATOR_BODY_MUST_NOT_APPEAR\n", encoding="utf-8")
+        brain.write_text("BRAIN_OPERATOR_EXACT_BODY\n", encoding="utf-8")
+        command_center.write_text(
+            "COMMAND_CENTER_FULL_BODY_MUST_NOT_APPEAR\n", encoding="utf-8"
+        )
+        work_history.write_text("WORK_HISTORY_BODY_MUST_NOT_APPEAR\n", encoding="utf-8")
+        task_registry.write_text("TASK_REGISTRY_BODY_MUST_NOT_APPEAR\n", encoding="utf-8")
+        (self.repo / "handoffs" / "20200101-old.md").write_text(
+            "HISTORICAL_HANDOFF_BODY_MUST_NOT_APPEAR\n", encoding="utf-8"
+        )
         self.commit_and_push()
 
         completed = self.run_exporter(raw=["raw/z.log", "raw/a.log"])
@@ -195,7 +222,21 @@ class ExportBrainReturnV2Tests(ExporterFixture):
 
         packet = self.packet()
         fields = self.fields(packet)
-        self.assertTrue(packet.startswith("PACKET=FST_BRAIN_RETURN_V2\n"))
+        self.assertTrue(packet.startswith("PACKET=FST_BRAIN_RETURN_V2_1\n"))
+        preserved_v2_fields = {
+            "PACKET", "VALUE_ENCODING", "AUTHORITY_STATUS", "REQUESTED_RESULT",
+            "EFFECTIVE_RESULT", "TASK", "GENERATED_AT_UTC", "REPO",
+            "REMOTE_ORIGIN", "BRANCH", "HEAD", "UPSTREAM", "UPSTREAM_HEAD",
+            "REMOTE_SYNC", "WORKTREE_CLEAN", "HANDOFF_PATH", "HANDOFF_SHA256",
+            "HANDOFF_VERIFY_TARGET", "HANDOFF_VERIFY", "BRAIN_OPERATOR_PATH",
+            "BRAIN_OPERATOR_ROLE", "BRAIN_OPERATOR_SHA256", "GATE_FAILURES",
+            "RAW_EVIDENCE_COUNT",
+            "RAW_REJECTED_COUNT", "RAW_REJECTED_REASONS", "NOT_EXECUTED_SOURCE",
+            "NOT_EXECUTED_COUNT", "BLOCKERS_SOURCE", "BLOCKER_COUNT",
+            "NEXT_ACTION_POINTER", "DESKTOP_PATH",
+        }
+        self.assertLessEqual(preserved_v2_fields, set(fields))
+        self.assertIn("RAW_EVIDENCE_MANIFEST[path,size,sha256]", packet)
         self.assertEqual(fields["REQUESTED_RESULT"], "PASS")
         self.assertEqual(fields["EFFECTIVE_RESULT"], "PASS")
         self.assertEqual(fields["TASK"], "M2M%20Task")
@@ -211,9 +252,19 @@ class ExportBrainReturnV2Tests(ExporterFixture):
             fields["HANDOFF_SHA256"],
             hashlib.sha256(report.read_bytes()).hexdigest(),
         )
+        embedded_operator = self.embedded_operator_bytes(packet)
+        self.assertEqual(embedded_operator, brain.read_bytes())
+        self.assertEqual(fields["BRAIN_OPERATOR_UTF8_BYTES"], str(len(embedded_operator)))
+        self.assertEqual(fields["BRAIN_OPERATOR_ENCODING"], "EXACT_UTF8")
+        self.assertEqual(fields["BRAIN_OPERATOR_VALIDATION"], "PASS")
+        self.assertEqual(
+            fields["BRAIN_OPERATOR_PATH"],
+            "FST_AI/memory/BRAIN_OPERATOR_COMPACT.md",
+        )
+        self.assertEqual(fields["BRAIN_OPERATOR_ROLE"], "FALLBACK_ONLY")
         self.assertEqual(
             fields["BRAIN_OPERATOR_SHA256"],
-            hashlib.sha256(brain.read_bytes()).hexdigest(),
+            hashlib.sha256(embedded_operator).hexdigest(),
         )
         self.assertEqual(fields["RAW_EVIDENCE_COUNT"], "2")
         self.assertIn("RAW_1_PATH=raw/a.log", packet)
@@ -230,13 +281,189 @@ class ExportBrainReturnV2Tests(ExporterFixture):
         self.assertEqual(fields["GATE_FAILURES"], "NONE")
         for body in (
             "FULL_REPORT_BODY_MUST_NOT_APPEAR",
-            "BRAIN_OPERATOR_BODY_MUST_NOT_APPEAR",
+            "HISTORICAL_HANDOFF_BODY_MUST_NOT_APPEAR",
+            "COMMAND_CENTER_FULL_BODY_MUST_NOT_APPEAR",
+            "WORK_HISTORY_BODY_MUST_NOT_APPEAR",
+            "TASK_REGISTRY_BODY_MUST_NOT_APPEAR",
             "RAW_A_BODY_MUST_NOT_APPEAR",
             "RAW_Z_BODY_MUST_NOT_APPEAR",
             "FULL REPORT",
             "BRAIN OPERATOR — VERBATIM",
         ):
             self.assertNotIn(body, packet)
+        self.assertIn("BRAIN_OPERATOR_EXACT_BODY", packet)
+
+    def test_changing_operator_changes_packet_hash_and_embedded_bytes(self):
+        brain = self.repo / "FST_AI" / "memory" / "BRAIN_OPERATOR_COMPACT.md"
+        brain.write_bytes("operator snapshot one\n".encode("utf-8"))
+        self.commit_and_push()
+
+        first = self.run_exporter()
+        self.assertEqual(first.returncode, 0, first.stderr)
+        first_packet = self.packet()
+        first_fields = self.fields(first_packet)
+        first_body = self.embedded_operator_bytes(first_packet)
+
+        brain.write_bytes("operator snapshot changed\n".encode("utf-8"))
+        self.commit_and_push()
+        second = self.run_exporter()
+        self.assertEqual(second.returncode, 0, second.stderr)
+        second_packet = self.packet()
+        second_fields = self.fields(second_packet)
+        second_body = self.embedded_operator_bytes(second_packet)
+
+        self.assertNotEqual(first_packet, second_packet)
+        self.assertNotEqual(first_fields["BRAIN_OPERATOR_SHA256"], second_fields["BRAIN_OPERATOR_SHA256"])
+        self.assertEqual(first_body, b"operator snapshot one\n")
+        self.assertEqual(second_body, b"operator snapshot changed\n")
+        self.assertEqual(
+            second_fields["BRAIN_OPERATOR_SHA256"],
+            hashlib.sha256(second_body).hexdigest(),
+        )
+
+    def test_operator_missing_or_invalid_utf8_downgrades_pass(self):
+        cases = ("missing", "invalid_utf8")
+        for case in cases:
+            with self.subTest(case=case):
+                self.tearDown()
+                self.setUp()
+                brain = self.repo / "FST_AI" / "memory" / "BRAIN_OPERATOR_COMPACT.md"
+                if case == "missing":
+                    brain.unlink()
+                    expected_error = "file_missing"
+                else:
+                    brain.write_bytes(b"\xffINVALID_OPERATOR_BODY")
+                    expected_error = "text_not_utf8"
+                self.commit_and_push()
+
+                completed = self.run_exporter()
+                self.assertEqual(completed.returncode, 1, completed.stderr)
+                self.assert_compact_stdout(completed, "FAIL")
+                packet = self.packet()
+                fields = self.fields(packet)
+                self.assertEqual(fields["REQUESTED_RESULT"], "PASS")
+                self.assertEqual(fields["EFFECTIVE_RESULT"], "FAIL")
+                self.assertEqual(fields["BRAIN_OPERATOR_VALIDATION"], "FAIL")
+                self.assertEqual(fields["BRAIN_OPERATOR_ERROR"], expected_error)
+                self.assertIn("brain_operator_artifact_invalid", fields["GATE_FAILURES"])
+                self.assertIn("BRAIN_OPERATOR_BODY=UNAVAILABLE", packet)
+                self.assertNotIn("INVALID_OPERATOR_BODY", packet)
+
+    def test_unreadable_operator_downgrades_pass(self):
+        exporter = runpy.run_path(str(self.exporter))
+        inspect = exporter["inspect_repo_text"]
+        collect = exporter["collect_gate_failures"]
+        effective = exporter["effective_result"]
+        resolved_repo = self.repo.resolve()
+        report = inspect(resolved_repo, "handoffs/CURRENT_HANDOFF.md")
+        snapshot = {
+            "clean": True,
+            "remote_sync": True,
+            "errors": [],
+        }
+        with mock.patch.object(Path, "read_bytes", autospec=True, side_effect=PermissionError):
+            brain = inspect(
+                resolved_repo,
+                "FST_AI/memory/BRAIN_OPERATOR_COMPACT.md",
+                max_bytes=None,
+            )
+
+        self.assertEqual(brain["error"], "file_unreadable")
+        failures = collect(report, brain, [], snapshot, True)
+        self.assertIn("brain_operator_artifact_invalid", failures)
+        self.assertEqual(effective("PASS", failures), "FAIL")
+
+    def test_operator_hash_failure_downgrades_pass_but_keeps_snapshot(self):
+        exporter = runpy.run_path(str(self.exporter))
+        inspect = exporter["inspect_repo_text"]
+        collect = exporter["collect_gate_failures"]
+        effective = exporter["effective_result"]
+        render = exporter["render_packet"]
+        resolved_repo = self.repo.resolve()
+        report = inspect(resolved_repo, "handoffs/CURRENT_HANDOFF.md")
+        snapshot = {
+            "repo": "cenvu/FST_V2",
+            "remote_url": "https://github.com/cenvu/FST_V2.git",
+            "branch": "main",
+            "head": "a" * 40,
+            "upstream": "origin/main",
+            "upstream_head": "a" * 40,
+            "clean": True,
+            "remote_sync": True,
+            "errors": [],
+        }
+        original_sha256 = hashlib.sha256
+
+        def fail_operator_hash(data=b"", *args, **kwargs):
+            if data == b"fixture Brain Operator body\n":
+                raise RuntimeError("simulated hash backend failure")
+            return original_sha256(data, *args, **kwargs)
+
+        with mock.patch("hashlib.sha256", side_effect=fail_operator_hash):
+            brain = inspect(
+                resolved_repo,
+                "FST_AI/memory/BRAIN_OPERATOR_COMPACT.md",
+                max_bytes=None,
+            )
+
+        failures = collect(report, brain, [], snapshot, True)
+        result = effective("PASS", failures)
+        packet = render(
+            "hash-failure-test",
+            "PASS",
+            result,
+            report,
+            brain,
+            [],
+            snapshot,
+            True,
+            failures,
+        )
+        fields = self.fields(packet)
+        self.assertEqual(brain["error"], "hash_failed")
+        self.assertIn("brain_operator_artifact_invalid", failures)
+        self.assertEqual(result, "FAIL")
+        self.assertEqual(fields["BRAIN_OPERATOR_SHA256"], "UNAVAILABLE")
+        self.assertEqual(fields["BRAIN_OPERATOR_VALIDATION"], "FAIL")
+        self.assertEqual(
+            self.embedded_operator_bytes(packet),
+            b"fixture Brain Operator body\n",
+        )
+
+    def test_operator_snapshot_has_no_inherited_8_mib_ceiling(self):
+        exporter = runpy.run_path(str(self.exporter))
+        limit = exporter["MAX_TEXT_BYTES"]
+        body = BRAIN_OPERATOR_FIXTURE.read_bytes() + b"X" * (limit + 1)
+        brain = self.repo / "FST_AI" / "memory" / "BRAIN_OPERATOR_COMPACT.md"
+        brain.write_bytes(body)
+        self.commit_and_push()
+
+        completed = self.run_exporter()
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        packet_bytes = self.packet_path.read_bytes()
+        packet = packet_bytes.decode("utf-8")
+        fields = self.fields(packet)
+        self.assertEqual(fields["BRAIN_OPERATOR_UTF8_BYTES"], str(len(body)))
+        self.assertEqual(self.embedded_operator_bytes(packet), body)
+        self.assertEqual(
+            fields["BRAIN_OPERATOR_SHA256"],
+            hashlib.sha256(body).hexdigest(),
+        )
+        self.assertGreater(len(packet_bytes), limit)
+
+    def test_exporter_uses_only_python_standard_library_imports(self):
+        tree = ast.parse(EXPORTER_SOURCE.read_text(encoding="utf-8"))
+        imported = set()
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Import):
+                imported.update(alias.name.split(".", 1)[0] for alias in node.names)
+            elif isinstance(node, ast.ImportFrom) and node.module:
+                imported.add(node.module.split(".", 1)[0])
+        allowed = {
+            "argparse", "codecs", "datetime", "hashlib", "os", "pathlib",
+            "re", "subprocess", "sys", "urllib",
+        }
+        self.assertLessEqual(imported, allowed)
 
     def test_full_report_override_remains_repo_contained_and_hashed(self):
         custom = self.repo / "handoffs" / "custom.md"
@@ -414,6 +641,11 @@ class ExportBrainReturnV2Tests(ExporterFixture):
         )
         self.assertGreater(v1_style_minimum, 0)
         self.assertLess(v2_size, v1_style_minimum * 0.5)
+        self.assertEqual(self.embedded_operator_bytes(self.packet()), brain_body)
+        self.assertEqual(
+            self.fields(self.packet())["BRAIN_OPERATOR_SHA256"],
+            hashlib.sha256(brain_body).hexdigest(),
+        )
 
 
 if __name__ == "__main__":

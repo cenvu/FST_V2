@@ -29,6 +29,19 @@ This appears to have been run before as <entry>. Do you want to rerun it, contin
 
 ## Recent Tasks
 
+### 2026-10-01 - Brain Return V2.1 Fallback Resilience
+
+- Date: 2026-10-01
+- Task ID: BRAIN_RETURN_V2_1_FALLBACK_RESILIENCE
+- Task name: Brain Return V2.1 Fallback Resilience
+- Agent: Codex local Worker / exact model UNVERIFIED
+- Status: implementation and 18/18 stdlib tests complete; verification handoff and final Git/export evidence are canonical
+- Files changed: exporter and stdlib contract tests; BRAIN Operator compact contract; Command Center/Task Registry/Work History; finalizer skill; AGENTS, FST AI README, handoff README; CURRENT, `handoffs/20261001-110825_codex-local-worker_brain-return-v2-1-fallback-resilience.md`, and one INDEX entry
+- Commit/tag/release: one coherent control-plane evidence commit; final SHA and push/fetch equality in V2.1 BRAIN packet; no release/tag
+- Safety impact: control-plane transport only; no Swift, Xcode, transfer, verification, report, or UI changes. V2 metadata and fail-closed gates are preserved; exact compact operator snapshot is fallback only.
+- Checks: stdlib unittest 18/18 PASS; exact operator bytes/hash and mutation change; missing/unreadable/non-UTF8/hash failure downgrades PASS; no 8 MiB operator ceiling; no handoff/raw bodies; dry-run, Desktop path, five-line CLI, FAIL export, and existing gate tests PASS. V2 prior Desktop packet 1,441 bytes; V2.1 representative packet 6,889 bytes with 5,459-byte operator snapshot.
+- Notes: GitHub issue list returned empty; CodeGraph MCP unavailable, direct source inspection used. Single Next Action: RETURN_TO_BRAIN.
+
 ### 2026-10-01 - Destination Capacity Headroom Decision
 
 TASK_ID=DESTINATION_CAPACITY_HEADROOM_DECISION;TASK=Destination Capacity Headroom Decision

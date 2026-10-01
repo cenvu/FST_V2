@@ -83,10 +83,10 @@ python3 FST_AI/tools/export_brain_return.py \
   [--raw <repo-relative-evidence.md> ...]
 ```
 
-   Use `--result FAIL` for a failed/blocked Worker outcome. The V2 packet
+   Use `--result FAIL` for a failed/blocked Worker outcome. The V2.1 packet
    includes Git and handoff gate fields. PASS is downgraded to FAIL if handoff
-   verification, worktree cleanliness, upstream equality, or Git observation
-   is not proven.
+   verification, worktree cleanliness, upstream equality, Git observation, or
+   valid/hashable BRAIN Operator snapshot is not proven.
 9. Return only the compact status printed by the exporter. The last line tells
    Hùng to send `~/Desktop/03_FST_BRAIN.md` to ChatGPT Web BRAIN.
 
@@ -108,10 +108,10 @@ Rules:
 - Repository artifacts remain under authorized project paths and normal Git/GitHub history.
 - The Desktop file may be overwritten on the next BRAIN return; it is not immutable history.
 - The Desktop file is never canonical authority. Repo/GitHub truth wins.
-- The packet starts with `PACKET=FST_BRAIN_RETURN_V2` and stores pointers, SHA256 values, gate state, and a sorted RAW metadata manifest.
+- The packet starts with `PACKET=FST_BRAIN_RETURN_V2_1`, preserves V2 pointers, SHA256 values, gates, explicit handoff facts, and sorted RAW metadata, then embeds exact UTF-8 `BRAIN_OPERATOR_COMPACT.md` bytes between `BRAIN_OPERATOR_BEGIN` and `BRAIN_OPERATOR_END`. Its repository path and SHA256 remain in the packet. The snapshot is fallback only; repository/GitHub content is canonical.
 - `--full-report` defaults to `handoffs/CURRENT_HANDOFF.md`; its body is never embedded.
 - `--raw` accepts repo-local UTF-8 evidence and records path, byte size, and SHA256 only.
-- BRAIN Operator is referenced and hashed at `FST_AI/memory/BRAIN_OPERATOR_COMPACT.md`; its body is never embedded.
+- The operator snapshot is validated as UTF-8, and its SHA256 must match the canonical file and embedded bytes. Missing, unreadable, invalid UTF-8, or hash failure downgrades a PASS request to FAIL. No arbitrary byte ceiling applies to the operator snapshot.
 - Explicit NOT_EXECUTED/BLOCKER lines may pass through as encoded values. The exporter does not summarize or infer handoff semantics.
 - `FST_AI/tools/export_brain_return.py` intentionally has no `--output` argument and does not enumerate or clean Desktop.
 - A FAIL result is still returned through `03_FST_BRAIN.md` when inputs are available, so BRAIN receives the evidence instead of forcing Hùng to hunt project files.

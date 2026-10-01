@@ -74,15 +74,14 @@ Every meaningful Worker prompt routed from ChatGPT Web BRAIN returns through one
 
 This is the only FST file an Agent may create, write, export, copy, or replace on Desktop. No alternate Desktop report, RAW, handoff, screenshot, prompt, or convenience copy is allowed unless Hùng explicitly changes this contract.
 
-The file is a transport envelope, never canonical authority. Its body is always:
+The file is a transport envelope, never canonical authority. `FST_BRAIN_RETURN_V2_1` preserves V2 metadata, gates, pointers, RAW manifest, and explicit handoff facts, then embeds only the exact UTF-8 compact BRAIN Operator snapshot between `BRAIN_OPERATOR_BEGIN` and `BRAIN_OPERATOR_END`. It retains the operator repository path, byte length, validation status, and SHA256. The embedded operator is a fallback snapshot; the repository remains canonical.
 
 ```text
-FULL REPORT
-+ RAW EVIDENCE
-+ BRAIN OPERATOR
+V2 METADATA + GATES + HANDOFF/RAW POINTERS AND HASHES
++ EXACT COMPACT BRAIN OPERATOR SNAPSHOT
 ```
 
-Default FULL REPORT is the canonical `handoffs/CURRENT_HANDOFF.md`. RAW always includes a fresh repository/handoff verification snapshot and may additionally embed explicit repo-local UTF-8 evidence files. BRAIN OPERATOR is loaded verbatim from `FST_AI/memory/BRAIN_OPERATOR_COMPACT.md`.
+Full handoff/report bodies, RAW evidence bodies, historical handoffs, and full Command Center/Work History/Task Registry bodies are omitted. `--raw` records metadata only. The operator snapshot has no byte ceiling; missing, unreadable, invalid UTF-8, or unhashable operator content downgrades PASS to FAIL.
 
 Finalization sequence for mutating Worker work:
 

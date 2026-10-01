@@ -21,6 +21,17 @@ Each entry must include:
 
 ## Recent History
 
+### 2026-10-01 - Brain Return V2.1 Fallback Resilience
+
+- Agent/model: Codex local Worker / exact runtime model UNVERIFIED
+- Branch/start: clean `main` at `64717e0e3fcd33d9951d05dea574af73a57247d4`, equal to fetched `origin/main`; start floor satisfied.
+- Files: V2.1 exporter and stdlib tests; operator/Command Center/finalizer policy; AGENTS/FST AI README/handoff README; required registry/history; `handoffs/20261001-110825_codex-local-worker_brain-return-v2-1-fallback-resilience.md`. No Swift/Xcode files.
+- What changed: V2 metadata/gates remain; packet now embeds exact UTF-8 bytes of the compact operator snapshot with path, length, validation status, and SHA256. Operator is fallback only; repo/GitHub canonical. Full CURRENT/historical handoffs, RAW bodies, and full control-plane memory bodies remain omitted. Invalid/missing/unreadable/unhashable operator makes requested PASS fail. Operator snapshot has no byte ceiling.
+- Verification: Python stdlib suite 18/18 PASS, including exact body/hash, body mutation, missing/unreadable/non-UTF8/hash failure, >8 MiB operator, old gates, FAIL export, dry-run, one Desktop target, five CLI lines, no full handoff/raw/control-plane bodies, and stdlib-only imports. V2 prior actual packet 1,441 bytes; V2.1 representative sample 6,889 bytes with canonical 5,459-byte operator snapshot.
+- Safety boundary: exporter/docs/tests only; no production Swift, Xcode, UI-8, headroom policy, or app behavior change. A prior test-fixture path normalization issue was corrected; final suite passed.
+- GitHub issue list returned empty; CodeGraph tools unavailable and direct source inspection used. One coherent commit/push/fetch-verify and final export evidence are in `03_FST_BRAIN.md`.
+- Single Next Action: RETURN_TO_BRAIN.
+
 ### 2026-10-01 - Destination Capacity Headroom Decision
 
 AGENT=Codex local Worker;MODEL=UNVERIFIED;BRANCH=main;START_HEAD=3d8d8a251533d22f57cb141a28c4bae9f6154a31
