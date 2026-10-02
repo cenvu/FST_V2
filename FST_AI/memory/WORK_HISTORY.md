@@ -21,6 +21,19 @@ Each entry must include:
 
 ## Recent History
 
+### 2026-10-02 - OpenDesign Visual Convergence Phase 2 — PATCH_3 Notification Live Source Capture
+
+- Task ID: `OPENDESIGN_P2_PATCH3_NOTIFICATION_LIVE_SOURCE_CAPTURE`; workstream `OPENDESIGN_VISUAL_CONVERGENCE_P2`; class `READ_ONLY_DESIGN_AUTHORITY_CAPTURE`
+- Agent/model: OpenCode/Muse local Worker (LIVE_DESIGN_READER); exact model variant not independently recorded; reader, not implementer or reviewer
+- Branch/start: clean `main` at fetched `HEAD=origin/main=f6b8e1e311ca7f3e902d742f98dd8ddb17e63dd0`
+- Change/files: three evidence files under `handoffs/evidence/opendesign-visual-convergence-p2/patch3-source/` (`PATCH3_NOTIFICATION_SOURCE_MAP.md`, `PATCH3_NOTIFICATION_IMPLEMENTATION_CONTRACT.md`, `LIVE_READ_RESULT.md`); handoff snapshot; memory bookkeeping. No production Swift file changed.
+- Safety: read-only design capture. No `NotificationTabView.swift`, `PanelStyle.swift`, `ContentView.swift`, ViewModel, `NotificationSettings`, `NotificationMessageFactory`, `TelegramNotificationService`, `NotificationCoordinator`, transfer/verify/report/SAFE TO EJECT change. No OpenDesign/Codex/tooling config repair.
+- Evidence: live OpenDesign read attempted and failed — no `list_projects`/`get_project`/`get_file`/`search_files`/`list_files` tool is exposed on this session's OpenCode/Muse surface, and repo `.mcp.json` declares only `fst-codegraph`. `LIVE_SOURCE_READ=NO`, `FALLBACK_SOURCE_USED=YES`. Frozen snapshot `handoffs/evidence/opendesign-live-transfer-p1/live-source/` used as design authority with recorded SHA256. Source map records `notificationSurface()` (`fst-c.js:252-261`), the full Notification DOM skeleton, every Notification CSS selector with exact tokens (1.5fr/1fr, gap 16, section padding 16/radius 4/1px `#343c47`/`#20252c`, control height 36, status-list gap 16, message-preview 16/1.6 SF Mono on `#11161c`), responsive rules, and the four-way semantic classification with prototype-only strings explicitly excluded.
+- Verification: `git diff --name-only` returned zero entries (no production Swift mutation); `git status --porcelain` showed only the new evidence directory; `git diff --check` passed. No `xcodebuild` run because production source is unchanged. Live-vs-frozen Notification comparison is `NOT_MEASURED`, not inferred.
+- Scope: Patch 3 implementation not started; Patch 4 Technical Log and Patch 5 polish not started. Worker did not self-accept, self-classify, or author active-next.
+- Publication: one coherent evidence/handoff commit, normal push/fetch with HEAD=origin/main and clean worktree required; final SHA and V2.1 packet gate recorded in `~/Desktop/03_FST_BRAIN.md`; no tag/release. BRAIN review pending; classification, accepted state, and active-next unset.
+- Single Worker proposal: `RETURN_TO_BRAIN_FOR_PATCH3_IMPLEMENTATION_ROUTING`.
+
 ### 2026-10-02 - OpenDesign Visual Convergence Phase 2 — PATCH_2 Transfer Rhythm
 
 - Task ID: `OPENDESIGN_VISUAL_CONVERGENCE_P2_PATCH2_TRANSFER_RHYTHM`; workstream `OPENDESIGN_VISUAL_CONVERGENCE_P2`

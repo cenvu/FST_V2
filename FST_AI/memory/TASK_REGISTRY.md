@@ -33,6 +33,20 @@ This appears to have been run before as <entry>. Do you want to rerun it, contin
 
 ## Recent Tasks
 
+### 2026-10-02 - OpenDesign Visual Convergence Phase 2 — PATCH_3 Notification Live Source Capture
+
+- Date: 2026-10-02
+- Task ID: OPENDESIGN_P2_PATCH3_NOTIFICATION_LIVE_SOURCE_CAPTURE; workstream `OPENDESIGN_VISUAL_CONVERGENCE_P2`
+- Task name: Patch 3 Notification Live Source Capture (read-only design/source map; no implementation)
+- Agent/model: OpenCode/Muse local Worker (LIVE_DESIGN_READER); exact model variant not independently recorded; READER, not implementer or reviewer
+- Status: implemented (source capture only); Patch 3 implementation NOT started
+- Branch/start: `main`; clean fetched `HEAD=origin/main=f6b8e1e311ca7f3e902d742f98dd8ddb17e63dd0`; no matching GitHub issue or duplicate Patch 3 source-capture record found
+- Files changed: `handoffs/evidence/opendesign-visual-convergence-p2/patch3-source/PATCH3_NOTIFICATION_SOURCE_MAP.md`, `.../PATCH3_NOTIFICATION_IMPLEMENTATION_CONTRACT.md`, `.../LIVE_READ_RESULT.md`; `handoffs/CURRENT_HANDOFF.md`; `FST_AI/memory/WORK_HISTORY.md`; `FST_AI/memory/TASK_REGISTRY.md`
+- Commit/tag/release: one evidence/handoff commit; no tag, no release
+- Safety impact: no production Swift change at all; no notification backend/status/factory/secret semantics touched; no tooling or OpenDesign config repair
+- Checks: `git diff --name-only` (empty), `git status --porcelain` (evidence only), `git diff --check`
+- Notes: `LIVE_SOURCE_READ=NO` (no OpenDesign MCP read tool exposed on this session surface; `.mcp.json` declares only `fst-codegraph`); `FALLBACK_SOURCE_USED=YES` using `handoffs/evidence/opendesign-live-transfer-p1/live-source/`. Prototype-only strings (`This visual prototype generates a local preview. No message is sent.`, `Enabled in preview`, `Not tested`, `No messages sent`) classified `FIXTURE_ONLY` and excluded from production.
+
 ### 2026-10-02 - OpenDesign Visual Convergence Phase 2 — PATCH_2 Transfer Rhythm
 
 - Task ID: OPENDESIGN_VISUAL_CONVERGENCE_P2_PATCH2_TRANSFER_RHYTHM; workstream `OPENDESIGN_VISUAL_CONVERGENCE_P2`
