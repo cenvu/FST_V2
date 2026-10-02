@@ -1,6 +1,7 @@
 // FST / CenVu | (+84) 842 841 222
 
 import Foundation
+import AppKit
 import XCTest
 
 private struct LocalizationTestTokenStore: TelegramTokenStore {
@@ -263,6 +264,53 @@ final class LocalizationPresentationXCTests: XCTestCase {
         XCTAssertEqual(entry.message, rawMessage)
         XCTAssertEqual(entry.timestamp, Date(timeIntervalSince1970: 123))
         XCTAssertEqual(L2PresentationLocalization.text(entry.message, locale: vietnamese, bundle: bundle), rawMessage)
+    }
+
+    func testTechnicalLogActionsAndClipboardFeedbackLocalizeENVI() throws {
+        let bundle = try localizationAppBundle()
+        let strings: [(String, String)] = [
+            ("Auto-scroll", "Tự cuộn"),
+            ("Show or hide diagnostic entries in the log view.", "Hiện hoặc ẩn các mục chẩn đoán trong nhật ký."),
+            ("Automatically scroll to the newest log entries.", "Tự cuộn đến mục nhật ký mới nhất."),
+            ("Copy All Logs", "Sao chép toàn bộ nhật ký"),
+            ("Copies the complete retained log history, including diagnostic entries.", "Sao chép toàn bộ lịch sử nhật ký hiện có, bao gồm cả các mục chẩn đoán."),
+            ("Log details", "Chi tiết nhật ký"),
+            ("Open a selectable view of the complete log history.", "Mở chế độ xem có thể chọn văn bản của toàn bộ lịch sử nhật ký."),
+            ("Check for Update", "Kiểm tra bản cập nhật"),
+            ("All log entries copied to the clipboard, including diagnostics.", "Đã sao chép toàn bộ mục nhật ký vào bộ nhớ tạm, bao gồm cả thông tin chẩn đoán."),
+            ("Could not copy logs to the clipboard. Please try again.", "Không thể sao chép nhật ký vào bộ nhớ tạm. Vui lòng thử lại."),
+            ("Full log history", "Lịch sử nhật ký đầy đủ"),
+            ("All currently retained runtime log entries are shown here, including diagnostics.", "Tại đây hiển thị toàn bộ mục nhật ký vận hành hiện có, bao gồm cả thông tin chẩn đoán."),
+            ("Close", "Đóng")
+        ]
+
+        for (englishText, vietnameseText) in strings {
+            XCTAssertEqual(L2PresentationLocalization.text(englishText, locale: AppLanguage.english.locale, bundle: bundle), englishText)
+            XCTAssertEqual(L2PresentationLocalization.text(englishText, locale: AppLanguage.vietnamese.locale, bundle: bundle), vietnameseText)
+        }
+    }
+
+    @MainActor
+    func testCopyAllLogsWritesCompleteUnfilteredHistoryToClipboard() {
+        let rawDiagnostic = "DIAG [VERIFY] source=/Volumes/SYNTHETIC/CARD_A · Permission denied"
+        let logs = [
+            LogEntry(timestamp: Date(timeIntervalSince1970: 1_790_920_000), category: .info, message: "Synthetic visible entry."),
+            LogEntry(timestamp: Date(timeIntervalSince1970: 1_790_920_004), category: .verify, message: rawDiagnostic)
+        ]
+        let visibleLogs = LogVisibilityFilter.operatorVisible(from: logs)
+        XCTAssertEqual(visibleLogs.count, 1)
+        XCTAssertEqual(logs.count, 2)
+
+        let pasteboard = NSPasteboard.withUniqueName()
+        defer { pasteboard.clearContents() }
+
+        XCTAssertTrue(TechnicalLogClipboard.copyAll(logs: logs, to: pasteboard))
+
+        let clipboardText = try! XCTUnwrap(pasteboard.string(forType: .string))
+        XCTAssertEqual(clipboardText, TechnicalLogClipboard.formattedHistory(logs))
+        XCTAssertTrue(clipboardText.contains("Synthetic visible entry."))
+        XCTAssertTrue(clipboardText.contains(rawDiagnostic))
+        XCTAssertFalse(TechnicalLogClipboard.copyAll(logs: [], to: pasteboard))
     }
 
     func testMetadataUpdateAndRsyncPresentationENVI() throws {

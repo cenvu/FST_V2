@@ -50,6 +50,7 @@
 		8A0001422FE1000000000001 /* FishSockTransfer/Localization/AppLanguage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A0000622FE1000000000001 /* FishSockTransfer/Localization/AppLanguage.swift */; };
 		8A0001432FE1000000000001 /* FishSockTransfer/Localization/TransferPresentationLocalization.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A0000632FE1000000000001 /* FishSockTransfer/Localization/TransferPresentationLocalization.swift */; };
 		8A0001442FE1000000000001 /* LocalizationPresentationXCTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A0000642FE1000000000001 /* LocalizationPresentationXCTests.swift */; };
+		8A0001452FE1000000000001 /* FishSockTransfer/Views/TechnicalLogClipboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A0000652FE1000000000001 /* FishSockTransfer/Views/TechnicalLogClipboard.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -98,6 +99,7 @@
 		8A0000622FE1000000000001 /* FishSockTransfer/Localization/AppLanguage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FishSockTransfer/Localization/AppLanguage.swift; sourceTree = SOURCE_ROOT; };
 		8A0000632FE1000000000001 /* FishSockTransfer/Localization/TransferPresentationLocalization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FishSockTransfer/Localization/TransferPresentationLocalization.swift; sourceTree = SOURCE_ROOT; };
 		8A0000642FE1000000000001 /* LocalizationPresentationXCTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalizationPresentationXCTests.swift; sourceTree = "<group>"; };
+		8A0000652FE1000000000001 /* FishSockTransfer/Views/TechnicalLogClipboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FishSockTransfer/Views/TechnicalLogClipboard.swift; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -206,6 +208,7 @@
 				8A0000612FE1000000000001 /* FishSockTransfer/Services/AppUpdateService.swift */,
 				8A0000622FE1000000000001 /* FishSockTransfer/Localization/AppLanguage.swift */,
 				8A0000632FE1000000000001 /* FishSockTransfer/Localization/TransferPresentationLocalization.swift */,
+				8A0000652FE1000000000001 /* FishSockTransfer/Views/TechnicalLogClipboard.swift */,
 			);
 			name = "Test Support Sources";
 			sourceTree = "<group>";
@@ -395,6 +398,7 @@
 				8A0001412FE1000000000001 /* FishSockTransfer/Services/AppUpdateService.swift in Sources */,
 				8A0001422FE1000000000001 /* FishSockTransfer/Localization/AppLanguage.swift in Sources */,
 				8A0001432FE1000000000001 /* FishSockTransfer/Localization/TransferPresentationLocalization.swift in Sources */,
+				8A0001452FE1000000000001 /* FishSockTransfer/Views/TechnicalLogClipboard.swift in Sources */,
 				8A0001442FE1000000000001 /* LocalizationPresentationXCTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

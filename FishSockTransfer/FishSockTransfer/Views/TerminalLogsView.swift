@@ -92,16 +92,16 @@ private struct TerminalLogTextView: NSViewRepresentable {
             context.coordinator.renderedCount = 0
         }
 
-        guard logs.count > context.coordinator.renderedCount else { return }
+        if logs.count > context.coordinator.renderedCount {
+            let newLogs = logs[context.coordinator.renderedCount..<logs.count]
+            let appendedText = NSMutableAttributedString()
+            for log in newLogs {
+                appendedText.append(context.coordinator.attributedLine(for: log))
+            }
 
-        let newLogs = logs[context.coordinator.renderedCount..<logs.count]
-        let appendedText = NSMutableAttributedString()
-        for log in newLogs {
-            appendedText.append(context.coordinator.attributedLine(for: log))
+            textView.textStorage?.append(appendedText)
+            context.coordinator.renderedCount = logs.count
         }
-
-        textView.textStorage?.append(appendedText)
-        context.coordinator.renderedCount = logs.count
 
         if autoScroll {
             let endRange = NSRange(location: textView.string.utf16.count, length: 0)

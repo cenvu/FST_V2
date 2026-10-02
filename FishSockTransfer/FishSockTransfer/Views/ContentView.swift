@@ -22,6 +22,7 @@ public struct ContentView: View {
     }()
     @State private var selectedTab: MainTab = .transfer
     @State private var showDiagnostics: Bool = false
+    @State private var autoScrollLogs: Bool = true
     
     public init() {}
     
@@ -197,7 +198,7 @@ public struct ContentView: View {
         let visibleLogs = showDiagnostics
             ? viewModel.logs
             : LogVisibilityFilter.operatorVisible(from: viewModel.logs)
-        let isAutoScrollActive = viewModel.transferState == .copying || viewModel.transferState == .verifying
+        let isTransferRunning = viewModel.transferState == .copying || viewModel.transferState == .verifying
 
         return VStack(alignment: .leading, spacing: 0) {
             VStack(alignment: .leading, spacing: 2) {
@@ -211,25 +212,15 @@ public struct ContentView: View {
             }
             .padding(.bottom, 12)
 
-            HStack(spacing: 16) {
-                Toggle(isOn: $showDiagnostics) {
-                    Text("Show Diagnostics")
-                        .font(.system(size: 14))
-                        .foregroundStyle(FSTPalette.text)
-                }
-                .toggleStyle(.checkbox)
-
-                if isAutoScrollActive {
-                    Text("Auto-scroll active")
-                        .font(.system(size: 12))
-                        .foregroundStyle(FSTPalette.active)
-                }
-
-                Spacer(minLength: 0)
-            }
+            TechnicalLogsActionBar(
+                showDiagnostics: $showDiagnostics,
+                autoScroll: $autoScrollLogs,
+                logs: viewModel.logs,
+                isTransferRunning: isTransferRunning
+            )
             .padding(.bottom, 8)
 
-            TerminalLogsView(logs: visibleLogs, autoScroll: isAutoScrollActive)
+            TerminalLogsView(logs: visibleLogs, autoScroll: autoScrollLogs)
                 .frame(maxWidth: .infinity, maxHeight: 520)
 
             HStack(spacing: 12) {
@@ -247,30 +238,11 @@ public struct ContentView: View {
                     .multilineTextAlignment(.trailing)
             }
             .padding(.top, 8)
-
-            TechnicalLogsMetadataFooter(
-                rsyncVersionText: rsyncHeaderBadgeText,
-                isRsyncAvailable: viewModel.bundledRsyncInfo.isAvailable,
-                isTransferRunning: isAutoScrollActive
-            )
-            .padding(.top, 12)
-            .frame(maxWidth: .infinity, alignment: .center)
         }
         .padding(.horizontal, 24)
         .padding(.top, 12)
         .padding(.bottom, 12)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-    }
-
-
-
-    private var rsyncHeaderBadgeText: String {
-        let info = viewModel.bundledRsyncInfo
-        return L2PresentationLocalization.bundledRsyncStatus(
-            isAvailable: info.isAvailable,
-            version: info.version,
-            firstDiagnostic: info.diagnostics.first ?? ""
-        )
     }
 }
 
@@ -337,145 +309,5 @@ struct SocialIconLink: View {
                 isHovered = hovering
             }
         }
-    }
-}
-
-struct TechnicalLogsMetadataFooter: View {
-    @Environment(\.locale) private var locale
-    let rsyncVersionText: String
-    let isRsyncAvailable: Bool
-    let isTransferRunning: Bool
-
-    @StateObject private var updateVM = TechnicalLogsUpdateViewModel()
-
-    var body: some View {
-        HStack(spacing: 12) {
-            MetadataBadge(label: "version", value: "v1.3.5", helpText: "App version from README.md", isError: false)
-            MetadataBadge(
-                label: "bundled rsync",
-                value: L2PresentationLocalization.rsyncStatusValue(
-                    rsyncVersionText,
-                    isAvailable: isRsyncAvailable,
-                    locale: locale
-                ),
-                helpText: "Bundled rsync version used by FST",
-                isError: !isRsyncAvailable
-            )
-            MetadataBadge(label: "license", value: "Source Available / Non-Commercial", helpText: "Project license from README.md", isError: false)
-
-            Spacer()
-
-            updateCheckUI
-        }
-    }
-
-    @ViewBuilder
-    private var updateCheckUI: some View {
-        HStack(spacing: 8) {
-            switch updateVM.state {
-            case .idle:
-                EmptyView()
-            case .checking:
-                HStack(spacing: 4) {
-                    ProgressView()
-                        .controlSize(.small)
-                        .scaleEffect(0.5)
-                    Text("Checking...")
-                        .font(.system(size: 10.5, weight: .regular))
-                        .foregroundColor(.secondary)
-                }
-            case .upToDate:
-                Text("Up to date")
-                    .font(.system(size: 10.5, weight: .regular))
-                    .foregroundColor(.secondary)
-            case .updateAvailable(_, let latestVersion, let releaseURL, let downloadURL):
-                HStack(spacing: 6) {
-                    Text(L2PresentationLocalization.updateAvailable(version: latestVersion, locale: locale))
-                        .font(.system(size: 10.5, weight: .medium))
-                        .foregroundColor(Color(NSColor.controlAccentColor))
-
-                    Button("View Release") {
-                        NSWorkspace.shared.open(releaseURL)
-                    }
-                    .buttonStyle(.link)
-                    .font(.system(size: 10.5, weight: .regular))
-
-                    if let downloadURL = downloadURL {
-                        Button("Download") {
-                            NSWorkspace.shared.open(downloadURL)
-                        }
-                        .buttonStyle(.link)
-                        .font(.system(size: 10.5, weight: .regular))
-                    }
-                }
-            case .failed:
-                Text("Update check failed")
-                    .font(.system(size: 10.5, weight: .regular))
-                    .foregroundColor(.orange)
-            }
-
-            Button(action: {
-                updateVM.checkForUpdates()
-            }) {
-                Text("Check for Updates")
-                    .font(.system(size: 10.5, weight: .medium))
-                    .foregroundColor(isTransferRunning || isChecking ? .secondary.opacity(0.5) : .primary)
-                    .padding(.horizontal, 6)
-                    .padding(.vertical, 3)
-                    .background(Color(NSColor.controlBackgroundColor).opacity(0.5))
-                    .clipShape(RoundedRectangle(cornerRadius: 4))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 4)
-                            .stroke(Color.secondary.opacity(0.2), lineWidth: 1)
-                    )
-            }
-            .buttonStyle(.plain)
-            .disabled(isTransferRunning || isChecking)
-            .help(L2PresentationLocalization.text(
-                isTransferRunning
-                    ? "Update checks are disabled while transfer or verification is running."
-                    : "Check GitHub for the latest release",
-                locale: locale
-            ))
-        }
-    }
-
-    private var isChecking: Bool {
-        if case .checking = updateVM.state {
-            return true
-        }
-        return false
-    }
-}
-
-struct MetadataBadge: View {
-    @Environment(\.locale) private var locale
-    let label: String
-    let value: String
-    let helpText: String
-    let isError: Bool
-
-    var body: some View {
-        HStack(spacing: 0) {
-            Text(L2PresentationLocalization.text(label, locale: locale))
-                .font(.system(size: 10.5, weight: .regular))
-                .foregroundColor(.secondary)
-                .padding(.horizontal, 6)
-                .padding(.vertical, 3)
-                .background(Color(NSColor.controlBackgroundColor).opacity(0.5))
-            
-            Text(value)
-                .font(.system(size: 10.5, weight: .medium))
-                .foregroundColor(isError ? .orange : .primary)
-                .padding(.horizontal, 6)
-                .padding(.vertical, 3)
-                .background(isError ? Color.orange.opacity(0.16) : Color.secondary.opacity(0.15))
-        }
-        .clipShape(RoundedRectangle(cornerRadius: 4))
-        .overlay(
-            RoundedRectangle(cornerRadius: 4)
-                .stroke(isError ? Color.orange.opacity(0.3) : Color.secondary.opacity(0.2), lineWidth: 1)
-        )
-        .help(L2PresentationLocalization.text(helpText, locale: locale))
     }
 }

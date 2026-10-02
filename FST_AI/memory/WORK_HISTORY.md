@@ -21,6 +21,17 @@ Each entry must include:
 
 ## Recent History
 
+### 2026-10-03 - Visual Convergence Finalization — Technical Log Canonical Match + Copy All Logs
+
+- Task ID `OPENDESIGN_VISUAL_CONVERGENCE_P2_TECHNICAL_LOG_FINALIZATION`; workstream `OPENDESIGN_VISUAL_CONVERGENCE_P2`; Codex implementer; initial fetched `main=origin/main=3c6b449948b415fcc8c9273d5dd396f17d408c69`; a preexisting `Localizable.xcstrings` catalog refresh was preserved and extended
+- Changed production: `ContentView.swift`, `TerminalLogsView.swift`, new `TechnicalLogsActionBar.swift`, new `TechnicalLogClipboard.swift`, `TransferPresentationLocalization.swift`, `Localizable.xcstrings`, `LocalizationPresentationXCTests.swift`, and test-source registration in `project.pbxproj`
+- Behavior: top Technical Log action row includes Show Diagnostics, Auto-scroll, Copy All Logs, Log details, and Check for Update; clipboard writes complete retained `TransferViewModel.logs`, including filtered diagnostics; success/failure feedback is String Catalog localized EN/VI; metadata footer removed; log details opens full selectable retained history
+- Evidence: `handoffs/evidence/visual-convergence-finalization/` contains EN/VI nominal/minimum Transfer, Notification, Technical Log screenshots, capture logs/harness, visual comparison, capture method, and validation
+- Safety: no change to log storage/filter classification, transfer/verification/report/update/notification semantics, source media, or safety state; synthetic fixtures only, no transfer, notification send, or update request
+- Checks: final fresh DerivedData suite 298/0/0; first run had one transient exFAT fixture detach failure after its own cleanup retry passed, then read-only disk checks and full fresh retry passed; focused clipboard 1/0/0; localization group 13/0/0; built Vietnamese catalog resource and project/catalog plist validation pass; `git diff --check` pass
+- Publication: commit/push/fetch verification and BRAIN packet export recorded in the current handoff; no tag/release
+- Worker proposal only: `RETURN_TO_BRAIN_FOR_VISUAL_CONVERGENCE_FINAL_REVIEW`; BRAIN review pending, classification/accepted state unset, active-next none
+
 ### 2026-10-02 - FST EN/VI Localization L2 — Notification + Technical Log + Audit
 
 - Task ID `FST_EN_VI_LOCALIZATION_L2_NOTIFICATION_LOGS_AUDIT`; workstream `FST_EN_VI_LOCALIZATION`; Codex implementer
