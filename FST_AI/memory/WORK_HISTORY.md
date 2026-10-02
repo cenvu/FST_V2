@@ -21,6 +21,18 @@ Each entry must include:
 
 ## Recent History
 
+### 2026-10-02 - OpenDesign Visual Convergence Phase 2 — PATCH_5 Final Polish
+
+- Task ID: `OPENDESIGN_VISUAL_CONVERGENCE_P2_PATCH5_FINAL_POLISH`; workstream `OPENDESIGN_VISUAL_CONVERGENCE_P2`; class final bounded whole-app visual convergence; role IMPLEMENTER
+- Start: clean `main`; fetched `HEAD=origin/main=28c8a486d73b71da9dc64cebdee71a432dc27bda`; no matching GitHub issue or prior Patch 5 run
+- Changed: no production paths. Added whole-app deterministic Dark Aqua captures, capture harness, cross-screen gap matrix, Pass A comparison, final gap report, behavior/security/scope review, validation and evidence index under `handoffs/evidence/opendesign-visual-convergence-p2/patch5/`
+- Visual review: nominal 1120×760 and minimum 900×660. Required Transfer, Notification, Technical Log, and terminal states captured; Preparing and Manual Check Required also captured from existing presentation fixtures. Twenty matching BEFORE/AFTER pairs have identical dimensions and SHA256. No material correctable visual-only gap found; Pass B not required; Worker did not self-accept parity
+- Minimum QA: Transfer document 602pt in 565pt viewport (37pt tail scroll); Notification 702pt in 565pt viewport (137pt scroll); scrolled images show controls reachable. Technical Log toolbar/feed/activity/metadata/update controls fit above fixed footer
+- Safety: no production, backend, service, model, test, project, harness-config, notification, log, update, report, capacity, verification, transfer, source-media, or SAFE TO EJECT behavior changed. Fixtures are synthetic; token store is empty/fake and notification service traps on send. No owner media/credentials/logs, actual transfer, verification, notification send, or update request
+- Checks: canonical Debug build succeeded; existing `TransferControlsLabelTests` passed; one fresh serial canonical suite passed 285/0/0; no retry. Native capture source compilation succeeded. Diff and production scope gates pass
+- Publication: evidence/handoff-only commit; no tag/release. BRAIN review pending; classification, accepted state, and active-next remain unset
+- Single Worker proposal: `RETURN_TO_BRAIN_FOR_FINAL_VISUAL_ADJUDICATION`
+
 ### 2026-10-02 - OpenDesign Visual Convergence Phase 2 — PATCH_4 Technical Log
 
 - Task ID: `OPENDESIGN_VISUAL_CONVERGENCE_P2_PATCH4_TECHNICAL_LOG`; workstream `OPENDESIGN_VISUAL_CONVERGENCE_P2`; role IMPLEMENTER
