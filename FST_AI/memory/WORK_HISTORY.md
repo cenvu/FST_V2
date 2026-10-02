@@ -21,6 +21,16 @@ Each entry must include:
 
 ## Recent History
 
+### 2026-10-02 - FST EN/VI Localization L2 — Notification + Technical Log + Audit
+
+- Task ID `FST_EN_VI_LOCALIZATION_L2_NOTIFICATION_LOGS_AUDIT`; workstream `FST_EN_VI_LOCALIZATION`; Codex implementer
+- Reanchor: fetched clean `main` at requested `HEAD=origin/main=e4fa800902478899930d04c85a144c6b8d9147ab`; exact GitHub issue not found; CodeGraph unavailable, so direct source/test inspection used
+- Changed production: existing English-source `Localizable.xcstrings` extended from 127 to 195 entries, bounded shared EN/VI presentation lookup, Notification and Technical Log shell presentation, update metadata/status and social accessibility labels, localization XCTest coverage
+- Evidence: L2 pre-edit inventory, final untranslated audit, behavior review, visual QA, validation, evidence index, and scope gate under `handoffs/evidence/localization-l2/`; 18 Dark Aqua synthetic screenshots; capture harness uses empty isolated token storage and a no-send trap
+- Safety/behavior: raw NotificationSettings enum values/Codable semantics, token/Keychain path, notification factory payload, log content, updater network behavior, transfer/verification/report/safe-to-eject logic unchanged. English Telegram preview remains exact factory output. No owner media/token, send, transfer, or update request used.
+- Checks: canonical Debug PASS; focused localization 11/0/0; notification/log/update/runtime/capacity regression 167/0/0; standalone `TransferControlsLabelTests` PASS; fresh full canonical XCTest 296/0/0; 195/195 catalog entries translated; built `vi.lproj/Localizable.strings` passes `plutil -lint`; `git diff --check` PASS
+- Handoff: BRAIN review pending; classification/accepted state unset; active-next none. One proposed next: `RETURN_TO_BRAIN_FOR_FINAL_LOCALIZATION_ADJUDICATION`. Final commit SHA and remote synchronization will be verified and carried by the post-push Desktop exporter packet.
+
 ### 2026-10-02 - FST EN/VI Localization L1 — Settings + Transfer
 
 - Task ID `FST_EN_VI_LOCALIZATION_L1_TRANSFER_AND_SETTINGS`; workstream `FST_EN_VI_LOCALIZATION`; Codex implementer, model GPT-6

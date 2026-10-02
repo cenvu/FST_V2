@@ -134,6 +134,243 @@ final class LocalizationPresentationXCTests: XCTestCase {
         )
     }
 
+    func testNotificationStaticAndKnownDynamicPresentationENVI() throws {
+        let bundle = try localizationAppBundle()
+        let english = AppLanguage.english.locale
+        let vietnamese = AppLanguage.vietnamese.locale
+        let notifications: [(String, String)] = [
+            ("Notifications", "Thông báo"),
+            ("Optional · best-effort · separate from job safety", "Tùy chọn · cố gắng tối đa · độc lập với an toàn tác vụ"),
+            ("Telegram Setup", "Thiết lập Telegram"),
+            ("Notification delivery never changes transfer or verification results.", "Việc gửi thông báo không làm thay đổi kết quả sao chép hoặc xác minh."),
+            ("Enable Telegram Notification", "Bật thông báo Telegram"),
+            ("Bot Token", "Bot Token"),
+            ("Chat ID", "Chat ID"),
+            ("Test Message", "Gửi thử"),
+            ("Notify Events", "Sự kiện thông báo"),
+            ("Job starts", "Bắt đầu tác vụ"),
+            ("Heartbeat while running", "Trạng thái định kỳ khi đang chạy"),
+            ("Transfer fails", "Sao chép thất bại"),
+            ("Copy completed", "Sao chép hoàn tất"),
+            ("Verify completed / Safe to eject", "Xác minh hoàn tất / Có thể tháo ổ an toàn"),
+            ("Heartbeat Interval", "Chu kỳ trạng thái"),
+            ("Message Detail", "Mức chi tiết"),
+            ("Notification Status", "Trạng thái thông báo"),
+            ("Telegram status", "Trạng thái Telegram"),
+            ("Connection status", "Trạng thái kết nối"),
+            ("Last message", "Tin nhắn gần nhất"),
+            ("Last error", "Lỗi gần nhất"),
+            ("Message Preview", "Xem trước tin nhắn"),
+            ("Stored in Keychain. The token is not shown in plain text.", "Được lưu trong Keychain. Token không hiển thị ở dạng văn bản thông thường."),
+            ("Telegram notification is optional and best-effort. It never changes transfer, verify, report, or SAFE TO EJECT results.", "Thông báo Telegram là tùy chọn và sẽ cố gắng gửi tối đa. Thông báo không làm thay đổi kết quả sao chép, xác minh, báo cáo hoặc trạng thái CÓ THỂ THÁO Ổ AN TOÀN.")
+        ]
+        for (source, translated) in notifications {
+            XCTAssertEqual(L2PresentationLocalization.text(source, locale: english, bundle: bundle), source)
+            XCTAssertEqual(L2PresentationLocalization.text(source, locale: vietnamese, bundle: bundle), translated)
+        }
+
+        let dynamicValues: [(String, String)] = [
+            ("15 minutes", "15 phút"),
+            ("30 minutes", "30 phút"),
+            ("Compact", "Gọn"),
+            ("Standard", "Tiêu chuẩn"),
+            ("Disabled", "Đã tắt"),
+            ("Not Configured", "Chưa cấu hình"),
+            ("Enabled", "Đã bật"),
+            ("Not Tested", "Chưa kiểm tra"),
+            ("Ready", "Sẵn sàng"),
+            ("Error", "Lỗi"),
+            ("No messages sent", "Chưa gửi tin nhắn")
+        ]
+        for (source, translated) in dynamicValues {
+            XCTAssertEqual(L2PresentationLocalization.text(source, locale: english, bundle: bundle), source)
+            XCTAssertEqual(L2PresentationLocalization.text(source, locale: vietnamese, bundle: bundle), translated)
+        }
+
+        XCTAssertEqual(TelegramHeartbeatInterval.fifteenMinutes.rawValue, 15)
+        XCTAssertEqual(TelegramHeartbeatInterval.thirtyMinutes.rawValue, 30)
+        XCTAssertEqual(TelegramMessageDetail.compact.rawValue, "Compact")
+        XCTAssertEqual(TelegramMessageDetail.standard.rawValue, "Standard")
+
+        let runtimeError = "synthetic Telegram transport error: HTTP 503 / request-id 42"
+        let runtimeStatus = "Skipped duplicate heartbeat event"
+        XCTAssertEqual(L2PresentationLocalization.text(runtimeError, locale: vietnamese, bundle: bundle), runtimeError)
+        XCTAssertEqual(L2PresentationLocalization.text(runtimeStatus, locale: vietnamese, bundle: bundle), runtimeStatus)
+    }
+
+    func testNotificationPreviewIsExactFactoryOutputAndLocaleIndependent() throws {
+        let bundle = try localizationAppBundle()
+        let settings = NotificationSettings(messageDetail: .standard)
+        let source = "CARD_A"
+        let destination = "RAID_A"
+        let preview = NotificationMessageFactory.preview(
+            settings: settings,
+            sourceName: source,
+            destinationName: destination
+        )
+        let factoryOutput = NotificationMessageFactory.message(
+            for: .heartbeat,
+            context: NotificationTransferContext(
+                sourceName: source,
+                destinationName: destination,
+                phase: "Copying",
+                progressPercent: 42,
+                elapsedSeconds: 12 * 60,
+                etaSeconds: 18 * 60
+            ),
+            detail: .standard
+        )
+        let expected = "FST heartbeat\nSource: CARD_A\nDestination: RAID_A\nPhase: Copying\nProgress: 42%\nElapsed: 12:00\nETA: 18:00"
+
+        XCTAssertEqual(preview, factoryOutput)
+        XCTAssertEqual(preview, expected)
+        XCTAssertEqual(L2PresentationLocalization.text("Message Preview", locale: AppLanguage.english.locale, bundle: bundle), "Message Preview")
+        XCTAssertEqual(L2PresentationLocalization.text("Message Preview", locale: AppLanguage.vietnamese.locale, bundle: bundle), "Xem trước tin nhắn")
+        XCTAssertEqual(
+            NotificationMessageFactory.preview(settings: settings, sourceName: source, destinationName: destination),
+            preview
+        )
+    }
+
+    func testTechnicalLogShellLocalizesWithoutChangingRawEntries() throws {
+        let bundle = try localizationAppBundle()
+        let english = AppLanguage.english.locale
+        let vietnamese = AppLanguage.vietnamese.locale
+        let shell: [(String, String)] = [
+            ("Technical Log", "Nhật ký kỹ thuật"),
+            ("Operational runtime log · Diagnostics optional", "Nhật ký vận hành · Có thể bật chẩn đoán"),
+            ("Show Diagnostics", "Hiện chẩn đoán"),
+            ("Auto-scroll active", "Tự cuộn đang bật"),
+            ("Filtering does not change the complete log.", "Bộ lọc không thay đổi nhật ký đầy đủ."),
+            ("No log entries yet", "Chưa có mục nhật ký"),
+            ("Select source and destination, then start a job.", "Chọn nguồn và đích, sau đó bắt đầu tác vụ.")
+        ]
+        for (source, translated) in shell {
+            XCTAssertEqual(L2PresentationLocalization.text(source, locale: english, bundle: bundle), source)
+            XCTAssertEqual(L2PresentationLocalization.text(source, locale: vietnamese, bundle: bundle), translated)
+        }
+        XCTAssertEqual(L2PresentationLocalization.logEntrySummary(visible: 3, total: 7, locale: english, bundle: bundle), "3 visible / 7 total entries")
+        XCTAssertEqual(L2PresentationLocalization.logEntrySummary(visible: 3, total: 7, locale: vietnamese, bundle: bundle), "3 mục đang hiển thị / tổng số 7 mục")
+
+        let rawMessage = "rsync: synthetic stderr /Volumes/SYNTHETIC/CARD_A\npermission denied"
+        let entry = LogEntry(
+            id: UUID(uuidString: "00000000-0000-0000-0000-000000000123")!,
+            timestamp: Date(timeIntervalSince1970: 123),
+            category: .stderr,
+            message: rawMessage
+        )
+        XCTAssertEqual(entry.level, "ERROR")
+        XCTAssertEqual(entry.message, rawMessage)
+        XCTAssertEqual(entry.timestamp, Date(timeIntervalSince1970: 123))
+        XCTAssertEqual(L2PresentationLocalization.text(entry.message, locale: vietnamese, bundle: bundle), rawMessage)
+    }
+
+    func testMetadataUpdateAndRsyncPresentationENVI() throws {
+        let bundle = try localizationAppBundle()
+        let english = AppLanguage.english.locale
+        let vietnamese = AppLanguage.vietnamese.locale
+        let metadata: [(String, String)] = [
+            ("version", "phiên bản"),
+            ("bundled rsync", "rsync đi kèm"),
+            ("license", "giấy phép"),
+            ("App version from README.md", "Phiên bản ứng dụng theo README.md"),
+            ("Bundled rsync version used by FST", "Phiên bản rsync đi kèm được FST sử dụng"),
+            ("Project license from README.md", "Giấy phép dự án theo README.md"),
+            ("Checking...", "Đang kiểm tra..."),
+            ("Up to date", "Đã cập nhật"),
+            ("Update available: v%@", "Có bản cập nhật: v%@"),
+            ("View Release", "Xem bản phát hành"),
+            ("Download", "Tải xuống"),
+            ("Update check failed", "Kiểm tra cập nhật thất bại"),
+            ("Check for Updates", "Kiểm tra cập nhật"),
+            ("Update checks are disabled while transfer or verification is running.", "Không thể kiểm tra cập nhật khi đang sao chép hoặc xác minh."),
+            ("Check GitHub for the latest release", "Kiểm tra bản phát hành mới nhất trên GitHub"),
+            ("missing", "không tìm thấy"),
+            ("not executable", "không thể thực thi"),
+            ("wrong version %@", "sai phiên bản %@"),
+            ("timeout", "hết thời gian chờ"),
+            ("invalid", "không hợp lệ"),
+            ("unavailable", "không khả dụng")
+        ]
+        for (source, translated) in metadata {
+            XCTAssertEqual(L2PresentationLocalization.text(source, locale: english, bundle: bundle), source)
+            XCTAssertEqual(L2PresentationLocalization.text(source, locale: vietnamese, bundle: bundle), translated)
+        }
+        XCTAssertEqual(L2PresentationLocalization.updateAvailable(version: "1.3.6", locale: english, bundle: bundle), "Update available: v1.3.6")
+        XCTAssertEqual(L2PresentationLocalization.updateAvailable(version: "1.3.6", locale: vietnamese, bundle: bundle), "Có bản cập nhật: v1.3.6")
+
+        XCTAssertEqual(L2PresentationLocalization.rsyncStatusValue("Bundled rsync 3.4.4", isAvailable: true, locale: vietnamese, bundle: bundle), "3.4.4")
+        XCTAssertEqual(L2PresentationLocalization.rsyncStatusValue("Bundled rsync missing", isAvailable: false, locale: english, bundle: bundle), "missing")
+        XCTAssertEqual(L2PresentationLocalization.rsyncStatusValue("Bundled rsync missing", isAvailable: false, locale: vietnamese, bundle: bundle), "không tìm thấy")
+        XCTAssertEqual(L2PresentationLocalization.rsyncStatusValue("Bundled rsync not executable", isAvailable: false, locale: vietnamese, bundle: bundle), "không thể thực thi")
+        XCTAssertEqual(L2PresentationLocalization.rsyncStatusValue("Bundled rsync wrong version 3.3.0", isAvailable: false, locale: vietnamese, bundle: bundle), "sai phiên bản 3.3.0")
+        XCTAssertEqual(L2PresentationLocalization.rsyncStatusValue("Bundled rsync timeout", isAvailable: false, locale: vietnamese, bundle: bundle), "hết thời gian chờ")
+        XCTAssertEqual(L2PresentationLocalization.rsyncStatusValue("Bundled rsync invalid", isAvailable: false, locale: vietnamese, bundle: bundle), "không hợp lệ")
+        XCTAssertEqual(L2PresentationLocalization.rsyncStatusValue("Bundled rsync unavailable", isAvailable: false, locale: vietnamese, bundle: bundle), "không khả dụng")
+        let unknownStatus = "Bundled rsync unexpected diagnostic"
+        XCTAssertEqual(L2PresentationLocalization.rsyncStatusValue(unknownStatus, isAvailable: false, locale: vietnamese, bundle: bundle), unknownStatus)
+
+        let classificationCases: [(String, String)] = [
+            ("DIAG: NOT EXECUTABLE; missing fallback", "Bundled rsync not executable"),
+            ("Bundled file is missing", "Bundled rsync missing"),
+            ("version mismatch: found 3.3.0", "Bundled rsync wrong version 3.3.0"),
+            ("version command timed out", "Bundled rsync timeout"),
+            ("unrecognized rsync output", "Bundled rsync invalid"),
+            ("permission denied", "Bundled rsync unavailable")
+        ]
+        for (diagnostic, expectedStatus) in classificationCases {
+            let originalDiagnostic = diagnostic
+            let status = L2PresentationLocalization.bundledRsyncStatus(
+                isAvailable: false,
+                version: "3.3.0",
+                firstDiagnostic: diagnostic
+            )
+            XCTAssertEqual(status, expectedStatus)
+            XCTAssertEqual(diagnostic, originalDiagnostic)
+            let translatedStatus = L2PresentationLocalization.rsyncStatusValue(
+                status,
+                isAvailable: false,
+                locale: vietnamese,
+                bundle: bundle
+            )
+            XCTAssertNotEqual(translatedStatus, status)
+        }
+        let availableStatus = L2PresentationLocalization.bundledRsyncStatus(
+            isAvailable: true,
+            version: "3.4.4",
+            firstDiagnostic: "ignored diagnostic"
+        )
+        XCTAssertEqual(availableStatus, "Bundled rsync 3.4.4")
+        XCTAssertEqual(L2PresentationLocalization.rsyncStatusValue(availableStatus, isAvailable: true, locale: vietnamese, bundle: bundle), "3.4.4")
+
+        let socialLabels: [(String, String)] = [
+            ("Open CenVu Facebook", "Mở Facebook của CenVu"),
+            ("Open CenVu Instagram", "Mở Instagram của CenVu"),
+            ("Message CenVu on WhatsApp", "Nhắn tin cho CenVu qua WhatsApp"),
+            ("Message CenVu on Telegram", "Nhắn tin cho CenVu qua Telegram")
+        ]
+        for (source, translated) in socialLabels {
+            XCTAssertEqual(L2PresentationLocalization.text(source, locale: english, bundle: bundle), source)
+            XCTAssertEqual(L2PresentationLocalization.text(source, locale: vietnamese, bundle: bundle), translated)
+        }
+    }
+
+    func testSettingsCatalogStringsSwitchAndEndonymsRemainStable() throws {
+        let bundle = try localizationAppBundle()
+        let settings: [(String, String)] = [
+            ("General", "Chung"),
+            ("Language", "Ngôn ngữ"),
+            ("Application Language", "Ngôn ngữ ứng dụng"),
+            ("Changes apply immediately.", "Thay đổi được áp dụng ngay.")
+        ]
+        for (source, translated) in settings {
+            XCTAssertEqual(catalogText(source, locale: AppLanguage.english.locale, bundle: bundle), source)
+            XCTAssertEqual(catalogText(source, locale: AppLanguage.vietnamese.locale, bundle: bundle), translated)
+        }
+        XCTAssertEqual(AppLanguage.english.endonym, "English")
+        XCTAssertEqual(AppLanguage.vietnamese.endonym, "Tiếng Việt")
+    }
+
     @MainActor
     func testLanguageSwitchChangesPresentationWithoutResettingTransferFixture() throws {
         let languageSuite = "FSTLanguageSwitchTests-\(UUID().uuidString)"
@@ -216,6 +453,24 @@ final class LocalizationPresentationXCTests: XCTestCase {
             domain: "FST.LocalizationTests",
             code: 1,
             userInfo: [NSLocalizedDescriptionKey: "Could not locate the built FishSockTransfer.app String Catalog resources."]
+        )
+    }
+
+    private func catalogText(_ english: String, locale: Locale, bundle: Bundle) -> String {
+        let languageCode = locale.identifier
+            .split(whereSeparator: { $0 == "_" || $0 == "-" })
+            .first
+            .map(String.init) ?? locale.identifier
+        guard languageCode == "vi",
+              let localizationPath = bundle.path(forResource: languageCode, ofType: "lproj"),
+              let localizationBundle = Bundle(path: localizationPath) else {
+            return english
+        }
+        return String(
+            localized: String.LocalizationValue(stringLiteral: english),
+            table: "Localizable",
+            bundle: localizationBundle,
+            locale: locale
         )
     }
 }

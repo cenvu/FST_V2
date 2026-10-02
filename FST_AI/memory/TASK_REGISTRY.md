@@ -33,6 +33,19 @@ This appears to have been run before as <entry>. Do you want to rerun it, contin
 
 ## Recent Tasks
 
+### 2026-10-02 - FST_EN_VI_LOCALIZATION_L2_NOTIFICATION_LOGS_AUDIT
+
+- Task name: FST EN/VI Localization L2 — Notification + Technical Log + Audit
+- Agent: Codex, implementer
+- Status: implementation complete; BRAIN review pending
+- Start: clean fetched `main` at requested `HEAD=origin/main=e4fa800902478899930d04c85a144c6b8d9147ab`; matching GitHub issue not found; CodeGraph unavailable
+- Production files: `Localizable.xcstrings`; `TransferPresentationLocalization.swift`; `NotificationTabView.swift`; presentation-only `ContentView.swift`; `LocalizationPresentationXCTests.swift`
+- Evidence: `handoffs/evidence/localization-l2/` inventory, audit, behavior, visual, validation, evidence index, scope gate, capture harness, and 18 synthetic EN/VI screenshots
+- Safety impact: presentation-only. Raw notification errors/statuses outside allowlist, exact Telegram outbound payload, raw Technical Log entries, persisted enum values, update requests, transfer/verify/report behavior, and SAFE TO EJECT logic remain unchanged. No owner token/media, send, transfer, or updater request used.
+- Checks: Debug build PASS; focused localization 11/0/0; relevant regression 167/0/0; standalone TransferControlsLabelTests PASS; fresh full canonical suite 296/0/0; String Catalog 195/195 translated; Vietnamese app resource and `plutil` PASS; diff check PASS
+- Commit/tag/release: one coherent main commit and requested push/fetch verification; final SHA/sync/clean state recorded in the post-push Desktop return packet; no tag/release
+- Worker proposed next: `RETURN_TO_BRAIN_FOR_FINAL_LOCALIZATION_ADJUDICATION`; BRAIN classification/accepted state unset; active-next none
+
 ### 2026-10-02 - FST_EN_VI_LOCALIZATION_L1_TRANSFER_AND_SETTINGS
 
 - Task name: FST EN/VI Localization L1 — Settings + Transfer

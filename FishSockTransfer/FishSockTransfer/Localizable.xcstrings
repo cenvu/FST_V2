@@ -1270,6 +1270,686 @@
           }
         }
       }
+    },
+    "%1$d visible / %2$d total entries": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$d mục đang hiển thị / tổng số %2$d mục"
+          }
+        }
+      }
+    },
+    "15 minutes": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "15 phút"
+          }
+        }
+      }
+    },
+    "30 minutes": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "30 phút"
+          }
+        }
+      }
+    },
+    "App version from README.md": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Phiên bản ứng dụng theo README.md"
+          }
+        }
+      }
+    },
+    "Auto-scroll active": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tự cuộn đang bật"
+          }
+        }
+      }
+    },
+    "Bot Token": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bot Token"
+          }
+        }
+      }
+    },
+    "Bundled rsync version used by FST": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Phiên bản rsync đi kèm được FST sử dụng"
+          }
+        }
+      }
+    },
+    "Chat ID": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chat ID"
+          }
+        }
+      }
+    },
+    "Check GitHub for the latest release": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kiểm tra bản phát hành mới nhất trên GitHub"
+          }
+        }
+      }
+    },
+    "Check for Updates": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kiểm tra cập nhật"
+          }
+        }
+      }
+    },
+    "Checking...": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đang kiểm tra..."
+          }
+        }
+      }
+    },
+    "Compact": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gọn"
+          }
+        }
+      }
+    },
+    "Connection status": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trạng thái kết nối"
+          }
+        }
+      }
+    },
+    "Copy completed": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sao chép hoàn tất"
+          }
+        }
+      }
+    },
+    "Disabled": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đã tắt"
+          }
+        }
+      }
+    },
+    "Download": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tải xuống"
+          }
+        }
+      }
+    },
+    "Enable Telegram Notification": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bật thông báo Telegram"
+          }
+        }
+      }
+    },
+    "Enabled": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đã bật"
+          }
+        }
+      }
+    },
+    "Error": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lỗi"
+          }
+        }
+      }
+    },
+    "Filtering does not change the complete log.": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bộ lọc không thay đổi nhật ký đầy đủ."
+          }
+        }
+      }
+    },
+    "Heartbeat Interval": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chu kỳ trạng thái"
+          }
+        }
+      }
+    },
+    "Heartbeat while running": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trạng thái định kỳ khi đang chạy"
+          }
+        }
+      }
+    },
+    "Job starts": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bắt đầu tác vụ"
+          }
+        }
+      }
+    },
+    "Last error": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lỗi gần nhất"
+          }
+        }
+      }
+    },
+    "Last message": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tin nhắn gần nhất"
+          }
+        }
+      }
+    },
+    "Message CenVu on Telegram": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nhắn tin cho CenVu qua Telegram"
+          }
+        }
+      }
+    },
+    "Message CenVu on WhatsApp": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nhắn tin cho CenVu qua WhatsApp"
+          }
+        }
+      }
+    },
+    "Message Detail": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mức chi tiết"
+          }
+        }
+      }
+    },
+    "Message Preview": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Xem trước tin nhắn"
+          }
+        }
+      }
+    },
+    "No log entries yet": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chưa có mục nhật ký"
+          }
+        }
+      }
+    },
+    "No messages sent": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chưa gửi tin nhắn"
+          }
+        }
+      }
+    },
+    "Not Configured": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chưa cấu hình"
+          }
+        }
+      }
+    },
+    "Not Tested": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chưa kiểm tra"
+          }
+        }
+      }
+    },
+    "Notification Status": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trạng thái thông báo"
+          }
+        }
+      }
+    },
+    "Notification delivery never changes transfer or verification results.": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Việc gửi thông báo không làm thay đổi kết quả sao chép hoặc xác minh."
+          }
+        }
+      }
+    },
+    "Notifications": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Thông báo"
+          }
+        }
+      }
+    },
+    "Notify Events": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sự kiện thông báo"
+          }
+        }
+      }
+    },
+    "Open CenVu Facebook": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mở Facebook của CenVu"
+          }
+        }
+      }
+    },
+    "Open CenVu Instagram": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mở Instagram của CenVu"
+          }
+        }
+      }
+    },
+    "Operational runtime log · Diagnostics optional": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nhật ký vận hành · Có thể bật chẩn đoán"
+          }
+        }
+      }
+    },
+    "Optional · best-effort · separate from job safety": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tùy chọn · cố gắng tối đa · độc lập với an toàn tác vụ"
+          }
+        }
+      }
+    },
+    "Project license from README.md": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Giấy phép dự án theo README.md"
+          }
+        }
+      }
+    },
+    "Ready": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sẵn sàng"
+          }
+        }
+      }
+    },
+    "Select source and destination, then start a job.": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chọn nguồn và đích, sau đó bắt đầu tác vụ."
+          }
+        }
+      }
+    },
+    "Show Diagnostics": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hiện chẩn đoán"
+          }
+        }
+      }
+    },
+    "Standard": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tiêu chuẩn"
+          }
+        }
+      }
+    },
+    "Stored in Keychain. The token is not shown in plain text.": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Được lưu trong Keychain. Token không hiển thị ở dạng văn bản thông thường."
+          }
+        }
+      }
+    },
+    "Technical Log": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nhật ký kỹ thuật"
+          }
+        }
+      }
+    },
+    "Telegram Setup": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Thiết lập Telegram"
+          }
+        }
+      }
+    },
+    "Telegram notification is optional and best-effort. It never changes transfer, verify, report, or SAFE TO EJECT results.": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Thông báo Telegram là tùy chọn và sẽ cố gắng gửi tối đa. Thông báo không làm thay đổi kết quả sao chép, xác minh, báo cáo hoặc trạng thái CÓ THỂ THÁO Ổ AN TOÀN."
+          }
+        }
+      }
+    },
+    "Telegram status": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trạng thái Telegram"
+          }
+        }
+      }
+    },
+    "Test Message": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gửi thử"
+          }
+        }
+      }
+    },
+    "Transfer fails": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sao chép thất bại"
+          }
+        }
+      }
+    },
+    "Up to date": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đã cập nhật"
+          }
+        }
+      }
+    },
+    "Update available: v%@": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Có bản cập nhật: v%@"
+          }
+        }
+      }
+    },
+    "Update check failed": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kiểm tra cập nhật thất bại"
+          }
+        }
+      }
+    },
+    "Update checks are disabled while transfer or verification is running.": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Không thể kiểm tra cập nhật khi đang sao chép hoặc xác minh."
+          }
+        }
+      }
+    },
+    "Verify completed / Safe to eject": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Xác minh hoàn tất / Có thể tháo ổ an toàn"
+          }
+        }
+      }
+    },
+    "View Release": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Xem bản phát hành"
+          }
+        }
+      }
+    },
+    "bundled rsync": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "rsync đi kèm"
+          }
+        }
+      }
+    },
+    "invalid": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "không hợp lệ"
+          }
+        }
+      }
+    },
+    "license": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "giấy phép"
+          }
+        }
+      }
+    },
+    "missing": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "không tìm thấy"
+          }
+        }
+      }
+    },
+    "not executable": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "không thể thực thi"
+          }
+        }
+      }
+    },
+    "timeout": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "hết thời gian chờ"
+          }
+        }
+      }
+    },
+    "unavailable": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "không khả dụng"
+          }
+        }
+      }
+    },
+    "version": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "phiên bản"
+          }
+        }
+      }
+    },
+    "wrong version %@": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "sai phiên bản %@"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

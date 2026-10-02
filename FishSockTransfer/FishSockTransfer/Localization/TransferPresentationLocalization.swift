@@ -9,22 +9,7 @@ public enum TransferPresentationLocalization {
 
     public static func text(_ english: String, locale: Locale, bundle: Bundle = .main) -> String {
         guard knownKeys.contains(english) else { return english }
-        let languageCode = locale.identifier
-            .split(whereSeparator: { $0 == "_" || $0 == "-" })
-            .first
-            .map(String.init) ?? locale.identifier
-        guard languageCode == "vi",
-              let localizationPath = bundle.path(forResource: languageCode, ofType: "lproj"),
-              let localizationBundle = Bundle(path: localizationPath) else {
-            // English is the catalog source language and the safe fallback.
-            return english
-        }
-        return String(
-            localized: String.LocalizationValue(stringLiteral: english),
-            table: "Localizable",
-            bundle: localizationBundle,
-            locale: locale
-        )
+        return StringCatalogPresentationLookup.text(english, locale: locale, bundle: bundle)
     }
 
     public static func sourcePathLabel(_ path: String, locale: Locale, bundle: Bundle = .main) -> String {
@@ -59,6 +44,173 @@ public enum TransferPresentationLocalization {
         let duration = String(value.dropLast(suffix.count))
         return "\(duration) \(text("remaining", locale: locale, bundle: bundle))"
     }
+}
+
+/// Shared String Catalog lookup for allowlisted, computed presentation text.
+/// Callers must bound keys before reaching this locale-resolution primitive.
+private enum StringCatalogPresentationLookup {
+    static func text(_ english: String, locale: Locale, bundle: Bundle) -> String {
+        let languageCode = locale.identifier
+            .split(whereSeparator: { $0 == "_" || $0 == "-" })
+            .first
+            .map(String.init) ?? locale.identifier
+        guard languageCode == "vi",
+              let localizationPath = bundle.path(forResource: languageCode, ofType: "lproj"),
+              let localizationBundle = Bundle(path: localizationPath) else {
+            // English is the catalog source language and the safe fallback.
+            return english
+        }
+        return String(
+            localized: String.LocalizationValue(stringLiteral: english),
+            table: "Localizable",
+            bundle: localizationBundle,
+            locale: locale
+        )
+    }
+}
+
+/// Bounded EN/VI presentation for known strings outside the Transfer flow.
+/// Runtime strings not explicitly listed below pass through unchanged.
+public enum L2PresentationLocalization {
+    private static let knownKeys = Set(L2PresentationKey.allCases.map(\.rawValue))
+
+    public static func text(_ english: String, locale: Locale, bundle: Bundle = .main) -> String {
+        guard knownKeys.contains(english) else { return english }
+        return StringCatalogPresentationLookup.text(english, locale: locale, bundle: bundle)
+    }
+
+    public static func logEntrySummary(visible: Int, total: Int, locale: Locale, bundle: Bundle = .main) -> String {
+        let format = text("%1$d visible / %2$d total entries", locale: locale, bundle: bundle)
+        return String(format: format, locale: locale, arguments: [visible, total])
+    }
+
+    public static func updateAvailable(version: String, locale: Locale, bundle: Bundle = .main) -> String {
+        let format = text("Update available: v%@", locale: locale, bundle: bundle)
+        return String(format: format, locale: locale, arguments: [version])
+    }
+
+    /// Preserves the existing diagnostic classification and returns its
+    /// canonical English status for display-layer localization.
+    public static func bundledRsyncStatus(isAvailable: Bool, version: String, firstDiagnostic: String) -> String {
+        guard !isAvailable else {
+            return "Bundled rsync \(version)"
+        }
+        if firstDiagnostic.localizedCaseInsensitiveContains("not executable") {
+            return "Bundled rsync not executable"
+        }
+        if firstDiagnostic.localizedCaseInsensitiveContains("missing") {
+            return "Bundled rsync missing"
+        }
+        if firstDiagnostic.localizedCaseInsensitiveContains("version mismatch") {
+            return "Bundled rsync wrong version \(version)"
+        }
+        if firstDiagnostic.localizedCaseInsensitiveContains("timed out") {
+            return "Bundled rsync timeout"
+        }
+        if firstDiagnostic.localizedCaseInsensitiveContains("unrecognized") {
+            return "Bundled rsync invalid"
+        }
+        return "Bundled rsync unavailable"
+    }
+
+    /// Localizes the known visible rsync status while preserving an available
+    /// or mismatched version suffix byte-for-byte.
+    public static func rsyncStatusValue(
+        _ englishStatus: String,
+        isAvailable: Bool,
+        locale: Locale,
+        bundle: Bundle = .main
+    ) -> String {
+        let prefix = "Bundled rsync "
+        guard englishStatus.hasPrefix(prefix) else { return englishStatus }
+        let value = String(englishStatus.dropFirst(prefix.count))
+        if isAvailable {
+            return value.isEmpty ? englishStatus : value
+        }
+
+        let wrongVersionPrefix = "wrong version "
+        if value.hasPrefix(wrongVersionPrefix) {
+            let version = String(value.dropFirst(wrongVersionPrefix.count))
+            guard !version.isEmpty else { return englishStatus }
+            let format = text("wrong version %@", locale: locale, bundle: bundle)
+            return String(format: format, locale: locale, arguments: [version])
+        }
+        guard ["missing", "not executable", "timeout", "invalid", "unavailable"].contains(value) else {
+            return englishStatus
+        }
+        return text(value, locale: locale, bundle: bundle)
+    }
+}
+
+private enum L2PresentationKey: String, CaseIterable {
+    case notifications = "Notifications"
+    case notificationSubtitle = "Optional · best-effort · separate from job safety"
+    case telegramSetup = "Telegram Setup"
+    case notificationDeliverySummary = "Notification delivery never changes transfer or verification results."
+    case enableTelegramNotification = "Enable Telegram Notification"
+    case botToken = "Bot Token"
+    case tokenKeychainHelp = "Stored in Keychain. The token is not shown in plain text."
+    case chatID = "Chat ID"
+    case testMessage = "Test Message"
+    case telegramBestEffortSummary = "Telegram notification is optional and best-effort. It never changes transfer, verify, report, or SAFE TO EJECT results."
+    case notifyEvents = "Notify Events"
+    case jobStarts = "Job starts"
+    case heartbeatWhileRunning = "Heartbeat while running"
+    case transferFails = "Transfer fails"
+    case copyCompleted = "Copy completed"
+    case verifyCompletedSafeToEject = "Verify completed / Safe to eject"
+    case heartbeatInterval = "Heartbeat Interval"
+    case messageDetail = "Message Detail"
+    case notificationStatus = "Notification Status"
+    case telegramStatus = "Telegram status"
+    case connectionStatus = "Connection status"
+    case lastMessage = "Last message"
+    case lastError = "Last error"
+    case messagePreview = "Message Preview"
+    case fifteenMinutes = "15 minutes"
+    case thirtyMinutes = "30 minutes"
+    case compact = "Compact"
+    case standard = "Standard"
+    case disabled = "Disabled"
+    case notConfigured = "Not Configured"
+    case enabled = "Enabled"
+    case notTested = "Not Tested"
+    case ready = "Ready"
+    case error = "Error"
+    case noMessagesSent = "No messages sent"
+    case technicalLog = "Technical Log"
+    case operationalLogSubtitle = "Operational runtime log · Diagnostics optional"
+    case showDiagnostics = "Show Diagnostics"
+    case autoScrollActive = "Auto-scroll active"
+    case logEntrySummary = "%1$d visible / %2$d total entries"
+    case filteringNotice = "Filtering does not change the complete log."
+    case noLogEntries = "No log entries yet"
+    case startJobEmptyState = "Select source and destination, then start a job."
+    case version = "version"
+    case bundledRsync = "bundled rsync"
+    case license = "license"
+    case appVersionHelp = "App version from README.md"
+    case bundledRsyncHelp = "Bundled rsync version used by FST"
+    case licenseHelp = "Project license from README.md"
+    case checking = "Checking..."
+    case upToDate = "Up to date"
+    case updateAvailable = "Update available: v%@"
+    case viewRelease = "View Release"
+    case download = "Download"
+    case updateCheckFailed = "Update check failed"
+    case checkForUpdates = "Check for Updates"
+    case updatesDisabledWhileRunning = "Update checks are disabled while transfer or verification is running."
+    case checkGitHubRelease = "Check GitHub for the latest release"
+    case rsyncMissing = "missing"
+    case rsyncNotExecutable = "not executable"
+    case rsyncWrongVersion = "wrong version %@"
+    case rsyncTimeout = "timeout"
+    case rsyncInvalid = "invalid"
+    case rsyncUnavailable = "unavailable"
+    case openCenVuFacebook = "Open CenVu Facebook"
+    case openCenVuInstagram = "Open CenVu Instagram"
+    case messageCenVuWhatsApp = "Message CenVu on WhatsApp"
+    case messageCenVuTelegram = "Message CenVu on Telegram"
 }
 
 /// English source keys shared by the String Catalog and the bounded dynamic

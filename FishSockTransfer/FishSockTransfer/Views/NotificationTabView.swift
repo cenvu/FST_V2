@@ -3,6 +3,7 @@
 import SwiftUI
 
 public struct NotificationTabView: View {
+    @Environment(\.locale) private var locale
     @ObservedObject var viewModel: TransferViewModel
 
     public init(viewModel: TransferViewModel) {
@@ -61,7 +62,10 @@ public struct NotificationTabView: View {
 
                 notificationField("Bot Token") {
                     SecureField("Bot Token", text: $viewModel.telegramBotToken)
-                        .help("Stored in Keychain. The token is not shown in plain text.")
+                        .help(L2PresentationLocalization.text(
+                            "Stored in Keychain. The token is not shown in plain text.",
+                            locale: locale
+                        ))
                         .modifier(NotificationInputStyle())
                 }
 
@@ -106,7 +110,7 @@ public struct NotificationTabView: View {
                     notificationField("Heartbeat Interval") {
                         Picker("Heartbeat Interval", selection: $viewModel.notificationSettings.heartbeatInterval) {
                             ForEach(TelegramHeartbeatInterval.allCases) { interval in
-                                Text(interval.displayLabel).tag(interval)
+                                Text(L2PresentationLocalization.text(interval.displayLabel, locale: locale)).tag(interval)
                             }
                         }
                         .labelsHidden()
@@ -117,7 +121,7 @@ public struct NotificationTabView: View {
                     notificationField("Message Detail") {
                         Picker("Message Detail", selection: $viewModel.notificationSettings.messageDetail) {
                             ForEach(TelegramMessageDetail.allCases) { detail in
-                                Text(detail.displayLabel).tag(detail)
+                                Text(L2PresentationLocalization.text(detail.displayLabel, locale: locale)).tag(detail)
                             }
                         }
                         .labelsHidden()
@@ -133,9 +137,14 @@ public struct NotificationTabView: View {
     private var notificationStatusSection: some View {
         notificationSection("Notification Status") {
             VStack(alignment: .leading, spacing: 16) {
-                statusRow("Telegram status", viewModel.notificationStatus.telegramStatus)
-                statusRow("Connection status", viewModel.notificationStatus.connectionStatus.displayText)
-                statusRow("Last message", viewModel.notificationStatus.lastMessageStatus)
+                statusRow("Telegram status", viewModel.notificationStatus.telegramStatus, localizeKnownValue: true)
+                statusRow(
+                    "Connection status",
+                    viewModel.notificationStatus.connectionStatus.displayText,
+                    isError: viewModel.notificationStatus.connectionStatus == .error,
+                    localizeKnownValue: true
+                )
+                statusRow("Last message", viewModel.notificationStatus.lastMessageStatus, localizeKnownValue: true)
                 statusRow("Last error", viewModel.notificationStatus.lastErrorSummary ?? "-",
                           isError: viewModel.notificationStatus.lastErrorSummary != nil)
             }
@@ -162,24 +171,29 @@ public struct NotificationTabView: View {
         }
     }
 
-    private func statusRow(_ label: String, _ value: String, isError: Bool = false) -> some View {
+    private func statusRow(
+        _ label: String,
+        _ value: String,
+        isError: Bool = false,
+        localizeKnownValue: Bool = false
+    ) -> some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(label)
+            Text(L2PresentationLocalization.text(label, locale: locale))
                 .font(.system(size: 14))
                 .foregroundStyle(FSTPalette.muted)
-            Text(value)
+            Text(localizeKnownValue ? L2PresentationLocalization.text(value, locale: locale) : value)
                 .font(.system(size: 16))
                 .foregroundStyle(isError || value == "Error" ? FSTPalette.warning : FSTPalette.text)
                 .textSelection(.enabled)
                 .fixedSize(horizontal: false, vertical: true)
-                .help(value)
+                .help(localizeKnownValue ? L2PresentationLocalization.text(value, locale: locale) : value)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private func notificationField<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(title)
+            Text(L2PresentationLocalization.text(title, locale: locale))
                 .font(.system(size: 14, weight: .medium))
                 .foregroundStyle(FSTPalette.muted)
             content()
@@ -189,7 +203,7 @@ public struct NotificationTabView: View {
 
     private func notificationSection<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text(title)
+            Text(L2PresentationLocalization.text(title, locale: locale))
                 .font(.system(size: 16, weight: .semibold))
             content()
         }
