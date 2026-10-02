@@ -26,7 +26,7 @@ public struct ContentView: View {
     public var body: some View {
         VStack(spacing: 0) {
             headerBar
-                .padding(.horizontal, 16)
+                .padding(.horizontal, 24)
                 .padding(.vertical, 10)
             Divider().overlay(FSTPalette.line)
 
@@ -59,7 +59,7 @@ public struct ContentView: View {
     private var headerBar: some View {
         HStack(spacing: 16) {
             Text("FST")
-                .font(.system(size: 22, weight: .heavy))
+                .font(.system(size: 20, weight: .heavy))
                 .tracking(-0.8)
             Divider().frame(height: 24).overlay(FSTPalette.line)
             HeaderSocialLinksView()
@@ -83,35 +83,45 @@ public struct ContentView: View {
                 Text("CenVu D.I.T Tools")
                     .foregroundStyle(FSTPalette.muted.opacity(0.6))
             }
-            .font(.system(size: 11))
+            .font(.system(size: 14))
             .foregroundStyle(FSTPalette.muted)
-            .padding(.horizontal, 16)
+            .padding(.horizontal, 24)
             .padding(.vertical, 8)
         }
         .background(FSTPalette.surface)
     }
 
     private var tabSelector: some View {
-        HStack(spacing: 0) {
+        HStack(spacing: 4) {
             Button(action: { selectedTab = .transfer }) {
                 Text("TRANSFER")
-                    .fontWeight(selectedTab == .transfer ? .bold : .semibold)
+                    .font(.system(size: 14, weight: .semibold))
                     .padding(.horizontal, 16)
-                    .padding(.vertical, 8)
+                    .padding(.vertical, 4)
+                    .frame(minHeight: 32)
                     .background(selectedTab == .transfer ? FSTPalette.raised : Color.clear)
-                .clipShape(RoundedRectangle(cornerRadius: 4))
-                    .foregroundColor(selectedTab == .transfer ? .primary : .secondary)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 4)
+                            .stroke(selectedTab == .transfer ? FSTPalette.line : Color.clear, lineWidth: 1)
+                    )
+                    .clipShape(RoundedRectangle(cornerRadius: 4))
+                    .foregroundColor(.primary)
             }
             .buttonStyle(.plain)
 
             Button(action: { selectedTab = .notification }) {
                 Text("NOTIFICATION")
-                    .fontWeight(selectedTab == .notification ? .bold : .semibold)
+                    .font(.system(size: 14, weight: .semibold))
                     .padding(.horizontal, 16)
-                    .padding(.vertical, 8)
+                    .padding(.vertical, 4)
+                    .frame(minHeight: 32)
                     .background(selectedTab == .notification ? FSTPalette.raised : Color.clear)
-                .clipShape(RoundedRectangle(cornerRadius: 4))
-                    .foregroundColor(selectedTab == .notification ? .primary : .secondary)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 4)
+                            .stroke(selectedTab == .notification ? FSTPalette.line : Color.clear, lineWidth: 1)
+                    )
+                    .clipShape(RoundedRectangle(cornerRadius: 4))
+                    .foregroundColor(.primary)
             }
             .buttonStyle(.plain)
             
@@ -119,26 +129,29 @@ public struct ContentView: View {
                 HStack(spacing: 6) {
                     Text("TECHNICAL LOG")
                     Text("\(viewModel.logs.count)")
-                        .font(.system(.caption, design: .monospaced))
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 2)
-                        .background(Color.secondary.opacity(0.2))
-                        .clipShape(Capsule())
+                        .font(.system(size: 14, design: .monospaced))
+                        .foregroundStyle(FSTPalette.muted)
+                        .padding(.horizontal, 4)
                 }
-                .fontWeight(selectedTab == .logs ? .bold : .semibold)
+                .font(.system(size: 14, weight: .semibold))
                 .padding(.horizontal, 16)
-                .padding(.vertical, 8)
+                .padding(.vertical, 4)
+                .frame(minHeight: 32)
                 .background(selectedTab == .logs ? FSTPalette.raised : Color.clear)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 4)
+                        .stroke(selectedTab == .logs ? FSTPalette.line : Color.clear, lineWidth: 1)
+                )
                 .clipShape(RoundedRectangle(cornerRadius: 4))
-                .foregroundColor(selectedTab == .logs ? .primary : .secondary)
+                .foregroundColor(.primary)
             }
             .buttonStyle(.plain)
         }
         .background(FSTPalette.inset)
         .padding(4)
-        .clipShape(RoundedRectangle(cornerRadius: 6))
+        .clipShape(RoundedRectangle(cornerRadius: 4))
         .overlay(
-            RoundedRectangle(cornerRadius: 6)
+            RoundedRectangle(cornerRadius: 4)
                 .stroke(FSTPalette.line, lineWidth: 1)
         )
         .layoutPriority(1)
@@ -238,7 +251,7 @@ public struct ContentView: View {
 
 struct HeaderSocialLinksView: View {
     var body: some View {
-        HStack(spacing: 10) {
+        HStack(spacing: 8) {
             SocialIconLink(
                 iconName: "icon_facebook_mono",
                 url: URL(string: "https://fb.com/cenvu")!,
@@ -281,12 +294,12 @@ struct SocialIconLink: View {
                 .resizable()
                 .renderingMode(.template)
                 .aspectRatio(contentMode: .fit)
-                .frame(width: 14, height: 14)
+                .frame(width: 16, height: 16)
                 .foregroundColor(isHovered ? .accentColor : .secondary)
                 .opacity(isHovered ? 1.0 : 0.7)
-                .frame(width: 24, height: 24)
+                .frame(width: 32, height: 32)
                 .background(
-                    RoundedRectangle(cornerRadius: 6)
+                    RoundedRectangle(cornerRadius: 4)
                         .fill(isHovered ? Color.secondary.opacity(0.12) : Color.clear)
                 )
         }

@@ -21,6 +21,19 @@ Each entry must include:
 
 ## Recent History
 
+### 2026-10-02 - OpenDesign Visual Convergence Phase 2 — PATCH_1
+
+- Task ID: OPENDESIGN_VISUAL_CONVERGENCE_PHASE_2
+- Agent/model: Codex local Worker; exact model variant not independently recorded; implementer, not reviewer
+- Branch/start: `main` at fetched `HEAD=origin/main=023e4d33b03a93fc65432b9afe0523c2dafc4666`; GitHub issue search returned no matching issue; local records identified the in-progress Patch 1.
+- Status: Patch 1 bounded review/finalization complete; BRAIN review pending, classification/accepted state unset.
+- Change/files: shell-only styling in `ContentView.swift` (header inset, wordmark scale, social sizing, tab spacing/size, footer type/insets); expected `WORK_HISTORY.md` and `TASK_REGISTRY.md` updates; durable evidence under `handoffs/evidence/opendesign-visual-convergence-p2/patch1/`.
+- Safety: no transfer-state, view-model/backend, SAFE TO EJECT derivation, notification delivery, Technical Log behavior, report, or safety semantics changed. Existing four social destinations and tab actions remain. Capture used the existing isolated temporary fixture; no owner media, copy, verification, or notification was used.
+- Checks: initial parallel-enabled Debug build succeeded; full suite had 283 passed / 2 failed / 0 skipped because the two disposable APFS/exFAT image tests received `hdiutil create failed - Device not configured`. Full serial Debug build/test retry reported BUILD SUCCEEDED and TEST SUCCEEDED: 285 passed / 0 failed / 0 skipped. `git diff --check` passed. Live OpenDesign CSS values matched the changed shell measurements.
+- Evidence/limitations: durable READY, NOTIFICATION, and TECHNICAL_LOG native captures at 1120×760 nominal content geometry (2240×1520 pixels); exact reviewed `ContentView.swift` diff preserved. CodeGraph unavailable; source/diff were inspected directly. PATCH_2_NOT_STARTED.
+- Commit/tag/release: one finalization commit/push for Patch 1; no tag/release.
+- Single Worker proposal: return to BRAIN for Patch 1 review; BRAIN classification, accepted state and active-next remain unassigned.
+
 ### 2026-10-02 - OpenDesign Live Transfer Convergence Phase 1
 
 - Task ID: OPENDESIGN_LIVE_TRANSFER_CONVERGENCE_PHASE_1; workstream OPENDESIGN_LIVE_TRANSFER_P1
