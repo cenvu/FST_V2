@@ -90,3 +90,4 @@ new handoffs that reference the older handoff; history is never erased.
 | 2026-10-02T16:59:11+07:00 | 20261002-165911_codex-cli_patch-4-technical-log.md | NORMAL | Codex CLI/GPT-6 | Patch 4 Technical Log/PATCH_4_TECHNICAL_LOG | main@a87479a | modified | NONE |
 | 2026-10-02T17:54:04+07:00 | 20261002-175404_codex-cli_patch5-final-polish.md | NORMAL | Codex CLI/GPT-6 | patch5-final-polish/PATCH_5_FINAL_POLISH | main@28c8a48 | modified | NONE |
 | 2026-10-02T18:23:16+07:00 | 20261002-182316_codex-cli_transfer-card-readability-typography-bump.md | NORMAL | Codex CLI/UNVERIFIED | transfer-card-readability-typography-bump/PRODUCTION_PRESENTATION_PATCH | main@21d7e35 | modified | NONE |
+| 2026-10-02T18:47:53+07:00 | 20261002-184753_codex-cli_transfer-card-readability-typography-retune.md | NORMAL | Codex CLI/UNVERIFIED | transfer-card-readability-typography-retune/BOUNDED_PRESENTATION_REPAIR | main@523a38b | modified | NONE |

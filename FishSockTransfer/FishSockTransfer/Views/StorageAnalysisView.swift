@@ -15,7 +15,7 @@ public struct StorageAnalysisView: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, 16)
-        .padding(.vertical, 8)
+        .padding(.vertical, 6)
     }
 
     @ViewBuilder
@@ -37,12 +37,12 @@ public struct StorageAnalysisView: View {
                 ProgressView()
                     .controlSize(.small)
                 Text("Analyzing storage…")
-                    .font(.system(size: 15))
+                    .font(.system(size: 13))
                     .foregroundStyle(.secondary)
             }
         } else if let assessment = viewModel.currentCapacityAssessment,
                   let destinationMetadata = viewModel.destinationMetadata {
-            VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: 4) {
                 if viewModel.hasInsufficientDestinationSpace {
                     readinessStatus(
                         "INSUFFICIENT DESTINATION SPACE",
@@ -51,7 +51,7 @@ public struct StorageAnalysisView: View {
                     )
                     if let storageWarningMessage = viewModel.storageWarningMessage {
                         Text(storageWarningMessage)
-                            .font(.system(size: 14))
+                            .font(.system(size: 12))
                             .foregroundStyle(.orange)
                             .fixedSize(horizontal: false, vertical: true)
                     }
@@ -76,7 +76,7 @@ public struct StorageAnalysisView: View {
 
                 if assessment.passesCapacityPrecheck {
                     Text(assessment.supportingText)
-                        .font(.system(size: 14))
+                        .font(.system(size: 12))
                         .foregroundStyle(assessment.hasUnvalidatedAllocation ? Color.orange : Color.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -116,7 +116,7 @@ public struct StorageAnalysisView: View {
             Image(systemName: systemImage)
                 .foregroundStyle(tint)
             Text(title)
-                .font(.system(size: 15, weight: .semibold))
+                .font(.system(size: 13, weight: .semibold))
                 .foregroundStyle(tint)
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -130,11 +130,11 @@ public struct StorageAnalysisView: View {
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
             Text(value)
-                .font(.system(size: 14, weight: .medium, design: .monospaced))
+                .font(.system(size: 12, weight: .medium, design: .monospaced))
                 .foregroundStyle(.primary)
                 .lineLimit(1)
         }
-        .font(.system(size: 14))
+        .font(.system(size: 12))
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 

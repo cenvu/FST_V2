@@ -33,6 +33,18 @@ This appears to have been run before as <entry>. Do you want to rerun it, contin
 
 ## Recent Tasks
 
+### 2026-10-02 - TRANSFER_CARD_READABILITY_TYPOGRAPHY_RETUNE
+
+- Task name: Transfer Card Readability Typography Retune
+- Agent: Codex, implementer, model variant UNVERIFIED
+- Status: implemented; BRAIN review pending
+- Start: clean fetched main=origin/main=523a38b8243612afc6d0c525961fef4f55b6a3c2; matching issue/duplicate not found
+- Production files: SourceCardView.swift; DestinationCardView.swift; StorageAnalysisView.swift only
+- Change: font reduction13.3–16.7%, bounded local spacing; minimum Ready scroll152→101pt; no literal/binding/control/safety/global type changes
+- Checks: canonical DebugPASS; standalone presentationPASS; focused105/0/0; fresh full285/0/0 first run; exact production scope/diff checksPASS; Operator unchanged
+- Evidence: `handoffs/evidence/transfer-card-readability-retune/VALIDATION.md`; one coherent finalizer commit/push, final SHA in Desktop packet; no tag/release
+- Worker proposed next: `RETURN_TO_BRAIN_FOR_TYPOGRAPHY_RETUNE_REVIEW`; no self-acceptance/classification/active-next
+
 ### 2026-10-02 - Visual Convergence Follow-up — Transfer Card Readability Typography Bump
 
 - Task ID: `TRANSFER_CARD_READABILITY_TYPOGRAPHY_BUMP`; workstream `OPENDESIGN_VISUAL_CONVERGENCE_P2`; agent Codex, implementer; exact model variant not independently verified

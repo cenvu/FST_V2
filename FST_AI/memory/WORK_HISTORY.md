@@ -21,6 +21,17 @@ Each entry must include:
 
 ## Recent History
 
+### 2026-10-02 - Transfer Card Readability Typography Retune
+
+- Task ID `TRANSFER_CARD_READABILITY_TYPOGRAPHY_RETUNE`; workstream `OPENDESIGN_VISUAL_CONVERGENCE_P2_FOLLOWUP`; Codex implementer; model variant UNVERIFIED
+- Reanchor: clean fetched main=origin/main=523a38b8243612afc6d0c525961fef4f55b6a3c2; matching issue/duplicate retune not found
+- Only three production views changed: SourceCardView.swift, DestinationCardView.swift, StorageAnalysisView.swift; explicit19/24/21/14/15→16/20/18/12/13pt; role column104, card padding8, inner spacing4, capacity padding6pt
+- Visual evidence: eight BEFORE/eight AFTER Dark Aqua PNGs; nominal/minimum/scrolled/long/locked/insufficient/non-writable/empty; minimum Ready152→101pt tail; nominal35→0pt
+- Verification: Debug buildPASS; TransferControlsLabelTestsPASS; focused105/0/0; one fresh full canonical285/0/0 inclAPFS; no retry; diff/scope gatePASS; strings/bindings/safety/global typography unchanged; Operator byte-unchanged
+- Evidence: `handoffs/evidence/transfer-card-readability-retune/VALIDATION.md`, summaries, native PNGs, scope/visual metrics, exact logs; CodeGraph unavailable; implementer review only
+- Publication: one coherent commit/push via finalizer; final SHA/sync/clean proof in Desktop return; no tag/release
+- Worker proposal only: `RETURN_TO_BRAIN_FOR_TYPOGRAPHY_RETUNE_REVIEW`; BRAIN reviewpending/classificationunset/acceptedunset/ACTIVE_NEXTNONE
+
 ### 2026-10-02 - Visual Convergence Follow-up — Transfer Card Readability Typography Bump
 
 - Task ID: `TRANSFER_CARD_READABILITY_TYPOGRAPHY_BUMP`; workstream `OPENDESIGN_VISUAL_CONVERGENCE_P2`; agent Codex, implementer; exact model variant not independently verified

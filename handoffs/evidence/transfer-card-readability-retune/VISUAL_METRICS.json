@@ -1,0 +1,146 @@
+{
+  "point_units": true,
+  "reference": "original native pre-bump measured sizes in transfer-card-readability/VALIDATION.md",
+  "typography": [
+    {
+      "role": "Source/Destination",
+      "original": 14,
+      "before": 19,
+      "after": 16
+    },
+    {
+      "role": "selected name",
+      "original": 18,
+      "before": 24,
+      "after": 20
+    },
+    {
+      "role": "empty title",
+      "original": 16,
+      "before": 21,
+      "after": 18
+    },
+    {
+      "role": "path/metadata/target preview/capacity body and metrics",
+      "original": 10,
+      "before": 14,
+      "after": 12
+    },
+    {
+      "role": "capacity headline/analyzing/drop prompt",
+      "original": 11,
+      "before": 15,
+      "after": 13
+    }
+  ],
+  "spacing": {
+    "role_column": [
+      116,
+      104
+    ],
+    "card_vertical_padding": [
+      10,
+      8
+    ],
+    "internal_vertical_spacing": [
+      6,
+      4
+    ],
+    "capacity_vertical_padding": [
+      8,
+      6
+    ],
+    "metadata_group_spacing": [
+      12,
+      12
+    ],
+    "capacity_metric_spacing": [
+      16,
+      16
+    ],
+    "label_value_spacing": [
+      2,
+      2
+    ]
+  },
+  "capture": {
+    "BEFORE": {
+      "READY": {
+        "width": 1120,
+        "height": 760,
+        "scroll_extent": 35
+      },
+      "READY_MINIMUM": {
+        "width": 900,
+        "height": 660,
+        "scroll_extent": 152,
+        "document_height": 717,
+        "viewport_height": 565
+      },
+      "LOCKED_MINIMUM": {
+        "width": 900,
+        "height": 660,
+        "scroll_extent": 174
+      },
+      "LONG_NAMES_MINIMUM": {
+        "width": 900,
+        "height": 660,
+        "scroll_extent": 152
+      },
+      "INSUFFICIENT_MINIMUM": {
+        "width": 900,
+        "height": 660,
+        "scroll_extent": 213
+      },
+      "NOT_WRITABLE_MINIMUM": {
+        "width": 900,
+        "height": 660,
+        "scroll_extent": 152
+      },
+      "EMPTY_MINIMUM": {
+        "width": 900,
+        "height": 660,
+        "scroll_extent": 33
+      }
+    },
+    "AFTER": {
+      "READY": {
+        "width": 1120,
+        "height": 760,
+        "scroll_extent": 0
+      },
+      "READY_MINIMUM": {
+        "width": 900,
+        "height": 660,
+        "scroll_extent": 101,
+        "document_height": 666,
+        "viewport_height": 565
+      },
+      "LOCKED_MINIMUM": {
+        "width": 900,
+        "height": 660,
+        "scroll_extent": 123
+      },
+      "LONG_NAMES_MINIMUM": {
+        "width": 900,
+        "height": 660,
+        "scroll_extent": 101
+      },
+      "INSUFFICIENT_MINIMUM": {
+        "width": 900,
+        "height": 660,
+        "scroll_extent": 147
+      },
+      "NOT_WRITABLE_MINIMUM": {
+        "width": 900,
+        "height": 660,
+        "scroll_extent": 101
+      },
+      "EMPTY_MINIMUM": {
+        "width": 900,
+        "height": 660,
+        "scroll_extent": 0
+      }
+    }
+  }
+}
