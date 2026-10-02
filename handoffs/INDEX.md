@@ -87,3 +87,4 @@ new handoffs that reference the older handoff; history is never erased.
 | 2026-10-02T15:41:01+07:00 | 20261002-154101_opencode-muse_patch3-notification-source-capture.md | NORMAL | OpenCode Muse/UNVERIFIED | patch3-notification-source-capture/PATCH_3_SOURCE_CAPTURE | main@f6b8e1e | modified | NONE |
 | 2026-10-02T16:10:56+07:00 | 20261002-161056_codex-cli_patch3-notification-implementation.md | NORMAL | Codex CLI/UNVERIFIED | patch3-notification-implementation/PATCH_3_NOTIFICATION | main@745022a | modified | NONE |
 | 2026-10-02T16:30:52+07:00 | 20261002-163052_codex-cli_patch3-notification-canonical-verification-recov.md | NORMAL | Codex CLI/UNVERIFIED | patch3-notification-canonical-verification-recovery/CANONICAL_VERIFICATION_RECOVERY | main@50c312e | modified | NONE |
+| 2026-10-02T16:59:11+07:00 | 20261002-165911_codex-cli_patch-4-technical-log.md | NORMAL | Codex CLI/GPT-6 | Patch 4 Technical Log/PATCH_4_TECHNICAL_LOG | main@a87479a | modified | NONE |

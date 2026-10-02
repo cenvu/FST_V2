@@ -21,6 +21,19 @@ Each entry must include:
 
 ## Recent History
 
+### 2026-10-02 - OpenDesign Visual Convergence Phase 2 — PATCH_4 Technical Log
+
+- Task ID: `OPENDESIGN_VISUAL_CONVERGENCE_P2_PATCH4_TECHNICAL_LOG`; workstream `OPENDESIGN_VISUAL_CONVERGENCE_P2`; role IMPLEMENTER
+- Agent: Codex local Worker; exact model variant not independently recorded; implementer, not independent reviewer
+- Start: clean `main` with fetched `HEAD=origin/main=a87479af645a344bf7ccae0722f3829348ea0fb8`; matching issue search returned none; Patch 4 implementation not already recorded
+- Status: bounded implementation/evidence complete; Worker result PASS, BRAIN review pending, classification/accepted state unset; no visual-parity self-acceptance
+- Changed: Technical Log composition in `ContentView.swift` and feed rendering in `TerminalLogsView.swift`; deterministic native captures, gap/comparison/validation/review reports under `handoffs/evidence/opendesign-visual-convergence-p2/patch4/`; canonical handoff and memory bookkeeping
+- Safety: diagnostics remain view-only; auto-scroll and update disablement remain copy/verify-derived; AppKit log selection/Find and real metadata/update controls remain. No model/service/filter/transfer/report/SAFE TO EJECT change. Synthetic fixture used a fake token store and send-trapping notification service; no owner Keychain, media, logs, transfer, notification send, or update request during capture. Patch 1/2/3 retained; Patch 5 not started
+- Design/evidence: frozen OpenDesign source only; live MCP not required. Dark Aqua BEFORE, Pass A, Pass B, and AFTER captures at 1120×760pt and 900×660pt. One bounded Pass B centered the empty-state copy. Worker did not self-accept visual parity
+- Checks: canonical Debug BUILD SUCCEEDED; focused existing filter/update tests40/0/0; one full canonical serial suite285/0/0; `git diff --check` PASS; authorized production scope PASS. No APFS test failure or retry
+- Publication: one coherent Patch 4 implementation/evidence/handoff commit, push/fetch and V2.1 Desktop export; no tag/release. Final Git sync/SHA in packet
+- Single Worker proposal: `RETURN_TO_BRAIN_FOR_PATCH_4_REVIEW`; Patch 5 not authorized and no automatic next work
+
 ### 2026-10-02 - Patch 3 Notification Canonical Verification Recovery
 
 - Task ID: `PATCH3_NOTIFICATION_CANONICAL_VERIFICATION_RECOVERY`; workstream `OPENDESIGN_VISUAL_CONVERGENCE_P2`; class VERIFICATION_ONLY; role VERIFIER

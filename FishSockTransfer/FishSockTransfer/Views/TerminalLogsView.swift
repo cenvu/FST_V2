@@ -5,36 +5,38 @@ import SwiftUI
 public struct TerminalLogsView: View {
     public let logs: [LogEntry]
     public let autoScroll: Bool
-    private let terminalHeight: CGFloat = 170
-    
+
     public init(logs: [LogEntry], autoScroll: Bool) {
         self.logs = logs
         self.autoScroll = autoScroll
     }
-    
+
     public var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        ZStack {
             if logs.isEmpty {
-                Text("No log entries yet.")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-                    .frame(maxWidth: .infinity, alignment: .center)
-                    .frame(height: 48)
+                VStack(spacing: 6) {
+                    Text("No log entries yet")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundStyle(FSTPalette.text)
+                    Text("Select source and destination, then start a job.")
+                        .font(.system(size: 14))
+                        .foregroundStyle(FSTPalette.muted)
+                }
+                .multilineTextAlignment(.center)
+                .padding(24)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
-                    TerminalLogTextView(logs: logs, autoScroll: autoScroll)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
-                    .background(Color.black.opacity(0.3))
-                    .cornerRadius(8)
-                    .padding(.bottom)
+                TerminalLogTextView(logs: logs, autoScroll: autoScroll)
+                    .padding(16)
             }
         }
-        .frame(maxWidth: .infinity)
-        .background(Color(NSColor.controlBackgroundColor).opacity(0.5))
-        .cornerRadius(12)
-        .overlay(
-            RoundedRectangle(cornerRadius: 12)
-                .stroke(Color.gray.opacity(0.2), lineWidth: 1)
-        )
+        .frame(maxWidth: .infinity, minHeight: 360, maxHeight: .infinity, alignment: .topLeading)
+        .background(FSTPalette.inset)
+        .clipShape(RoundedRectangle(cornerRadius: 4))
+        .overlay {
+            RoundedRectangle(cornerRadius: 4)
+                .strokeBorder(FSTPalette.line, lineWidth: 1)
+        }
     }
 }
 
@@ -65,7 +67,7 @@ private struct TerminalLogTextView: NSViewRepresentable {
         textView.importsGraphics = false
         textView.usesFontPanel = false
         textView.usesFindPanel = true
-        textView.textContainerInset = NSSize(width: 10, height: 10)
+        textView.textContainerInset = .zero
         textView.textContainer?.lineFragmentPadding = 0
         textView.textContainer?.widthTracksTextView = true
         textView.textContainer?.heightTracksTextView = false
@@ -109,7 +111,7 @@ private struct TerminalLogTextView: NSViewRepresentable {
 
     final class Coordinator {
         var renderedCount = 0
-        let font = NSFont.monospacedSystemFont(ofSize: 11.5, weight: .regular)
+        let font = NSFont.monospacedSystemFont(ofSize: 12, weight: .regular)
 
         private let timeFormatter: DateFormatter = {
             let formatter = DateFormatter()
@@ -121,39 +123,51 @@ private struct TerminalLogTextView: NSViewRepresentable {
             let style = NSMutableParagraphStyle()
             style.alignment = .left
             style.lineBreakMode = .byWordWrapping
+            style.lineSpacing = 3
+            style.paragraphSpacing = 5
             return style
         }()
 
         func attributedLine(for log: LogEntry) -> NSAttributedString {
-            let line = "[\(timeFormatter.string(from: log.timestamp))] \(log.level) \(log.message)\n"
-            return NSAttributedString(
-                string: line,
-                attributes: [
-                    .font: font,
-                    .foregroundColor: color(for: log),
-                    .paragraphStyle: paragraphStyle
-                ]
-            )
+            let categoryColor = color(for: log)
+            let attributes: [NSAttributedString.Key: Any] = [
+                .font: font,
+                .paragraphStyle: paragraphStyle
+            ]
+            let line = NSMutableAttributedString()
+            line.append(NSAttributedString(
+                string: "[\(timeFormatter.string(from: log.timestamp))] ",
+                attributes: attributes.merging([.foregroundColor: NSColor.secondaryLabelColor]) { _, new in new }
+            ))
+            line.append(NSAttributedString(
+                string: "\(log.level) ",
+                attributes: attributes.merging([.foregroundColor: categoryColor]) { _, new in new }
+            ))
+            line.append(NSAttributedString(
+                string: "\(log.message)\n",
+                attributes: attributes.merging([.foregroundColor: categoryColor]) { _, new in new }
+            ))
+            return line
         }
 
         private func color(for log: LogEntry) -> NSColor {
             switch log.category {
             case .error, .stderr:
-                return .systemRed.withSystemEffect(.disabled)
+                return .systemRed
             case .warning:
-                return .systemYellow.withSystemEffect(.disabled)
+                return .systemYellow
             case .success:
-                return .systemGreen.withSystemEffect(.disabled)
+                return .systemGreen
             case .stdout, .file:
-                return NSColor.textColor.withAlphaComponent(0.8)
+                return NSColor.textColor.withAlphaComponent(0.82)
             case .progress:
-                return .systemCyan.withSystemEffect(.disabled)
+                return .systemCyan
             case .verify:
-                return .systemOrange.withSystemEffect(.disabled)
+                return .systemOrange
             case .system:
-                return .systemBlue.withSystemEffect(.disabled)
+                return .systemBlue
             case .info, .transfer:
-                return .systemGray.withSystemEffect(.disabled)
+                return .secondaryLabelColor
             }
         }
     }

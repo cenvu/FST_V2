@@ -33,6 +33,17 @@ This appears to have been run before as <entry>. Do you want to rerun it, contin
 
 ## Recent Tasks
 
+### 2026-10-02 - OpenDesign Visual Convergence Phase 2 — PATCH_4 Technical Log
+
+- Task ID: `OPENDESIGN_VISUAL_CONVERGENCE_P2_PATCH4_TECHNICAL_LOG`; workstream `OPENDESIGN_VISUAL_CONVERGENCE_P2`; class `BOUNDED_PRODUCTION_UI_VISUAL_CONVERGENCE`; role IMPLEMENTER
+- Agent: Codex local Worker; exact model variant not independently recorded
+- Status: implementation and evidence complete; BRAIN review pending; no Worker visual-parity acceptance
+- Files changed: production `ContentView.swift` (Technical Log composition only), `TerminalLogsView.swift`; scoped Patch 4 evidence, canonical handoff, `WORK_HISTORY.md`, `TASK_REGISTRY.md`
+- Commit/tag/release: one coherent implementation/evidence/handoff commit with push/fetch verification and V2.1 packet; no tag/release
+- Safety impact: UI-only. Log filter/data, transfer, verification, report, update request behavior, notification, and SAFE TO EJECT admission are unchanged. Capture used synthetic logs, fake token store, and no-send guard; no owner media/logs/Keychain, transfer, notification, or update action
+- Checks: Debug build PASS; focused LogVisibilityFilter and AppUpdateService tests40 passed/0 failed/0 skipped; one full canonical suite285/0/0; `git diff --check` PASS; production scope PASS
+- Notes: source authority is the canonical frozen OpenDesign source, `LIVE_MCP_REQUIRED=NO`; Pass B corrected only empty-state centering; Patch 1/2/3 retained; Patch 5 not started. Worker proposal: `RETURN_TO_BRAIN_FOR_PATCH_4_REVIEW`
+
 ### 2026-10-02 - Patch 3 Notification Canonical Verification Recovery
 
 - Task ID: `PATCH3_NOTIFICATION_CANONICAL_VERIFICATION_RECOVERY`; workstream `OPENDESIGN_VISUAL_CONVERGENCE_P2`; class VERIFICATION_ONLY; role VERIFIER

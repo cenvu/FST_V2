@@ -189,33 +189,67 @@ public struct ContentView: View {
     }
 
     private var technicalLogsTabContent: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            HStack {
-                Spacer()
+        let visibleLogs = showDiagnostics
+            ? viewModel.logs
+            : LogVisibilityFilter.operatorVisible(from: viewModel.logs)
+        let isAutoScrollActive = viewModel.transferState == .copying || viewModel.transferState == .verifying
+
+        return VStack(alignment: .leading, spacing: 0) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Technical Log")
+                    .font(.system(size: 20, weight: .semibold))
+                    .tracking(-0.3)
+                    .foregroundStyle(FSTPalette.text)
+                Text("Operational runtime log · Diagnostics optional")
+                    .font(.system(size: 14))
+                    .foregroundStyle(FSTPalette.muted)
+            }
+            .padding(.bottom, 12)
+
+            HStack(spacing: 16) {
                 Toggle(isOn: $showDiagnostics) {
                     Text("Show Diagnostics")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                        .font(.system(size: 14))
+                        .foregroundStyle(FSTPalette.text)
                 }
                 .toggleStyle(.checkbox)
-                .padding(.bottom, 6)
-                .padding(.trailing, 2)
+
+                if isAutoScrollActive {
+                    Text("Auto-scroll active")
+                        .font(.system(size: 12))
+                        .foregroundStyle(FSTPalette.active)
+                }
+
+                Spacer(minLength: 0)
             }
-            TerminalLogsView(
-                logs: showDiagnostics ? viewModel.logs : LogVisibilityFilter.operatorVisible(from: viewModel.logs),
-                autoScroll: viewModel.transferState == .copying || viewModel.transferState == .verifying
-            )
+            .padding(.bottom, 8)
+
+            TerminalLogsView(logs: visibleLogs, autoScroll: isAutoScrollActive)
+                .frame(maxWidth: .infinity, maxHeight: 520)
+
+            HStack(spacing: 12) {
+                Text("\(visibleLogs.count) visible / \(viewModel.logs.count) total entries")
+                    .font(.system(size: 12, weight: .medium, design: .monospaced))
+                    .foregroundStyle(FSTPalette.muted)
+                Spacer(minLength: 8)
+                Text("Filtering does not change the complete log.")
+                    .font(.system(size: 12))
+                    .foregroundStyle(FSTPalette.muted)
+                    .multilineTextAlignment(.trailing)
+            }
+            .padding(.top, 8)
 
             TechnicalLogsMetadataFooter(
                 rsyncVersionText: rsyncHeaderBadgeText,
                 isRsyncAvailable: viewModel.bundledRsyncInfo.isAvailable,
-                isTransferRunning: viewModel.transferState == .copying || viewModel.transferState == .verifying
+                isTransferRunning: isAutoScrollActive
             )
-            .padding(.top, 8)
+            .padding(.top, 12)
             .frame(maxWidth: .infinity, alignment: .center)
         }
-        .padding(.horizontal, 16)
-        .padding(.bottom, 16)
+        .padding(.horizontal, 24)
+        .padding(.top, 12)
+        .padding(.bottom, 12)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
     }
 
