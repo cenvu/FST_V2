@@ -1,0 +1,31 @@
+{
+  "start_head": "21d7e3512fbe487bd1489890b3c27caf40602e8d",
+  "production_scope_pass": true,
+  "production_paths": [
+    {
+      "path": "FishSockTransfer/FishSockTransfer/Views/SourceCardView.swift",
+      "baseline_sha256": "fea8c9fce3d06ea9162a5edbb78ac52000c3f6c53d7c34a99de6aa7b4a19be90",
+      "current_sha256": "dc4d2c025ae309e1cc9b7dee7721b206a8812b68ccee05eeb11d6999d8707642",
+      "normalized_behavior_equal": true,
+      "string_literals_unchanged": true
+    },
+    {
+      "path": "FishSockTransfer/FishSockTransfer/Views/DestinationCardView.swift",
+      "baseline_sha256": "fc3717259ad1312f8ac4aca63cf08372efdbfaa4cb7125446f70e357d44180ea",
+      "current_sha256": "5b228b495c2da656d2ce47e4c9526c85160c79e36940b1d9702c39771466eb3f",
+      "normalized_behavior_equal": true,
+      "string_literals_unchanged": true
+    },
+    {
+      "path": "FishSockTransfer/FishSockTransfer/Views/StorageAnalysisView.swift",
+      "baseline_sha256": "f8a6f045b5501cf9d0790a04ac0b1d7471d5a1f6c27f59a0e3c85580638a9895",
+      "current_sha256": "6fc9dce6ba94c58d49f6b79d2499ad9e94a74fded915a00a138f5ab30840ba35",
+      "normalized_behavior_equal": true,
+      "string_literals_unchanged": true
+    }
+  ],
+  "brain_operator_unchanged": true,
+  "brain_operator_sha256": "1e8094c26e637bbd4182a01243e70dc028f2d9bfb757dd2010c3232692215c5c",
+  "codegraph": "MCP unavailable; direct source inspection",
+  "normalization_limit": "Presentation fonts/frames/padding/fixedSize and HStack/VStack constructor arguments ignored. All other source tokens must match baseline. This is a source diff gate, not runtime safety certification."
+}

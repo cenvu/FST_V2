@@ -13,14 +13,14 @@ public struct SourceCardView: View {
     public var body: some View {
         HStack(alignment: .center, spacing: 16) {
             Text("Source")
-                .font(.system(size: 14, weight: .medium))
+                .font(.system(size: 19, weight: .medium))
                 .foregroundStyle(FSTPalette.muted)
-                .frame(width: 88, alignment: .leading)
-            VStack(alignment: .leading, spacing: 4) {
+                .frame(width: 116, alignment: .leading)
+            VStack(alignment: .leading, spacing: 6) {
                 if let url = viewModel.sourceURL {
                     HStack(alignment: .firstTextBaseline, spacing: 8) {
                         Text(viewModel.sourceMetadata?.folderName ?? url.lastPathComponent)
-                            .font(.system(size: 18, weight: .semibold))
+                            .font(.system(size: 24, weight: .semibold))
                             .foregroundStyle(.primary)
                             .lineLimit(1)
                         Spacer(minLength: 8)
@@ -30,11 +30,12 @@ public struct SourceCardView: View {
                                 metadataValue(title: "FILES", value: formatCount(sourceMetadata.fileCount))
                                 metadataValue(title: "FOLDERS", value: formatCount(sourceMetadata.folderCount))
                             }
+                            .fixedSize(horizontal: true, vertical: false)
                         }
                     }
                     let fullPath = viewModel.sourceMetadata?.fullPath ?? url.path
                     Text(fullPath)
-                        .font(.system(.footnote, design: .monospaced))
+                        .font(.system(size: 14, design: .monospaced))
                         .foregroundStyle(FSTPalette.muted)
                         .lineLimit(1)
                         .truncationMode(.middle)
@@ -45,16 +46,16 @@ public struct SourceCardView: View {
                     if viewModel.sourceMetadata == nil {
                         let metadataUnavailable = viewModel.errorMessage == "Unable to analyze source folder."
                         Text(metadataUnavailable ? "Source metadata unavailable." : "Analyzing source metadata…")
-                            .font(.footnote)
+                            .font(.system(size: 14))
                             .foregroundStyle(metadataUnavailable ? Color.orange : Color.secondary)
                     }
                 } else {
-                    VStack(alignment: .leading, spacing: 4) {
+                    VStack(alignment: .leading, spacing: 6) {
                         Text("Select Source")
-                            .font(.system(size: 16, weight: .semibold))
+                            .font(.system(size: 21, weight: .semibold))
                             .foregroundStyle(.primary)
                         Text("Drop folder here")
-                            .font(.subheadline)
+                            .font(.system(size: 15))
                             .foregroundStyle(FSTPalette.muted)
                     }
                 }
@@ -90,7 +91,7 @@ public struct SourceCardView: View {
             }
         }
         .padding(.horizontal, 16)
-        .padding(.vertical, 8)
+        .padding(.vertical, 10)
         .overlay(
             RoundedRectangle(cornerRadius: 4)
                 .stroke(isDropTargeted ? Color.accentColor : Color.clear, style: StrokeStyle(lineWidth: 2, dash: [5]))
@@ -113,12 +114,12 @@ public struct SourceCardView: View {
     }
 
     private func metadataValue(title: String, value: String) -> some View {
-        HStack(spacing: 4) {
+        VStack(alignment: .leading, spacing: 2) {
             Text(title)
-                .font(.caption)
+                .font(.system(size: 14))
                 .foregroundStyle(FSTPalette.muted)
             Text(value)
-                .font(.system(.footnote, design: .monospaced))
+                .font(.system(size: 14, design: .monospaced))
                 .fontWeight(.semibold)
                 .foregroundStyle(.primary)
                 .lineLimit(1)

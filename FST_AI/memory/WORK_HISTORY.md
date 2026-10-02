@@ -21,6 +21,17 @@ Each entry must include:
 
 ## Recent History
 
+### 2026-10-02 - Visual Convergence Follow-up — Transfer Card Readability Typography Bump
+
+- Task ID: `TRANSFER_CARD_READABILITY_TYPOGRAPHY_BUMP`; workstream `OPENDESIGN_VISUAL_CONVERGENCE_P2`; agent Codex, implementer; exact model variant not independently verified
+- Start: clean fetched `main`, `HEAD=origin/main=21d7e3512fbe487bd1489890b3c27caf40602e8d`; matching GitHub issue and duplicate typography task not found
+- Changed: only production `SourceCardView.swift`, `DestinationCardView.swift`, `StorageAnalysisView.swift`; local typography 1.31–1.40×, metadata labels above values with natural group width, small spacing/padding adjustments; evidence in `handoffs/evidence/transfer-card-readability/`, canonical handoff, and required memory records
+- Safety: unchanged literal wording, conditions, actions, drop handlers, model/engine/coordinator/service/capacity/report/notification/log/rsync/source-media/SAFE TO EJECT semantics; BRAIN Operator bytes unchanged. Source normalization/hash gate PASS. Native captures use synthetic fixtures, empty fake token store and no-send guard; no owner media or transfer action during capture
+- Checks: final Debug build PASS; existing standalone `TransferControlsLabelTests` PASS after final adjustment; canonical runtime tests 82/0/0 and capacity policy tests 23/0/0 (105 actual tests). Initial nonexistent capacity filter corrected in a separate real policy run. No full suite requested/run
+- Visual evidence: 4 BEFORE and 8 AFTER native PNGs; nominal 1120×760 and minimum 900×660; Ready, locked, long names/paths/counts/filesystem, empty, insufficient-space and non-writable warning. Top block fits; natural minimum Ready tail scroll grows from 37 to 152pt; scrolled tail captured. CodeGraph MCP unavailable; direct source inspected
+- Publication: one coherent presentation/evidence/handoff commit with push/fetch and V2.1 export required; no tag/release. Final Git SHA/sync proven in packet. BRAIN review pending; classification/accepted state/active-next unset
+- Single Worker proposal: `RETURN_TO_BRAIN_FOR_TRANSFER_CARD_TYPOGRAPHY_REVIEW`
+
 ### 2026-10-02 - OpenDesign Visual Convergence Phase 2 — PATCH_5 Final Polish
 
 - Task ID: `OPENDESIGN_VISUAL_CONVERGENCE_P2_PATCH5_FINAL_POLISH`; workstream `OPENDESIGN_VISUAL_CONVERGENCE_P2`; class final bounded whole-app visual convergence; role IMPLEMENTER

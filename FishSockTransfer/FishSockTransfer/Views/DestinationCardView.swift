@@ -13,14 +13,14 @@ public struct DestinationCardView: View {
     public var body: some View {
         HStack(alignment: .center, spacing: 16) {
             Text("Destination")
-                .font(.system(size: 14, weight: .medium))
+                .font(.system(size: 19, weight: .medium))
                 .foregroundStyle(FSTPalette.muted)
-                .frame(width: 88, alignment: .leading)
-            VStack(alignment: .leading, spacing: 4) {
+                .frame(width: 116, alignment: .leading)
+            VStack(alignment: .leading, spacing: 6) {
                 if let url = viewModel.destinationURL {
                     HStack(alignment: .firstTextBaseline, spacing: 8) {
                         Text(url.lastPathComponent)
-                            .font(.system(size: 18, weight: .semibold))
+                            .font(.system(size: 24, weight: .semibold))
                             .foregroundStyle(.primary)
                             .lineLimit(1)
                         Spacer(minLength: 8)
@@ -34,10 +34,11 @@ public struct DestinationCardView: View {
                                     isWarning: !destinationMetadata.isWritable
                                 )
                             }
+                            .fixedSize(horizontal: true, vertical: false)
                         }
                     }
                     Text(url.path)
-                        .font(.system(.footnote, design: .monospaced))
+                        .font(.system(size: 14, design: .monospaced))
                         .foregroundStyle(FSTPalette.muted)
                         .lineLimit(1)
                         .truncationMode(.middle)
@@ -48,13 +49,13 @@ public struct DestinationCardView: View {
                     if viewModel.destinationMetadata == nil {
                         let metadataUnavailable = viewModel.errorMessage == "Unable to analyze destination folder."
                         Text(metadataUnavailable ? "Destination metadata unavailable." : "Analyzing destination metadata…")
-                            .font(.footnote)
+                            .font(.system(size: 14))
                             .foregroundStyle(metadataUnavailable ? Color.orange : Color.secondary)
                     }
 
                     if let destinationTargetPreview = viewModel.destinationTargetPreview {
                         Label(destinationTargetPreview, systemImage: "arrow.turn.down.right")
-                            .font(.system(.footnote, design: .monospaced))
+                            .font(.system(size: 14, design: .monospaced))
                             .foregroundStyle(FSTPalette.muted)
                             .lineLimit(1)
                             .truncationMode(.middle)
@@ -62,12 +63,12 @@ public struct DestinationCardView: View {
                             .accessibilityLabel("Destination target preview: \(destinationTargetPreview)")
                     }
                 } else {
-                    VStack(alignment: .leading, spacing: 4) {
+                    VStack(alignment: .leading, spacing: 6) {
                         Text("Select Destination")
-                            .font(.system(size: 16, weight: .semibold))
+                            .font(.system(size: 21, weight: .semibold))
                             .foregroundStyle(.primary)
                         Text("Drop folder here")
-                            .font(.subheadline)
+                            .font(.system(size: 15))
                             .foregroundStyle(FSTPalette.muted)
                     }
                 }
@@ -103,7 +104,7 @@ public struct DestinationCardView: View {
             }
         }
         .padding(.horizontal, 16)
-        .padding(.vertical, 8)
+        .padding(.vertical, 10)
         .overlay(
             RoundedRectangle(cornerRadius: 4)
                 .stroke(isDropTargeted ? Color.accentColor : Color.clear, style: StrokeStyle(lineWidth: 2, dash: [5]))
@@ -122,12 +123,12 @@ public struct DestinationCardView: View {
     }
 
     private func metadataValue(title: String, value: String, isWarning: Bool = false) -> some View {
-        HStack(spacing: 4) {
+        VStack(alignment: .leading, spacing: 2) {
             Text(title)
-                .font(.caption)
+                .font(.system(size: 14))
                 .foregroundStyle(FSTPalette.muted)
             Text(value)
-                .font(.system(.footnote, design: .monospaced))
+                .font(.system(size: 14, design: .monospaced))
                 .fontWeight(.semibold)
                 .foregroundStyle(isWarning ? Color.orange : Color.primary)
                 .lineLimit(1)

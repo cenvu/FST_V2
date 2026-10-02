@@ -15,7 +15,7 @@ public struct StorageAnalysisView: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, 16)
-        .padding(.vertical, 6)
+        .padding(.vertical, 8)
     }
 
     @ViewBuilder
@@ -37,12 +37,12 @@ public struct StorageAnalysisView: View {
                 ProgressView()
                     .controlSize(.small)
                 Text("Analyzing storage…")
-                    .font(.subheadline)
+                    .font(.system(size: 15))
                     .foregroundStyle(.secondary)
             }
         } else if let assessment = viewModel.currentCapacityAssessment,
                   let destinationMetadata = viewModel.destinationMetadata {
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: 6) {
                 if viewModel.hasInsufficientDestinationSpace {
                     readinessStatus(
                         "INSUFFICIENT DESTINATION SPACE",
@@ -51,7 +51,7 @@ public struct StorageAnalysisView: View {
                     )
                     if let storageWarningMessage = viewModel.storageWarningMessage {
                         Text(storageWarningMessage)
-                            .font(.footnote)
+                            .font(.system(size: 14))
                             .foregroundStyle(.orange)
                             .fixedSize(horizontal: false, vertical: true)
                     }
@@ -76,7 +76,7 @@ public struct StorageAnalysisView: View {
 
                 if assessment.passesCapacityPrecheck {
                     Text(assessment.supportingText)
-                        .font(.footnote)
+                        .font(.system(size: 14))
                         .foregroundStyle(assessment.hasUnvalidatedAllocation ? Color.orange : Color.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -116,8 +116,9 @@ public struct StorageAnalysisView: View {
             Image(systemName: systemImage)
                 .foregroundStyle(tint)
             Text(title)
-                .font(.subheadline.weight(.semibold))
+                .font(.system(size: 15, weight: .semibold))
                 .foregroundStyle(tint)
+                .fixedSize(horizontal: false, vertical: true)
         }
         .accessibilityElement(children: .combine)
         .help(help ?? title)
@@ -127,12 +128,13 @@ public struct StorageAnalysisView: View {
         VStack(alignment: .leading, spacing: 2) {
             Text(title)
                 .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
             Text(value)
-                .font(.system(.footnote, design: .monospaced))
+                .font(.system(size: 14, weight: .medium, design: .monospaced))
                 .foregroundStyle(.primary)
                 .lineLimit(1)
         }
-        .font(.footnote)
+        .font(.system(size: 14))
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
