@@ -21,6 +21,18 @@ Each entry must include:
 
 ## Recent History
 
+### 2026-10-03 - Final Owner Target Visual Repair
+
+- Task ID `FINAL_OWNER_TARGET_VISUAL_REPAIR`; workstream `OPENDESIGN_VISUAL_CONVERGENCE_P2`; Codex implementer
+- Reanchor: clean fetched `main=origin/main=561e1178d02bdae316e1eee86d5682d5e75c3577`; task-specific GitHub issue not found; CodeGraph unavailable, so direct source/test inspection used
+- Changed production: `ContentView.swift`, `TechnicalLogsActionBar.swift`, `TechnicalLogClipboard.swift`, and `LocalizationPresentationXCTests.swift`; no String Catalog edits or project-file changes
+- Presentation: localized non-layout copy toast with generation-safe timeout/accessibility announcement; text-only action buttons; single-row title/subtitle; canonical state/subtitle left footer and source-protection right footer. Native titlebar left untouched
+- Evidence: `handoffs/evidence/final-owner-target-repair/` contains target comparison, behavior review, visual QA, capture method, validation, index, harness, and ten synthetic EN/VI screenshots
+- Safety: copy remains the full retained log array with filtered diagnostics; format, log detail, filters, Auto-scroll, updater callback, notification delivery, transfer/verification/report/capacity/safety semantics unchanged. Capture fixtures caused no transfer, Telegram send, or update request
+- Checks: Debug build PASS; focused clipboard 2/0/0; focused localization 15/0/0; final fresh canonical XCTest 300/0/0; compiled Vietnamese resource/plutil PASS; diff check PASS before staging
+- Publication: one coherent commit/push/fetch verification; no tag/release. Final SHA, upstream sync, and clean state are carried in the V2.1 Desktop return packet
+- Worker proposal only: `RETURN_TO_BRAIN_FOR_OWNER_VISUAL_GATE`; BRAIN review pending, classification/accepted state unset, active-next none
+
 ### 2026-10-03 - Visual Convergence Finalization — Technical Log Canonical Match + Copy All Logs
 
 - Task ID `OPENDESIGN_VISUAL_CONVERGENCE_P2_TECHNICAL_LOG_FINALIZATION`; workstream `OPENDESIGN_VISUAL_CONVERGENCE_P2`; Codex implementer; initial fetched `main=origin/main=3c6b449948b415fcc8c9273d5dd396f17d408c69`; a preexisting `Localizable.xcstrings` catalog refresh was preserved and extended

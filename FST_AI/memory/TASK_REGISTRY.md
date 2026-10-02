@@ -33,6 +33,19 @@ This appears to have been run before as <entry>. Do you want to rerun it, contin
 
 ## Recent Tasks
 
+### 2026-10-03 - FINAL_OWNER_TARGET_VISUAL_REPAIR
+
+- Task name: Final Owner Target Visual Repair
+- Agent: Codex, implementer
+- Status: implementation complete; BRAIN review pending
+- Start: clean fetched `main=origin/main=561e1178d02bdae316e1eee86d5682d5e75c3577`; task-specific GitHub issue not found; CodeGraph unavailable
+- Production files: `ContentView.swift`, `TechnicalLogsActionBar.swift`, `TechnicalLogClipboard.swift`, `LocalizationPresentationXCTests.swift`; no catalog or project registration changes
+- Evidence: `handoffs/evidence/final-owner-target-repair/`; ten synthetic Dark Aqua EN/VI screenshots at 1120×760 pt and 900×660 pt as required; exact compare/behavior/capture/validation reports included
+- Safety impact: non-layout copy feedback and view-shell only. Full unfiltered clipboard semantics, log content/filtering, update behavior, notifications, transfer/verify/report/capacity/SAFE TO EJECT unchanged. No owner media/token, transfer, send, or update request used
+- Checks: canonical Debug PASS; clipboard focused2/0/0; localization focused15/0/0; full fresh canonical300/0/0; Vietnamese app resource lint PASS; diff check PASS
+- Commit/tag/release: one coherent main commit and push/fetch gate; no tag/release; final SHA/sync/clean state in V2.1 Desktop return packet
+- Worker proposed next: `RETURN_TO_BRAIN_FOR_OWNER_VISUAL_GATE`; classification/accepted state unset; active-next none
+
 ### 2026-10-03 - OPENDESIGN_VISUAL_CONVERGENCE_P2_TECHNICAL_LOG_FINALIZATION
 
 - Task name: Visual Convergence Finalization — Technical Log Canonical Match + Copy All Logs

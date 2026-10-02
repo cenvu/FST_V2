@@ -7,40 +7,13 @@ struct TechnicalLogsActionBar: View {
     @Environment(\.locale) private var locale
     @Binding var showDiagnostics: Bool
     @Binding var autoScroll: Bool
+    @Binding var copyFeedbackState: TechnicalLogCopyFeedbackState
 
     let logs: [LogEntry]
     let isTransferRunning: Bool
 
-    @State private var copyFeedback: CopyFeedback?
-    @State private var copyFeedbackGeneration = 0
     @State private var isShowingDetails = false
     @StateObject private var updateViewModel = TechnicalLogsUpdateViewModel()
-
-    private enum CopyFeedback {
-        case success
-        case failure
-
-        var localizationKey: String {
-            switch self {
-            case .success: "All log entries copied to the clipboard, including diagnostics."
-            case .failure: "Could not copy logs to the clipboard. Please try again."
-            }
-        }
-
-        var symbolName: String {
-            switch self {
-            case .success: "checkmark.circle.fill"
-            case .failure: "exclamationmark.triangle.fill"
-            }
-        }
-
-        var tint: Color {
-            switch self {
-            case .success: FSTPalette.active
-            case .failure: .orange
-            }
-        }
-    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
@@ -62,18 +35,25 @@ struct TechnicalLogsActionBar: View {
                 Spacer(minLength: 8)
 
                 Button {
-                    let copied = TechnicalLogClipboard.copyAll(logs: logs)
-                    copyFeedback = copied ? .success : .failure
-                    copyFeedbackGeneration &+= 1
-                } label: {
-                    Label(
-                        L2PresentationLocalization.text("Copy All Logs", locale: locale),
-                        systemImage: "doc.on.doc"
+                    let feedback = withAnimation(.easeOut(duration: 0.18)) {
+                        copyFeedbackState.copyAll(logs: logs)
+                    }
+                    let message = L2PresentationLocalization.text(feedback.localizationKey, locale: locale)
+                    NSAccessibility.post(
+                        element: NSApplication.shared,
+                        notification: .announcementRequested,
+                        userInfo: [
+                            .announcement: message,
+                            .priority: NSAccessibilityPriorityLevel.medium.rawValue
+                        ]
                     )
+                } label: {
+                    Text(L2PresentationLocalization.text("Copy All Logs", locale: locale))
                 }
                 .buttonStyle(.bordered)
                 .controlSize(.small)
                 .disabled(logs.isEmpty)
+                .accessibilityLabel(L2PresentationLocalization.text("Copy All Logs", locale: locale))
                 .help(L2PresentationLocalization.text(
                     "Copies the complete retained log history, including diagnostic entries.",
                     locale: locale
@@ -82,24 +62,20 @@ struct TechnicalLogsActionBar: View {
                 Button {
                     isShowingDetails = true
                 } label: {
-                    Label(
-                        L2PresentationLocalization.text("Log details", locale: locale),
-                        systemImage: "text.alignleft"
-                    )
+                    Text(L2PresentationLocalization.text("Log details", locale: locale))
                 }
                 .buttonStyle(.bordered)
                 .controlSize(.small)
+                .accessibilityLabel(L2PresentationLocalization.text("Log details", locale: locale))
                 .help(L2PresentationLocalization.text("Open a selectable view of the complete log history.", locale: locale))
 
                 Button(action: updateViewModel.checkForUpdates) {
-                    Label(
-                        L2PresentationLocalization.text("Check for Update", locale: locale),
-                        systemImage: "arrow.clockwise"
-                    )
+                    Text(L2PresentationLocalization.text("Check for Update", locale: locale))
                 }
                 .buttonStyle(.bordered)
                 .controlSize(.small)
                 .disabled(isTransferRunning || isChecking)
+                .accessibilityLabel(L2PresentationLocalization.text("Check for Update", locale: locale))
                 .help(L2PresentationLocalization.text(
                     isTransferRunning
                         ? "Update checks are disabled while transfer or verification is running."
@@ -109,31 +85,11 @@ struct TechnicalLogsActionBar: View {
             }
             .font(.system(size: 12.5))
 
-            if copyFeedback != nil || !isUpdateIdle {
-                HStack(spacing: 12) {
-                    if let copyFeedback {
-                        Label(
-                            L2PresentationLocalization.text(copyFeedback.localizationKey, locale: locale),
-                            systemImage: copyFeedback.symbolName
-                        )
-                        .foregroundStyle(copyFeedback.tint)
-                        .accessibilityAddTraits(.updatesFrequently)
-                    }
-
-                    if !isUpdateIdle {
-                        updateStatus
-                    }
-                }
+            if !isUpdateIdle {
+                updateStatus
                 .font(.system(size: 12))
                 .padding(.leading, 2)
-                .accessibilityElement(children: .combine)
             }
-        }
-        .task(id: copyFeedbackGeneration) {
-            guard copyFeedbackGeneration > 0 else { return }
-            try? await Task.sleep(nanoseconds: 3_000_000_000)
-            guard !Task.isCancelled else { return }
-            copyFeedback = nil
         }
         .sheet(isPresented: $isShowingDetails) {
             TechnicalLogDetailsSheet(logs: logs)
@@ -189,6 +145,49 @@ struct TechnicalLogsActionBar: View {
     private var isUpdateIdle: Bool {
         if case .idle = updateViewModel.state { return true }
         return false
+    }
+}
+
+struct TechnicalLogCopyToast: View {
+    let feedback: TechnicalLogCopyFeedback
+    let locale: Locale
+
+    private var message: String {
+        L2PresentationLocalization.text(feedback.localizationKey, locale: locale)
+    }
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Image(systemName: feedback == .success ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
+                .foregroundStyle(feedback == .success ? FSTPalette.active : Color.orange)
+                .accessibilityHidden(true)
+
+            Text(message)
+                .font(.system(size: 12, weight: .medium))
+                .foregroundStyle(FSTPalette.text)
+                .fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: 400, alignment: .leading)
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 9)
+        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .strokeBorder(FSTPalette.line, lineWidth: 1)
+        }
+        .shadow(color: .black.opacity(0.22), radius: 9, x: 0, y: 4)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(message)
+        .accessibilityAddTraits(.updatesFrequently)
+    }
+}
+
+private extension TechnicalLogCopyFeedback {
+    var localizationKey: String {
+        switch self {
+        case .success: "All log entries copied to the clipboard, including diagnostics."
+        case .failure: "Could not copy logs to the clipboard. Please try again."
+        }
     }
 }
 

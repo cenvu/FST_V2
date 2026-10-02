@@ -23,6 +23,7 @@ public struct ContentView: View {
     @State private var selectedTab: MainTab = .transfer
     @State private var showDiagnostics: Bool = false
     @State private var autoScrollLogs: Bool = true
+    @State private var copyFeedbackState = TechnicalLogCopyFeedbackState()
     
     public init() {}
     
@@ -73,23 +74,32 @@ public struct ContentView: View {
     }
 
     private var operationalFooter: some View {
-        VStack(spacing: 0) {
+        let stateTitle = TransferControlsActionPresentation.stateTitle(
+            for: viewModel.transferState,
+            canStartTransfer: viewModel.canStartTransfer,
+            errorMessage: viewModel.errorMessage
+        )
+        let stateSubtitle = TransferControlsActionPresentation.stateSubtitle(
+            for: viewModel.transferState,
+            canStartTransfer: viewModel.canStartTransfer,
+            errorMessage: viewModel.errorMessage
+        )
+
+        return VStack(spacing: 0) {
             Divider().overlay(FSTPalette.line)
             HStack(spacing: 12) {
-                Text(TransferPresentationLocalization.text(
-                    TransferControlsActionPresentation.stateTitle(
-                        for: viewModel.transferState,
-                        canStartTransfer: viewModel.canStartTransfer,
-                        errorMessage: viewModel.errorMessage
-                    ),
-                    locale: locale
-                ))
-                Text("Source protection · Read-only")
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(TransferPresentationLocalization.text(stateTitle, locale: locale))
+                        .font(.system(size: 14, weight: .semibold))
+                    Text(TransferPresentationLocalization.text(stateSubtitle, locale: locale))
+                        .font(.system(size: 12))
+                        .lineLimit(1)
+                }
                 Spacer(minLength: 8)
-                Text("CenVu D.I.T Tools")
-                    .foregroundStyle(FSTPalette.muted.opacity(0.6))
+                Text(TransferPresentationLocalization.text("Source protection · Read-only", locale: locale))
+                    .font(.system(size: 13))
+                    .multilineTextAlignment(.trailing)
             }
-            .font(.system(size: 14))
             .foregroundStyle(FSTPalette.muted)
             .padding(.horizontal, 24)
             .padding(.vertical, 8)
@@ -201,20 +211,23 @@ public struct ContentView: View {
         let isTransferRunning = viewModel.transferState == .copying || viewModel.transferState == .verifying
 
         return VStack(alignment: .leading, spacing: 0) {
-            VStack(alignment: .leading, spacing: 2) {
-                Text("Technical Log")
+            HStack(alignment: .firstTextBaseline, spacing: 12) {
+                Text(L2PresentationLocalization.text("Technical Log", locale: locale))
                     .font(.system(size: 20, weight: .semibold))
                     .tracking(-0.3)
                     .foregroundStyle(FSTPalette.text)
-                Text("Operational runtime log · Diagnostics optional")
+                Spacer(minLength: 12)
+                Text(L2PresentationLocalization.text("Operational runtime log · Diagnostics optional", locale: locale))
                     .font(.system(size: 14))
                     .foregroundStyle(FSTPalette.muted)
+                    .lineLimit(1)
             }
             .padding(.bottom, 12)
 
             TechnicalLogsActionBar(
                 showDiagnostics: $showDiagnostics,
                 autoScroll: $autoScrollLogs,
+                copyFeedbackState: $copyFeedbackState,
                 logs: viewModel.logs,
                 isTransferRunning: isTransferRunning
             )
@@ -243,6 +256,25 @@ public struct ContentView: View {
         .padding(.top, 12)
         .padding(.bottom, 12)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .overlay(alignment: .topTrailing) {
+            if let feedback = copyFeedbackState.feedback {
+                TechnicalLogCopyToast(feedback: feedback, locale: locale)
+                    .padding(.top, 76)
+                    .padding(.trailing, 12)
+                    .zIndex(1)
+                    .allowsHitTesting(false)
+                    .transition(.move(edge: .top).combined(with: .opacity))
+            }
+        }
+        .task(id: copyFeedbackState.generation) {
+            let generation = copyFeedbackState.generation
+            guard generation > 0 else { return }
+            try? await Task.sleep(nanoseconds: 2_800_000_000)
+            guard !Task.isCancelled else { return }
+            withAnimation(.easeIn(duration: 0.15)) {
+                copyFeedbackState.dismiss(ifGeneration: generation)
+            }
+        }
     }
 }
 

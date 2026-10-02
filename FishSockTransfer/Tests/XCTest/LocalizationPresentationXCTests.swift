@@ -266,6 +266,22 @@ final class LocalizationPresentationXCTests: XCTestCase {
         XCTAssertEqual(L2PresentationLocalization.text(entry.message, locale: vietnamese, bundle: bundle), rawMessage)
     }
 
+    func testFooterCanonicalStatusStringsLocalizeENVI() throws {
+        let bundle = try localizationAppBundle()
+        let strings: [(String, String)] = [
+            ("READY", "SẴN SÀNG"),
+            ("SETUP REQUIRED", "CẦN THIẾT LẬP"),
+            ("Ready to transfer", "Sẵn sàng sao chép"),
+            ("Complete transfer setup.", "Hoàn tất thiết lập sao chép."),
+            ("Source protection · Read-only", "Bảo vệ nguồn · Chỉ đọc")
+        ]
+
+        for (english, vietnamese) in strings {
+            XCTAssertEqual(TransferPresentationLocalization.text(english, locale: AppLanguage.english.locale, bundle: bundle), english)
+            XCTAssertEqual(TransferPresentationLocalization.text(english, locale: AppLanguage.vietnamese.locale, bundle: bundle), vietnamese)
+        }
+    }
+
     func testTechnicalLogActionsAndClipboardFeedbackLocalizeENVI() throws {
         let bundle = try localizationAppBundle()
         let strings: [(String, String)] = [
@@ -311,6 +327,37 @@ final class LocalizationPresentationXCTests: XCTestCase {
         XCTAssertTrue(clipboardText.contains("Synthetic visible entry."))
         XCTAssertTrue(clipboardText.contains(rawDiagnostic))
         XCTAssertFalse(TechnicalLogClipboard.copyAll(logs: [], to: pasteboard))
+    }
+
+    @MainActor
+    func testCopyFeedbackTracksClipboardResultAndIgnoresStaleTimeouts() {
+        let logs = [
+            LogEntry(timestamp: Date(timeIntervalSince1970: 1_790_920_000), category: .info, message: "Synthetic entry.")
+        ]
+        let pasteboard = NSPasteboard.withUniqueName()
+        defer { pasteboard.clearContents() }
+
+        var state = TechnicalLogCopyFeedbackState()
+        XCTAssertNil(state.feedback)
+
+        XCTAssertEqual(state.copyAll(logs: logs, to: pasteboard), .success)
+        let firstGeneration = state.generation
+
+        // A repeated click with the same result starts a fresh timeout generation.
+        XCTAssertEqual(state.copyAll(logs: logs, to: pasteboard), .success)
+        let secondGeneration = state.generation
+        XCTAssertGreaterThan(secondGeneration, firstGeneration)
+        state.dismiss(ifGeneration: firstGeneration)
+        XCTAssertEqual(state.feedback, .success)
+
+        // The empty-history copy failure maps to the visible failure state.
+        XCTAssertEqual(state.copyAll(logs: [], to: pasteboard), .failure)
+        let thirdGeneration = state.generation
+        state.dismiss(ifGeneration: secondGeneration)
+        XCTAssertEqual(state.feedback, .failure)
+
+        state.dismiss(ifGeneration: thirdGeneration)
+        XCTAssertNil(state.feedback)
     }
 
     func testMetadataUpdateAndRsyncPresentationENVI() throws {
