@@ -33,6 +33,21 @@ This appears to have been run before as <entry>. Do you want to rerun it, contin
 
 ## Recent Tasks
 
+### 2026-10-02 - OpenDesign Visual Convergence Phase 2 — PATCH_3 Notification Implementation
+
+- Task ID: `OPENDESIGN_VISUAL_CONVERGENCE_P2_PATCH3_NOTIFICATION_IMPLEMENTATION`; workstream `OPENDESIGN_VISUAL_CONVERGENCE_P2`; role IMPLEMENTER
+- Agent: Codex local Worker; model variant not independently recorded; implementer, not independent reviewer
+- Start: clean main at fetched HEAD=origin/main=745022a8039cd237ced073159afbc0478898ae74; no matching GitHub Issue found; history showed source capture only, no duplicate implementation
+- Status: implementation complete within authorized scope; Worker RESULT=FAIL because full canonical test infrastructure gate failed, BRAIN review pending
+- Changed: NotificationTabView.swift only in production — two local ratio tracks, four flat sections, secure labeled fields, merged native menu options, vertical runtime status, inset mono factory preview. Evidence/harness/captures/validation under `handoffs/evidence/opendesign-visual-convergence-p2/patch3/`; handoff and memory bookkeeping
+- Safety: exact bindings/persistence/Test Message/disable/status/factory retained. No ViewModel/model/service/Coordinator/Keychain/transfer/verify/report/SAFE TO EJECT change. Isolated synthetic fixture with fake token store and no-send service; no owner Keychain, notification network send, or transfer during captures. Patch 1/2 retained; Patch 4/5 not started
+- Design: canonical frozen source map/contract; no live MCP or tooling repair; live-vs-frozen UNKNOWN. One implementation pass; Pass B not required (remaining native controls/runtime content/scroll variation documented). No Worker visual self-acceptance
+- Checks: Debug BUILD SUCCEEDED; focused102/0 failed/0 skipped. Full serial first284/1/0; one justified serial retry284/1/0. Both failed disposable APFS hdiutil image creation with Device not configured, exFAT passed, original results preserved. No further retry. Diff/scope/behavior inspection PASS
+- Publication: one coherent implementation/evidence/handoff commit; authorized push/fetch verification and final SHA recorded in V2.1 Desktop packet, no tag/release; overall FAIL retained even when Git gates pass
+- Evidence: `handoffs/evidence/opendesign-visual-convergence-p2/patch3/VALIDATION.md`, `FINAL_VISUAL_GAP_REPORT.md`, `BEHAVIOR_SECURITY_REVIEW.md`, `EVIDENCE_INDEX.md`; canonical handoff current snapshot
+- Single Worker proposal: `RETURN_TO_BRAIN_FOR_PATCH_3_REVIEW` (review must account for the unresolved full-test infrastructure gate; no automatic next work)
+
+
 ### 2026-10-02 - OpenDesign Visual Convergence Phase 2 — PATCH_3 Notification Live Source Capture
 
 - Date: 2026-10-02

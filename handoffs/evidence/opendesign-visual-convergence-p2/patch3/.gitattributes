@@ -1,0 +1,5 @@
+# Preserve raw xcodebuild output and unified-diff context byte-for-byte.
+# Tool output includes trailing spaces/blank EOF lines; authored Swift/Markdown
+# continue to use normal git whitespace checks. Test failures remain unchanged.
+*.log -whitespace
+*.diff -whitespace

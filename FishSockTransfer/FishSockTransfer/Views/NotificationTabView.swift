@@ -11,19 +11,33 @@ public struct NotificationTabView: View {
 
     public var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 12) {
-                statusAndSetupSection
-                    .fixedSize(horizontal: false, vertical: true)
+            VStack(alignment: .leading, spacing: 16) {
+                HStack(alignment: .firstTextBaseline, spacing: 16) {
+                    Text("Notifications")
+                        .font(.system(size: 20, weight: .semibold))
+                    Spacer(minLength: 0)
+                    Text("Optional · best-effort · separate from job safety")
+                        .font(.system(size: 14))
+                        .foregroundStyle(FSTPalette.muted)
+                }
 
-                eventsAndHeartbeatSection
-                    .fixedSize(horizontal: false, vertical: true)
-
-                messagePreviewSection
+                NotificationColumnsLayout {
+                    VStack(alignment: .leading, spacing: 16) {
+                        telegramSetupSection
+                        notifyEventsSection
+                    }
+                    VStack(alignment: .leading, spacing: 16) {
+                        notificationStatusSection
+                        messagePreviewSection
+                    }
+                }
             }
-            .padding(.horizontal, 16)
-            .padding(.bottom, 12)
+            .padding(.horizontal, 24)
+            .padding(.top, 12)
+            .padding(.bottom, 16)
             .frame(maxWidth: .infinity, alignment: .topLeading)
         }
+        .foregroundStyle(FSTPalette.text)
         .onChange(of: viewModel.notificationSettings) { _ in
             viewModel.persistNotificationSettings()
         }
@@ -32,66 +46,51 @@ public struct NotificationTabView: View {
         }
     }
 
-    private var statusAndSetupSection: some View {
-        HStack(alignment: .top, spacing: 16) {
-            // Notification Status (Left 1/3 approx)
-            VStack(alignment: .leading, spacing: 10) {
-                Text("Notification Status")
-                    .font(.headline)
-                    .foregroundColor(.primary)
-
-                LazyVGrid(columns: statusColumns, alignment: .leading, spacing: 10) {
-                    statusRow("Telegram status", viewModel.notificationStatus.telegramStatus)
-                    statusRow("Connection status", viewModel.notificationStatus.connectionStatus.displayText)
-                    statusRow("Last message", viewModel.notificationStatus.lastMessageStatus)
-                    statusRow("Last error", viewModel.notificationStatus.lastErrorSummary ?? "-")
-                }
-            }
-            .frame(maxWidth: .infinity, alignment: .top)
-
-            Divider()
-
-            // Telegram Setup (Right 2/3 approx)
-            VStack(alignment: .leading, spacing: 10) {
-                Text("Telegram Setup")
-                    .font(.headline)
-                    .foregroundColor(.primary)
+    private var telegramSetupSection: some View {
+        notificationSection("Telegram Setup") {
+            VStack(alignment: .leading, spacing: 16) {
+                Text("Notification delivery never changes transfer or verification results.")
+                    .font(.system(size: 14))
+                    .foregroundStyle(FSTPalette.muted)
+                    .fixedSize(horizontal: false, vertical: true)
 
                 Toggle("Enable Telegram Notification", isOn: $viewModel.notificationSettings.isTelegramEnabled)
                     .toggleStyle(.checkbox)
+                    .font(.system(size: 16))
+                    .tint(FSTPalette.active)
 
-                SecureField("Bot Token", text: $viewModel.telegramBotToken)
-                    .textFieldStyle(.roundedBorder)
-                    .help("Stored in Keychain. The token is not shown in plain text.")
+                notificationField("Bot Token") {
+                    SecureField("Bot Token", text: $viewModel.telegramBotToken)
+                        .help("Stored in Keychain. The token is not shown in plain text.")
+                        .modifier(NotificationInputStyle())
+                }
 
-                TextField("Chat ID", text: $viewModel.notificationSettings.chatID)
-                    .textFieldStyle(.roundedBorder)
+                notificationField("Chat ID") {
+                    TextField("Chat ID", text: $viewModel.notificationSettings.chatID)
+                        .modifier(NotificationInputStyle())
+                }
 
-                HStack {
+                VStack(alignment: .leading, spacing: 8) {
                     Button("Test Message") {
                         viewModel.testTelegramNotification()
                     }
+                    .buttonStyle(.bordered)
+                    .controlSize(.large)
+                    .frame(minHeight: 36)
                     .disabled(viewModel.isSendingTelegramTestMessage)
 
                     Text("Telegram notification is optional and best-effort. It never changes transfer, verify, report, or SAFE TO EJECT results.")
                         .font(.footnote)
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(FSTPalette.muted)
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }
-            .frame(maxWidth: .infinity, alignment: .top)
         }
-        .standardPanel()
     }
 
-    private var eventsAndHeartbeatSection: some View {
-        HStack(alignment: .top, spacing: 16) {
-            // Notify Events (Left 1/2)
-            VStack(alignment: .leading, spacing: 10) {
-                Text("Notify Events")
-                    .font(.headline)
-                    .foregroundColor(.primary)
-
+    private var notifyEventsSection: some View {
+        notificationSection("Notify Events") {
+            VStack(alignment: .leading, spacing: 16) {
                 VStack(alignment: .leading, spacing: 8) {
                     Toggle("Job starts", isOn: $viewModel.notificationSettings.notifyJobStarts)
                     Toggle("Heartbeat while running", isOn: $viewModel.notificationSettings.notifyHeartbeat)
@@ -100,87 +99,149 @@ public struct NotificationTabView: View {
                     Toggle("Verify completed / Safe to eject", isOn: $viewModel.notificationSettings.notifyVerifyCompleted)
                 }
                 .toggleStyle(.checkbox)
-            }
-            .frame(maxWidth: .infinity, alignment: .topLeading)
+                .font(.system(size: 16))
+                .tint(FSTPalette.active)
 
-            Divider()
-
-            // Notification Options (Right 1/2)
-            VStack(alignment: .leading, spacing: 12) {
-                Text("Notification Options")
-                    .font(.headline)
-                    .foregroundColor(.primary)
-
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Heartbeat Interval").font(.caption).foregroundColor(.secondary)
-                    Picker("Heartbeat Interval", selection: $viewModel.notificationSettings.heartbeatInterval) {
-                        ForEach(TelegramHeartbeatInterval.allCases) { interval in
-                            Text(interval.displayLabel).tag(interval)
+                NotificationColumnsLayout(leftRatio: 1, rightRatio: 1.4) {
+                    notificationField("Heartbeat Interval") {
+                        Picker("Heartbeat Interval", selection: $viewModel.notificationSettings.heartbeatInterval) {
+                            ForEach(TelegramHeartbeatInterval.allCases) { interval in
+                                Text(interval.displayLabel).tag(interval)
+                            }
                         }
+                        .labelsHidden()
+                        .pickerStyle(.menu)
+                        .controlSize(.large)
+                        .frame(maxWidth: .infinity, minHeight: 36)
                     }
-                    .labelsHidden()
-                    .pickerStyle(.segmented)
-                    .frame(maxWidth: 280, alignment: .leading)
-                }
-
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Message Detail").font(.caption).foregroundColor(.secondary)
-                    Picker("Message Detail", selection: $viewModel.notificationSettings.messageDetail) {
-                        ForEach(TelegramMessageDetail.allCases) { detail in
-                            Text(detail.displayLabel).tag(detail)
+                    notificationField("Message Detail") {
+                        Picker("Message Detail", selection: $viewModel.notificationSettings.messageDetail) {
+                            ForEach(TelegramMessageDetail.allCases) { detail in
+                                Text(detail.displayLabel).tag(detail)
+                            }
                         }
+                        .labelsHidden()
+                        .pickerStyle(.menu)
+                        .controlSize(.large)
+                        .frame(maxWidth: .infinity, minHeight: 36)
                     }
-                    .labelsHidden()
-                    .pickerStyle(.segmented)
-                    .frame(maxWidth: 280, alignment: .leading)
                 }
             }
-            .frame(maxWidth: .infinity, alignment: .topLeading)
         }
-        .standardPanel()
+    }
+
+    private var notificationStatusSection: some View {
+        notificationSection("Notification Status") {
+            VStack(alignment: .leading, spacing: 16) {
+                statusRow("Telegram status", viewModel.notificationStatus.telegramStatus)
+                statusRow("Connection status", viewModel.notificationStatus.connectionStatus.displayText)
+                statusRow("Last message", viewModel.notificationStatus.lastMessageStatus)
+                statusRow("Last error", viewModel.notificationStatus.lastErrorSummary ?? "-",
+                          isError: viewModel.notificationStatus.lastErrorSummary != nil)
+            }
+        }
     }
 
     private var messagePreviewSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Message Preview")
-                .font(.headline)
-                .foregroundColor(.primary)
-
+        notificationSection("Message Preview") {
             Text(NotificationMessageFactory.preview(
                 settings: viewModel.notificationSettings,
                 sourceName: viewModel.sourceURL?.lastPathComponent ?? "Source Volume",
                 destinationName: viewModel.destinationURL?.lastPathComponent ?? "Destination Volume"
             ))
-            .font(.system(.body, design: .monospaced))
-            .foregroundColor(.secondary)
+            .font(.system(size: 16, design: .monospaced))
+            .lineSpacing(6)
+            .foregroundStyle(FSTPalette.text)
             .textSelection(.enabled)
             .fixedSize(horizontal: false, vertical: true)
-            .padding(10)
+            .padding(16)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Color(NSColor.textBackgroundColor).opacity(0.6))
-            .clipShape(RoundedRectangle(cornerRadius: 8))
+            .background(FSTPalette.inset)
+            .clipShape(RoundedRectangle(cornerRadius: 4))
+            .overlay(RoundedRectangle(cornerRadius: 4).strokeBorder(FSTPalette.line, lineWidth: 1))
         }
-        .standardPanel()
     }
 
-    private var statusColumns: [GridItem] {
-        [
-            GridItem(.flexible(minimum: 120, maximum: 150), alignment: .leading),
-            GridItem(.flexible(), alignment: .leading)
-        ]
-    }
-
-    private func statusRow(_ label: String, _ value: String) -> some View {
-        Group {
+    private func statusRow(_ label: String, _ value: String, isError: Bool = false) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
             Text(label)
-                .font(.caption)
-                .fontWeight(.semibold)
-                .foregroundColor(.secondary)
+                .font(.system(size: 14))
+                .foregroundStyle(FSTPalette.muted)
             Text(value)
-                .font(.system(.body, design: .rounded))
-                .foregroundColor(value == "Error" ? .orange : .primary)
-                .lineLimit(2)
-                .truncationMode(.middle)
+                .font(.system(size: 16))
+                .foregroundStyle(isError || value == "Error" ? FSTPalette.warning : FSTPalette.text)
+                .textSelection(.enabled)
+                .fixedSize(horizontal: false, vertical: true)
+                .help(value)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private func notificationField<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(title)
+                .font(.system(size: 14, weight: .medium))
+                .foregroundStyle(FSTPalette.muted)
+            content()
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private func notificationSection<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text(title)
+                .font(.system(size: 16, weight: .semibold))
+            content()
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(16)
+        .background(FSTPalette.surface)
+        .clipShape(RoundedRectangle(cornerRadius: 4))
+        .overlay(RoundedRectangle(cornerRadius: 4).strokeBorder(FSTPalette.line, lineWidth: 1))
+    }
+}
+
+private struct NotificationInputStyle: ViewModifier {
+    func body(content: Content) -> some View {
+        content
+            .textFieldStyle(.plain)
+            .font(.system(size: 16))
+            .padding(.horizontal, 12)
+            .frame(maxWidth: .infinity, minHeight: 36)
+            .background(FSTPalette.inset)
+            .clipShape(RoundedRectangle(cornerRadius: 4))
+            .overlay(RoundedRectangle(cornerRadius: 4).strokeBorder(FSTPalette.line, lineWidth: 1))
+    }
+}
+
+/// Two top-aligned tracks, measured at their assigned width so ScrollView
+/// retains the full height of wrapped text and controls at the minimum window.
+private struct NotificationColumnsLayout: Layout {
+    var leftRatio: CGFloat = 1.5
+    var rightRatio: CGFloat = 1
+    var spacing: CGFloat = 16
+
+    private func widths(for width: CGFloat) -> (CGFloat, CGFloat) {
+        let available = max(0, width - spacing)
+        let left = available * leftRatio / (leftRatio + rightRatio)
+        return (left, available - left)
+    }
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        guard subviews.count == 2 else { return .zero }
+        let width = proposal.width ?? 900
+        let (left, right) = widths(for: width)
+        let leftSize = subviews[0].sizeThatFits(ProposedViewSize(width: left, height: nil))
+        let rightSize = subviews[1].sizeThatFits(ProposedViewSize(width: right, height: nil))
+        return CGSize(width: width, height: max(leftSize.height, rightSize.height))
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        guard subviews.count == 2 else { return }
+        let (left, right) = widths(for: bounds.width)
+        subviews[0].place(at: bounds.origin, anchor: .topLeading,
+                          proposal: ProposedViewSize(width: left, height: nil))
+        subviews[1].place(at: CGPoint(x: bounds.minX + left + spacing, y: bounds.minY), anchor: .topLeading,
+                          proposal: ProposedViewSize(width: right, height: nil))
     }
 }

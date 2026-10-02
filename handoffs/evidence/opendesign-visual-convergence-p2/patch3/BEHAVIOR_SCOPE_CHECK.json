@@ -1,0 +1,24 @@
+{
+  "bindings_preserved": [
+    "$viewModel.notificationSettings.isTelegramEnabled",
+    "$viewModel.telegramBotToken",
+    "$viewModel.notificationSettings.chatID",
+    "$viewModel.notificationSettings.notifyJobStarts",
+    "$viewModel.notificationSettings.notifyHeartbeat",
+    "$viewModel.notificationSettings.notifyTransferFails",
+    "$viewModel.notificationSettings.notifyCopyCompleted",
+    "$viewModel.notificationSettings.notifyVerifyCompleted",
+    "$viewModel.notificationSettings.heartbeatInterval",
+    "$viewModel.notificationSettings.messageDetail"
+  ],
+  "callbacks_status_preview_securefield_allCases_preserved": true,
+  "onChange_blocks_byte_identical": true,
+  "prototype_literals_in_production": false,
+  "production_paths_changed": [
+    "FishSockTransfer/FishSockTransfer/Views/NotificationTabView.swift"
+  ],
+  "patch1_retained": true,
+  "patch2_retained": true,
+  "patch4_started": false,
+  "patch5_started": false
+}
