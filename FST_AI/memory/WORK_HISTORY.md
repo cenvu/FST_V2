@@ -21,6 +21,20 @@ Each entry must include:
 
 ## Recent History
 
+### 2026-10-02 - Patch 3 Notification Canonical Verification Recovery
+
+- Task ID: `PATCH3_NOTIFICATION_CANONICAL_VERIFICATION_RECOVERY`; workstream `OPENDESIGN_VISUAL_CONVERGENCE_P2`; class VERIFICATION_ONLY; role VERIFIER
+- Agent: Codex local Worker; model variant not independently recorded
+- Start: clean main, `HEAD=origin/main=50c312e06a1192f5a67071e60d464baccdcdd94a`; task issue search found none; no duplicate recovery task in relevant memory entries
+- Change/files: verification evidence and canonical handoff only under `handoffs/evidence/opendesign-visual-convergence-p2/patch3-verification/`; memory bookkeeping. No production, test, project, harness or system configuration mutation
+- Host: macOS 15.7.7 arm64. Before test, hdiutil listed no attached disk images, diskutil showed the internal system disk only, and bounded DARWIN_USER_TEMP_DIR search found no stale `FSTCapacityImageQA-*` roots. Nothing detached, ejected or deleted
+- Prior failure: `DestinationCapacityImageRuntimeXCTests/testDisposableAPFSAdmissionAndVerifiedCopy`; `hdiutil create failed - Device not configured`; earlier first and retry logs retained unchanged
+- Recovery checks: exactly one fresh isolated APFS test passed (1/0/0). It created its disposable image, asserted APFS capacity policy/preflight blocking, verified bundled-rsync hash for 8,192 files and reported its own cleanup PASS; owner media touched NONE. Exactly one fresh serial full suite passed 285/0/0
+- No mutation gate: diff check passed; only verification evidence was untracked before publication; `NotificationTabView.swift` SHA256 stayed `bf1aa5a1572db82699457e65128d9410ccbe6a78ff57cacc9f2faa6c20df364a`, byte-equal to expected HEAD. No Patch 3 visual change, Patch 4 or Patch 5
+- Publication: one coherent verification-evidence/handoff commit only; push/fetch must yield clean `HEAD=origin/main`; fresh V2.1 packet includes operator compact and exact task fields. No production commit or release
+- Worker proposal: `RETURN_TO_BRAIN_FOR_PATCH3_ACCEPTANCE`; review/acceptance/classification/active-next remain BRAIN-owned
+
+
 ### 2026-10-02 - OpenDesign Visual Convergence Phase 2 — PATCH_3 Notification Implementation
 
 - Task ID: `OPENDESIGN_VISUAL_CONVERGENCE_P2_PATCH3_NOTIFICATION_IMPLEMENTATION`; workstream `OPENDESIGN_VISUAL_CONVERGENCE_P2`; role IMPLEMENTER
