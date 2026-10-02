@@ -21,6 +21,19 @@ Each entry must include:
 
 ## Recent History
 
+### 2026-10-02 - OpenDesign Visual Convergence Phase 2 — PATCH_2 Transfer Rhythm
+
+- Task ID: `OPENDESIGN_VISUAL_CONVERGENCE_P2_PATCH2_TRANSFER_RHYTHM`; workstream `OPENDESIGN_VISUAL_CONVERGENCE_P2`
+- Agent/model: Codex local Worker; exact model variant not independently recorded; implementer, not reviewer
+- Branch/start: clean `main` at fetched `HEAD=origin/main=be06423712b18495bd552034d7e541f511b89b66`
+- Change/files: Transfer source/destination row rhythm, compact capacity spacing, 1:1.6 setup columns, native action hierarchy and terminal surfaces, Job Status spacing/long ETA scale. Five production view/style files; captures, harness, gap matrix, two pass comparisons, capture method, validation and final gap report under `handoffs/evidence/opendesign-visual-convergence-p2/patch2/`.
+- Safety: presentation only; no TransferState/ViewModel/Coordinator/backend, capacity formula/admission, verification/rsync, safety criteria, action semantics, notification, or Technical Log behavior change. Error/verify missing telemetry remains unavailable. Capture used isolated temporary paths and existing approved fixtures; no owner media or actual copy/verify/report/notification.
+- Evidence: live OpenDesign MCP read-only reads of `index.html`, `assets/fst-c.css`, `assets/fst-c.js`; native READY/COPYING/VERIFYING/SAFE_TO_EJECT/ERROR before, Pass A, and final captures at 1120×760pt/2240×1520px Dark Aqua. One bounded Pass B fixed Destination title wrapping and Cancel outline. No material correctable visual-only gap was identified; Worker did not self-accept visual parity.
+- Verification: final Debug BUILD SUCCEEDED; focused166 passed/0 failed/0 skipped; standalone `TransferControlsLabelTests` passed; full serial suite285/0/0; `git diff --check` passed. No retry needed. `CAPTURE_METHOD.md`, `VALIDATION.md`, `FINAL_VISUAL_GAP_REPORT.md`, pass comparisons, matrix, and native PNGs are durable evidence.
+- Scope: Patch 1 retained; Patch 3 Notification, Patch 4 Technical Log, and Patch 5 polish not started. CodeGraph unavailable; direct source/diff review used.
+- Publication: one coherent commit, normal push/fetch with HEAD=origin/main and clean worktree required; final SHA and V2.1 packet gate recorded in `~/Desktop/03_FST_BRAIN.md`; no tag/release. BRAIN review pending; classification, accepted state, and active-next unset.
+- Single Worker proposal: `RETURN_TO_BRAIN_FOR_PATCH_2_REVIEW`.
+
 ### 2026-10-02 - OpenDesign Visual Convergence Phase 2 — PATCH_1
 
 - Task ID: OPENDESIGN_VISUAL_CONVERGENCE_PHASE_2

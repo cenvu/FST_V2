@@ -12,16 +12,26 @@ public struct SourceCardView: View {
     
     public var body: some View {
         HStack(alignment: .center, spacing: 16) {
-            Text("SOURCE")
-                .font(.system(size: 12, weight: .medium))
+            Text("Source")
+                .font(.system(size: 14, weight: .medium))
                 .foregroundStyle(FSTPalette.muted)
                 .frame(width: 88, alignment: .leading)
             VStack(alignment: .leading, spacing: 4) {
                 if let url = viewModel.sourceURL {
-                    Text(viewModel.sourceMetadata?.folderName ?? url.lastPathComponent)
-                        .font(.system(size: 16, weight: .semibold))
-                        .foregroundStyle(.primary)
-                        .lineLimit(1)
+                    HStack(alignment: .firstTextBaseline, spacing: 8) {
+                        Text(viewModel.sourceMetadata?.folderName ?? url.lastPathComponent)
+                            .font(.system(size: 18, weight: .semibold))
+                            .foregroundStyle(.primary)
+                            .lineLimit(1)
+                        Spacer(minLength: 8)
+                        if let sourceMetadata = viewModel.sourceMetadata {
+                            HStack(alignment: .firstTextBaseline, spacing: 12) {
+                                metadataValue(title: "TOTAL SIZE", value: formatBytes(sourceMetadata.totalSizeBytes))
+                                metadataValue(title: "FILES", value: formatCount(sourceMetadata.fileCount))
+                                metadataValue(title: "FOLDERS", value: formatCount(sourceMetadata.folderCount))
+                            }
+                        }
+                    }
                     let fullPath = viewModel.sourceMetadata?.fullPath ?? url.path
                     Text(fullPath)
                         .font(.system(.footnote, design: .monospaced))
@@ -32,14 +42,7 @@ public struct SourceCardView: View {
                         .help(fullPath)
                         .accessibilityLabel("Source path: \(fullPath)")
 
-                    if let sourceMetadata = viewModel.sourceMetadata {
-                        HStack(alignment: .firstTextBaseline, spacing: 12) {
-                            metadataValue(title: "TOTAL SIZE", value: formatBytes(sourceMetadata.totalSizeBytes))
-                            metadataValue(title: "FILES", value: formatCount(sourceMetadata.fileCount))
-                            metadataValue(title: "FOLDERS", value: formatCount(sourceMetadata.folderCount))
-                            Spacer(minLength: 0)
-                        }
-                    } else {
+                    if viewModel.sourceMetadata == nil {
                         let metadataUnavailable = viewModel.errorMessage == "Unable to analyze source folder."
                         Text(metadataUnavailable ? "Source metadata unavailable." : "Analyzing source metadata…")
                             .font(.footnote)
@@ -87,7 +90,7 @@ public struct SourceCardView: View {
             }
         }
         .padding(.horizontal, 16)
-        .padding(.vertical, 10)
+        .padding(.vertical, 8)
         .overlay(
             RoundedRectangle(cornerRadius: 4)
                 .stroke(isDropTargeted ? Color.accentColor : Color.clear, style: StrokeStyle(lineWidth: 2, dash: [5]))

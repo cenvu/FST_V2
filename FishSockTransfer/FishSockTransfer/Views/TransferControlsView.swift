@@ -2,6 +2,44 @@
 
 import SwiftUI
 
+private struct TransferSetupColumnLayout: Layout {
+    var spacing: CGFloat
+    var verificationRatio: CGFloat
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        guard subviews.count == 2 else {
+            return subviews.first?.sizeThatFits(proposal) ?? .zero
+        }
+
+        let idealWidth = subviews.reduce(spacing) { $0 + $1.sizeThatFits(.unspecified).width }
+        let width = proposal.width.map { $0.isFinite ? $0 : idealWidth } ?? idealWidth
+        let availableWidth = max(0, width - spacing)
+        let bandwidthWidth = availableWidth / (1 + verificationRatio)
+        let verificationWidth = availableWidth - bandwidthWidth
+        let bandwidthSize = subviews[0].sizeThatFits(ProposedViewSize(width: bandwidthWidth, height: proposal.height))
+        let verificationSize = subviews[1].sizeThatFits(ProposedViewSize(width: verificationWidth, height: proposal.height))
+        return CGSize(width: width, height: max(bandwidthSize.height, verificationSize.height))
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        guard subviews.count == 2 else { return }
+
+        let availableWidth = max(0, bounds.width - spacing)
+        let bandwidthWidth = availableWidth / (1 + verificationRatio)
+        let verificationWidth = availableWidth - bandwidthWidth
+        subviews[0].place(
+            at: CGPoint(x: bounds.minX, y: bounds.minY),
+            anchor: .topLeading,
+            proposal: ProposedViewSize(width: bandwidthWidth, height: bounds.height)
+        )
+        subviews[1].place(
+            at: CGPoint(x: bounds.minX + bandwidthWidth + spacing, y: bounds.minY),
+            anchor: .topLeading,
+            proposal: ProposedViewSize(width: verificationWidth, height: bounds.height)
+        )
+    }
+}
+
 public struct TransferControlsView: View {
     @ObservedObject var viewModel: TransferViewModel
     private let onOpenTechnicalLog: (() -> Void)?
@@ -89,7 +127,7 @@ public struct TransferControlsView: View {
     }
 
     private var progressPanel: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Text("Job Status").font(.system(size: 14, weight: .semibold))
                 Spacer()
@@ -184,10 +222,10 @@ public struct TransferControlsView: View {
     }
 
     private func heroMetric(title: String, value: String) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: 4) {
             Text(title).font(.system(size: 12)).foregroundStyle(FSTPalette.muted)
             Text(value)
-                .font(.system(size: 28, weight: .semibold))
+                .font(.system(size: value.count > 8 ? 20 : 28, weight: .semibold))
                 .monospacedDigit()
                 .lineLimit(1)
                 .minimumScaleFactor(0.65)
@@ -197,12 +235,11 @@ public struct TransferControlsView: View {
     }
 
     private var settingsPanel: some View {
-        HStack(alignment: .top, spacing: 14) {
+        AnyLayout(TransferSetupColumnLayout(spacing: 14, verificationRatio: 1.6)) {
             VStack(alignment: .leading, spacing: 4) {
                 Text("Bandwidth")
-                    .font(.caption)
+                    .font(.system(size: 14, weight: .medium))
                     .foregroundColor(.secondary)
-                    .fontWeight(.semibold)
 
                 Picker("Bandwidth Limit", selection: $viewModel.bandwidthLimit) {
                     ForEach(bandwidthOptions, id: \.label) { option in
@@ -210,11 +247,12 @@ public struct TransferControlsView: View {
                     }
                 }
                 .pickerStyle(.menu)
+                .controlSize(.regular)
                 .labelsHidden()
                 .frame(maxWidth: .infinity, alignment: .leading)
 
                 Text("Copy speed cap")
-                    .font(.caption)
+                    .font(.system(size: 12))
                     .foregroundColor(.secondary)
                     .lineLimit(1)
                     .truncationMode(.tail)
@@ -223,9 +261,8 @@ public struct TransferControlsView: View {
 
             VStack(alignment: .leading, spacing: 4) {
                 Text("Verification")
-                    .font(.caption)
+                    .font(.system(size: 14, weight: .medium))
                     .foregroundColor(.secondary)
-                    .fontWeight(.semibold)
 
                 Picker("Verification Mode", selection: $viewModel.verificationMode) {
                     Text(VerificationMode.none.selectionLabel).tag(VerificationMode.none)
@@ -233,12 +270,13 @@ public struct TransferControlsView: View {
                     Text(VerificationMode.full.selectionLabel).tag(VerificationMode.full)
                 }
                 .pickerStyle(.menu)
+                .controlSize(.regular)
                 .labelsHidden()
                 .frame(maxWidth: .infinity, alignment: .leading)
 
                 Text(viewModel.verificationMode.operatorDescription)
                     .help(viewModel.verificationMode.operatorDescription)
-                    .font(.system(.footnote, design: .rounded))
+                    .font(.system(size: 12))
                     .foregroundColor(.secondary)
                     .lineLimit(1)
                     .truncationMode(.tail)
@@ -247,7 +285,7 @@ public struct TransferControlsView: View {
         }
         .disabled(viewModel.isTransferConfigurationLocked)
         .padding(.horizontal, 16)
-        .padding(.vertical, 10)
+        .padding(.vertical, 8)
         .overlay(alignment: .bottom) { Divider().overlay(FSTPalette.line) }
     }
 
@@ -257,7 +295,7 @@ public struct TransferControlsView: View {
 
         return HStack(spacing: 12) {
             Image(systemName: TransferControlsActionPresentation.stateIcon(for: state))
-                .font(.body)
+                .font(.system(size: 16))
                 .foregroundColor(stateColor)
                 .accessibilityHidden(true)
 
@@ -266,7 +304,7 @@ public struct TransferControlsView: View {
                     for: state,
                     canStartTransfer: viewModel.canStartTransfer
                 ))
-                .font(.headline)
+                .font(.system(size: 18, weight: .semibold))
                 .foregroundColor(stateColor)
 
                 Text(TransferControlsActionPresentation.stateSubtitle(
@@ -276,7 +314,7 @@ public struct TransferControlsView: View {
                     workflowPhaseTitle: viewModel.workflowPhaseTitle,
                     workflowPhaseMessage: viewModel.workflowPhaseMessage
                 ))
-                .font(.subheadline)
+                .font(.system(size: 14))
                 .foregroundColor(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
             }
@@ -288,59 +326,93 @@ public struct TransferControlsView: View {
                     .controlSize(.small)
                     .accessibilityLabel("Preparing Transfer")
             } else {
-                Button(action: handleActionButton) {
-                    Label(
-                        TransferActionPresentation.title(for: state),
-                        systemImage: TransferControlsActionPresentation.icon(for: state)
-                    )
-                    .fixedSize()
-                }
-                .buttonStyle(.bordered)
-                .controlSize(.regular)
-                .disabled(!isActionButtonEnabled)
-                .accessibilityLabel(accessibilityActionLabel)
+                activeActionButton
             }
         }
         .operationalPanel()
+    }
+
+    @ViewBuilder
+    private var activeActionButton: some View {
+        let state = viewModel.transferState
+        let button = Button(action: handleActionButton) {
+            Label(
+                TransferActionPresentation.title(for: state),
+                systemImage: TransferControlsActionPresentation.icon(for: state)
+            )
+            .fixedSize()
+        }
+        .controlSize(.regular)
+        .disabled(!isActionButtonEnabled)
+        .accessibilityLabel(accessibilityActionLabel)
+
+        if state == .ready {
+            button
+                .buttonStyle(.borderedProminent)
+                .tint(FSTPalette.primaryAction)
+        } else {
+            button
+                .buttonStyle(.bordered)
+                .tint(FSTPalette.error)
+                .foregroundStyle(FSTPalette.error)
+                .overlay {
+                    RoundedRectangle(cornerRadius: 5)
+                        .stroke(FSTPalette.error, lineWidth: 1)
+                        .allowsHitTesting(false)
+                }
+        }
     }
 
     private var terminalControlBar: some View {
         let state = viewModel.transferState
         let errorMessage = viewModel.errorMessage
         let stateColor = TransferControlsActionPresentation.stateColor(for: state, errorMessage: errorMessage)
+        let visualRole = TransferControlsActionPresentation.visualRole(for: state, errorMessage: errorMessage)
+        let panelBackground: Color
+        switch visualRole {
+        case .safeToFormat:
+            panelBackground = FSTPalette.statusSuccessSurface
+        case .error:
+            panelBackground = FSTPalette.statusErrorSurface
+        default:
+            panelBackground = FSTPalette.surface
+        }
 
         return VStack(alignment: .leading, spacing: 8) {
             HStack(alignment: .top, spacing: 12) {
                 Image(systemName: TransferControlsActionPresentation.stateIcon(for: state, errorMessage: errorMessage))
-                    .font(.body)
+                    .font(.system(size: 16))
                     .foregroundColor(stateColor)
                     .accessibilityHidden(true)
 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(TransferControlsActionPresentation.stateTitle(for: state, errorMessage: errorMessage))
-                        .font(.headline)
+                        .font(.system(size: 18, weight: .semibold))
                         .foregroundColor(stateColor)
                     Text(TransferControlsActionPresentation.stateSubtitle(for: state, errorMessage: errorMessage))
-                        .font(.subheadline)
+                        .font(.system(size: 14))
                         .foregroundColor(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                         .textSelection(.enabled)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
 
-                VStack(alignment: .trailing, spacing: 8) {
-                    if let openTechnicalLogAction {
-                        Button("Open Technical Log", action: openTechnicalLogAction)
-                            .buttonStyle(.bordered)
-                            .fixedSize()
-                    }
+                HStack(spacing: 8) {
                     if let actionTitle = TransferActionPresentation.terminalActionTitle(
                         for: state,
                         canStartTransfer: viewModel.canStartTransfer
                     ) {
                         Button(actionTitle, action: handleActionButton)
-                            .buttonStyle(.bordered)
+                            .buttonStyle(.borderedProminent)
+                            .tint(FSTPalette.primaryAction)
+                            .controlSize(.regular)
                             .disabled(!isActionButtonEnabled)
+                            .fixedSize()
+                    }
+                    if let openTechnicalLogAction {
+                        Button("Open Technical Log", action: openTechnicalLogAction)
+                            .buttonStyle(.bordered)
+                            .controlSize(.regular)
                             .fixedSize()
                     }
                 }
@@ -357,7 +429,7 @@ public struct TransferControlsView: View {
                 }
             }
         }
-        .operationalPanel(tint: stateColor)
+        .operationalPanel(tint: stateColor, background: panelBackground)
     }
 
     // The same callback supplied by ContentView is used directly by the native Button.
@@ -405,13 +477,12 @@ public struct TransferControlsView: View {
     }
 
     private func runtimeMetric(title: String, value: String) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: 2) {
             Text(title)
-                .font(.system(size: 12))
+                .font(.system(size: 12, weight: .medium))
                 .foregroundColor(.secondary)
-                .bold()
             Text(value)
-                .font(.system(.footnote, design: .monospaced))
+                .font(.system(size: 12, design: .monospaced))
                 .foregroundColor(.primary)
                 .lineLimit(1)
                 .truncationMode(.middle)

@@ -15,7 +15,7 @@ public struct StorageAnalysisView: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, 16)
-        .padding(.vertical, 10)
+        .padding(.vertical, 6)
     }
 
     @ViewBuilder
@@ -42,7 +42,7 @@ public struct StorageAnalysisView: View {
             }
         } else if let assessment = viewModel.currentCapacityAssessment,
                   let destinationMetadata = viewModel.destinationMetadata {
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: 4) {
                 if viewModel.hasInsufficientDestinationSpace {
                     readinessStatus(
                         "INSUFFICIENT DESTINATION SPACE",

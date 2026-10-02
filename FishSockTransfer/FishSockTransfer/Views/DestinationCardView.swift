@@ -12,16 +12,30 @@ public struct DestinationCardView: View {
     
     public var body: some View {
         HStack(alignment: .center, spacing: 16) {
-            Text("DESTINATION")
-                .font(.system(size: 12, weight: .medium))
+            Text("Destination")
+                .font(.system(size: 14, weight: .medium))
                 .foregroundStyle(FSTPalette.muted)
                 .frame(width: 88, alignment: .leading)
             VStack(alignment: .leading, spacing: 4) {
                 if let url = viewModel.destinationURL {
-                    Text(url.lastPathComponent)
-                        .font(.system(size: 16, weight: .semibold))
-                        .foregroundStyle(.primary)
-                        .lineLimit(1)
+                    HStack(alignment: .firstTextBaseline, spacing: 8) {
+                        Text(url.lastPathComponent)
+                            .font(.system(size: 18, weight: .semibold))
+                            .foregroundStyle(.primary)
+                            .lineLimit(1)
+                        Spacer(minLength: 8)
+                        if let destinationMetadata = viewModel.destinationMetadata {
+                            HStack(alignment: .firstTextBaseline, spacing: 12) {
+                                metadataValue(title: "FILESYSTEM", value: destinationMetadata.filesystem)
+                                metadataValue(title: "FREE SPACE", value: formatBytes(destinationMetadata.freeSpaceBytes))
+                                metadataValue(
+                                    title: "WRITABLE",
+                                    value: destinationMetadata.isWritable ? "YES" : "NO",
+                                    isWarning: !destinationMetadata.isWritable
+                                )
+                            }
+                        }
+                    }
                     Text(url.path)
                         .font(.system(.footnote, design: .monospaced))
                         .foregroundStyle(FSTPalette.muted)
@@ -31,18 +45,7 @@ public struct DestinationCardView: View {
                         .help(url.path)
                         .accessibilityLabel("Destination path: \(url.path)")
 
-                    if let destinationMetadata = viewModel.destinationMetadata {
-                        HStack(alignment: .firstTextBaseline, spacing: 12) {
-                            metadataValue(title: "FILESYSTEM", value: destinationMetadata.filesystem)
-                            metadataValue(title: "FREE SPACE", value: formatBytes(destinationMetadata.freeSpaceBytes))
-                            metadataValue(
-                                title: "WRITABLE",
-                                value: destinationMetadata.isWritable ? "YES" : "NO",
-                                isWarning: !destinationMetadata.isWritable
-                            )
-                            Spacer(minLength: 0)
-                        }
-                    } else {
+                    if viewModel.destinationMetadata == nil {
                         let metadataUnavailable = viewModel.errorMessage == "Unable to analyze destination folder."
                         Text(metadataUnavailable ? "Destination metadata unavailable." : "Analyzing destination metadata…")
                             .font(.footnote)
@@ -100,7 +103,7 @@ public struct DestinationCardView: View {
             }
         }
         .padding(.horizontal, 16)
-        .padding(.vertical, 10)
+        .padding(.vertical, 8)
         .overlay(
             RoundedRectangle(cornerRadius: 4)
                 .stroke(isDropTargeted ? Color.accentColor : Color.clear, style: StrokeStyle(lineWidth: 2, dash: [5]))
