@@ -33,6 +33,19 @@ This appears to have been run before as <entry>. Do you want to rerun it, contin
 
 ## Recent Tasks
 
+### 2026-10-02 - FST_EN_VI_LOCALIZATION_L1_TRANSFER_AND_SETTINGS
+
+- Task name: FST EN/VI Localization L1 — Settings + Transfer
+- Agent: Codex, implementer, model GPT-6
+- Status: implemented; BRAIN review pending; commit/push verification part of the requested handoff
+- Start: clean fetched `main` at requested `HEAD=origin/main=6f1c6050ff00d4cfc72b17d3419ae8d046431b21`; matching issue and duplicate localization task not found
+- Production files: app entry, AppLanguage and Transfer presentation localization infrastructure, SettingsView, Localizable.xcstrings, five authorized Transfer/app-shell views, and explicit XCTest project registration
+- Evidence: `handoffs/evidence/localization-l1/LOCALIZATION_INVENTORY.md`, `VALIDATION.md`, `LOCALIZATION_L2_QUEUE.md`, and requested EN/VI terminal/settings/minimum-window synthetic captures
+- Safety impact: presentation only. Unknown backend/runtime text and paths remain unchanged; no TransferState, verification-none, SAFE TO EJECT, capacity, report, notification, engine, service, or source-media behavior change
+- Checks: Debug build PASS; `TransferControlsLabelTests` PASS; focused localization/runtime/capacity111/0/0; full fresh canonical suite291/0/0 (285 existing + 6 new); 127/127 catalog entries translated; built Vietnamese resource verified
+- Commit/tag/release: one coherent commit/push to main requested; no tag/release. Final sync evidence appears in `~/Desktop/03_FST_BRAIN.md`
+- Worker proposed next: `RETURN_TO_BRAIN_FOR_LOCALIZATION_L1_REVIEW`; no self-acceptance, classification, or active-next
+
 ### 2026-10-02 - TRANSFER_CARD_READABILITY_TYPOGRAPHY_RETUNE
 
 - Task name: Transfer Card Readability Typography Retune

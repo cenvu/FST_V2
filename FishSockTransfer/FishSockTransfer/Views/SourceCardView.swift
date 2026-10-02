@@ -3,6 +3,7 @@
 import SwiftUI
 
 public struct SourceCardView: View {
+    @Environment(\.locale) private var locale
     @ObservedObject var viewModel: TransferViewModel
     @State private var isDropTargeted = false
     
@@ -41,11 +42,14 @@ public struct SourceCardView: View {
                         .truncationMode(.middle)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .help(fullPath)
-                        .accessibilityLabel("Source path: \(fullPath)")
+                        .accessibilityLabel(TransferPresentationLocalization.sourcePathLabel(fullPath, locale: locale))
 
                     if viewModel.sourceMetadata == nil {
                         let metadataUnavailable = viewModel.errorMessage == "Unable to analyze source folder."
-                        Text(metadataUnavailable ? "Source metadata unavailable." : "Analyzing source metadata…")
+                        Text(TransferPresentationLocalization.text(
+                            metadataUnavailable ? "Source metadata unavailable." : "Analyzing source metadata…",
+                            locale: locale
+                        ))
                             .font(.system(size: 12))
                             .foregroundStyle(metadataUnavailable ? Color.orange : Color.secondary)
                     }
@@ -115,7 +119,7 @@ public struct SourceCardView: View {
 
     private func metadataValue(title: String, value: String) -> some View {
         VStack(alignment: .leading, spacing: 2) {
-            Text(title)
+            Text(TransferPresentationLocalization.text(title, locale: locale))
                 .font(.system(size: 12))
                 .foregroundStyle(FSTPalette.muted)
             Text(value)

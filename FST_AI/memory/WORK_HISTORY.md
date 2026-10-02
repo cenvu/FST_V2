@@ -21,6 +21,18 @@ Each entry must include:
 
 ## Recent History
 
+### 2026-10-02 - FST EN/VI Localization L1 — Settings + Transfer
+
+- Task ID `FST_EN_VI_LOCALIZATION_L1_TRANSFER_AND_SETTINGS`; workstream `FST_EN_VI_LOCALIZATION`; Codex implementer, model GPT-6
+- Reanchor: clean fetched `main` at requested `HEAD=origin/main=6f1c6050ff00d4cfc72b17d3419ae8d046431b21`; duplicate work not found; CodeGraph unavailable, so production source inspected directly
+- Changed: native app `Settings` scene and shared persisted `AppLanguagePreference`; canonical English-source `Localizable.xcstrings` with 127 Vietnamese entries; bounded locale-aware dynamic presentation lookup; L1 Transfer/app shell labels, states, actions, accessibility/help, and capacity copy; six localization XCTest cases; pre-edit string inventory, L2 queue, synthetic Dark Aqua screenshot harness/evidence, validation report
+- Production boundary: app/language/settings/catalog plus `ContentView`, `SourceCardView`, `DestinationCardView`, `StorageAnalysisView`, `TransferControlsView`, localization test, and test-target registration only. No ViewModel/backend/service/engine/coordinator/capacity/report/notification behavior, privacy manifest, source media, or safety semantics changed. Raw unknown runtime text, paths, identifiers, values, and algorithms remain unchanged; NONE still presents TRANSFER COMPLETE, while only canonical safe-to-eject state presents SAFE TO EJECT
+- Runtime proof: EN→VI changes presentation and preserves ViewModel identity, selected source/destination, verification/bandwidth, notification settings, logs, and canonical state; isolated preference tests verify default, vi/en persistence, reconstructed-reader persistence, and invalid-value English fallback
+- Visual proof: requested EN/VI Ready, Safe to Eject, Transfer Complete, Error, Settings, and 900×660 Ready screenshots captured; Manual Check Required and Cancelled also captured. Vietnamese diacritics render; critical action/state remain reachable at minimum size. Fixtures use synthetic paths, start no transfer, send no Telegram message, and make no update request
+- Checks: canonical Debug build PASS; `TransferControlsLabelTests` PASS; focused localization/runtime/capacity XCTest 111/0/0; one fresh full canonical XCTest suite291/0/0 (285 existing + 6 localization); built `vi.lproj/Localizable.strings` PASS; catalog 127/127 Vietnamese entries; diff check PASS before publication
+- Publication: one coherent main commit with push/fetch/clean verification; no tag/release. Final Git SHA and sync result in the BRAIN return packet
+- Worker proposal only: `RETURN_TO_BRAIN_FOR_LOCALIZATION_L1_REVIEW`; review pending, classification/accepted state unset, active-next none
+
 ### 2026-10-02 - Transfer Card Readability Typography Retune
 
 - Task ID `TRANSFER_CARD_READABILITY_TYPOGRAPHY_RETUNE`; workstream `OPENDESIGN_VISUAL_CONVERGENCE_P2_FOLLOWUP`; Codex implementer; model variant UNVERIFIED

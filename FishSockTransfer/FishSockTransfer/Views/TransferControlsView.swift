@@ -41,6 +41,7 @@ private struct TransferSetupColumnLayout: Layout {
 }
 
 public struct TransferControlsView: View {
+    @Environment(\.locale) private var locale
     @ObservedObject var viewModel: TransferViewModel
     private let onOpenTechnicalLog: (() -> Void)?
     @State private var isShowingCancelConfirmation = false
@@ -73,7 +74,7 @@ public struct TransferControlsView: View {
             if let storageWarningMessage = viewModel.storageWarningMessage {
                 HStack(spacing: 8) {
                     Image(systemName: "exclamationmark.triangle.fill")
-                    Text(storageWarningMessage)
+                    Text(localized(storageWarningMessage))
                 }
                 .font(.system(.subheadline, design: .rounded))
                 .foregroundColor(.orange)
@@ -87,7 +88,7 @@ public struct TransferControlsView: View {
             ) {
                 HStack(spacing: 8) {
                     Image(systemName: viewModel.isTransferConfigurationLocked ? "lock.fill" : "info.circle.fill")
-                    Text(startBlockedReason)
+                    Text(localized(startBlockedReason))
                 }
                 .font(.system(.subheadline, design: .rounded))
                 .foregroundColor(.secondary)
@@ -97,8 +98,8 @@ public struct TransferControlsView: View {
             if let reportStatusMessage = viewModel.reportStatusMessage {
                 HStack(spacing: 8) {
                     Image(systemName: reportStatusMessage.hasPrefix("Report saved: ") ? "doc.text.fill" : "exclamationmark.triangle.fill")
-                    Text(reportStatusMessage)
-                        .help(reportStatusMessage)
+                    Text(TransferPresentationLocalization.reportStatus(reportStatusMessage, locale: locale))
+                        .help(TransferPresentationLocalization.reportStatus(reportStatusMessage, locale: locale))
                         .textSelection(.enabled)
                         .lineLimit(1)
                         .truncationMode(.middle)
@@ -131,11 +132,11 @@ public struct TransferControlsView: View {
             HStack {
                 Text("Job Status").font(.system(size: 14, weight: .semibold))
                 Spacer()
-                Text(TransferControlsActionPresentation.stateTitle(
+                Text(localized(TransferControlsActionPresentation.stateTitle(
                     for: viewModel.transferState,
                     canStartTransfer: viewModel.canStartTransfer,
                     errorMessage: viewModel.errorMessage
-                ))
+                )))
                 .font(.caption)
                 .foregroundStyle(TransferControlsActionPresentation.stateColor(
                     for: viewModel.transferState, errorMessage: viewModel.errorMessage
@@ -153,17 +154,17 @@ public struct TransferControlsView: View {
                 .progressViewStyle(FSTThinProgressStyle(tint:
                     TransferControlsActionPresentation.stateColor(for: viewModel.transferState, errorMessage: viewModel.errorMessage)
                 ))
-                .accessibilityLabel(jobHeroTitles.progress)
-                .accessibilityValue(jobDisplayProgress.map { "\(Int($0.rounded())) percent" } ?? "Unavailable")
+                .accessibilityLabel(localized(jobHeroTitles.progress))
+                .accessibilityValue(progressAccessibilityValue)
 
             HStack(spacing: 12) {
-                Text(TransferControlsActionPresentation.stateSubtitle(
+                Text(localized(TransferControlsActionPresentation.stateSubtitle(
                     for: viewModel.transferState,
                     canStartTransfer: viewModel.canStartTransfer,
                     workflowPhaseTitle: viewModel.workflowPhaseTitle,
                     workflowPhaseMessage: viewModel.workflowPhaseMessage,
                     errorMessage: viewModel.errorMessage
-                ))
+                )))
                 if shouldShowProgressDetails && !viewModel.workflowPhaseTitle.isEmpty {
                     Spacer(minLength: 0)
                     Text("Elapsed: \(formatElapsed(viewModel.workflowElapsedSeconds))")
@@ -175,14 +176,14 @@ public struct TransferControlsView: View {
 
             Divider().overlay(FSTPalette.line)
             HStack(alignment: .top, spacing: 16) {
-                runtimeMetric(title: "AVERAGE COPY SPEED", value: TransferRuntimeMetricPresentation.averageCopySpeedValue(snapshot: viewModel.copyRuntimeSnapshot))
-                runtimeMetric(title: "COPY ELAPSED", value: viewModel.copyRuntimeSnapshot == nil ? "—" : formatElapsed(copyElapsedSeconds))
-                runtimeMetric(title: "COPIED", value: copiedBytesValue)
-                runtimeMetric(title: "FILES", value: copiedFilesValue)
+                runtimeMetric(title: localized("AVERAGE COPY SPEED"), value: TransferRuntimeMetricPresentation.averageCopySpeedValue(snapshot: viewModel.copyRuntimeSnapshot))
+                runtimeMetric(title: localized("COPY ELAPSED"), value: viewModel.copyRuntimeSnapshot == nil ? "—" : formatElapsed(copyElapsedSeconds))
+                runtimeMetric(title: localized("COPIED"), value: copiedBytesValue)
+                runtimeMetric(title: localized("FILES"), value: copiedFilesValue)
             }
             Divider().overlay(FSTPalette.line)
             HStack(alignment: .firstTextBaseline, spacing: 12) {
-                Text(runtimeFileMetricTitle).font(.caption).foregroundStyle(FSTPalette.muted)
+                Text(localized(runtimeFileMetricTitle)).font(.caption).foregroundStyle(FSTPalette.muted)
                 Text(displayCurrentFile)
                     .font(.system(.footnote, design: .monospaced))
                     .foregroundStyle(FSTPalette.muted)
@@ -223,7 +224,7 @@ public struct TransferControlsView: View {
 
     private func heroMetric(title: String, value: String) -> some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(title).font(.system(size: 12)).foregroundStyle(FSTPalette.muted)
+            Text(localized(title)).font(.system(size: 12)).foregroundStyle(FSTPalette.muted)
             Text(value)
                 .font(.system(size: value.count > 8 ? 20 : 28, weight: .semibold))
                 .monospacedDigit()
@@ -243,7 +244,7 @@ public struct TransferControlsView: View {
 
                 Picker("Bandwidth Limit", selection: $viewModel.bandwidthLimit) {
                     ForEach(bandwidthOptions, id: \.label) { option in
-                        Text(option.label).tag(option.value)
+                        Text(localized(option.label)).tag(option.value)
                     }
                 }
                 .pickerStyle(.menu)
@@ -265,17 +266,17 @@ public struct TransferControlsView: View {
                     .foregroundColor(.secondary)
 
                 Picker("Verification Mode", selection: $viewModel.verificationMode) {
-                    Text(VerificationMode.none.selectionLabel).tag(VerificationMode.none)
-                    Text(VerificationMode.random33.selectionLabel).tag(VerificationMode.random33)
-                    Text(VerificationMode.full.selectionLabel).tag(VerificationMode.full)
+                    Text(localized(VerificationMode.none.selectionLabel)).tag(VerificationMode.none)
+                    Text(localized(VerificationMode.random33.selectionLabel)).tag(VerificationMode.random33)
+                    Text(localized(VerificationMode.full.selectionLabel)).tag(VerificationMode.full)
                 }
                 .pickerStyle(.menu)
                 .controlSize(.regular)
                 .labelsHidden()
                 .frame(maxWidth: .infinity, alignment: .leading)
 
-                Text(viewModel.verificationMode.operatorDescription)
-                    .help(viewModel.verificationMode.operatorDescription)
+                Text(localized(viewModel.verificationMode.operatorDescription))
+                    .help(localized(viewModel.verificationMode.operatorDescription))
                     .font(.system(size: 12))
                     .foregroundColor(.secondary)
                     .lineLimit(1)
@@ -300,20 +301,20 @@ public struct TransferControlsView: View {
                 .accessibilityHidden(true)
 
             VStack(alignment: .leading, spacing: 4) {
-                Text(TransferControlsActionPresentation.stateTitle(
+                Text(localized(TransferControlsActionPresentation.stateTitle(
                     for: state,
                     canStartTransfer: viewModel.canStartTransfer
-                ))
+                )))
                 .font(.system(size: 18, weight: .semibold))
                 .foregroundColor(stateColor)
 
-                Text(TransferControlsActionPresentation.stateSubtitle(
+                Text(localized(TransferControlsActionPresentation.stateSubtitle(
                     for: state,
                     canStartTransfer: viewModel.canStartTransfer,
                     startBlockedReason: viewModel.startBlockedReason,
                     workflowPhaseTitle: viewModel.workflowPhaseTitle,
                     workflowPhaseMessage: viewModel.workflowPhaseMessage
-                ))
+                )))
                 .font(.system(size: 14))
                 .foregroundColor(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
@@ -337,7 +338,7 @@ public struct TransferControlsView: View {
         let state = viewModel.transferState
         let button = Button(action: handleActionButton) {
             Label(
-                TransferActionPresentation.title(for: state),
+                localized(TransferActionPresentation.title(for: state)),
                 systemImage: TransferControlsActionPresentation.icon(for: state)
             )
             .fixedSize()
@@ -386,10 +387,10 @@ public struct TransferControlsView: View {
                     .accessibilityHidden(true)
 
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(TransferControlsActionPresentation.stateTitle(for: state, errorMessage: errorMessage))
+                    Text(localized(TransferControlsActionPresentation.stateTitle(for: state, errorMessage: errorMessage)))
                         .font(.system(size: 18, weight: .semibold))
                         .foregroundColor(stateColor)
-                    Text(TransferControlsActionPresentation.stateSubtitle(for: state, errorMessage: errorMessage))
+                    Text(localized(TransferControlsActionPresentation.stateSubtitle(for: state, errorMessage: errorMessage)))
                         .font(.system(size: 14))
                         .foregroundColor(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
@@ -402,7 +403,7 @@ public struct TransferControlsView: View {
                         for: state,
                         canStartTransfer: viewModel.canStartTransfer
                     ) {
-                        Button(actionTitle, action: handleActionButton)
+                        Button(localized(actionTitle), action: handleActionButton)
                             .buttonStyle(.borderedProminent)
                             .tint(FSTPalette.primaryAction)
                             .controlSize(.regular)
@@ -440,40 +441,49 @@ public struct TransferControlsView: View {
 
     private var accessibilityActionLabel: String {
         if TransferActionPresentation.isActiveCancellableState(viewModel.transferState) {
-            return "Cancel Transfer"
+            return localized("Cancel Transfer")
         }
         if viewModel.transferState == .error, viewModel.canStartTransfer {
-            return "Retry Transfer"
+            return localized("Retry Transfer")
         }
-        return TransferControlsActionPresentation.title(
+        return localized(TransferControlsActionPresentation.title(
             for: viewModel.transferState,
             errorMessage: viewModel.errorMessage,
             canStartTransfer: viewModel.canStartTransfer
-        )
+        ))
+    }
+
+    private var progressAccessibilityValue: String {
+        guard let jobDisplayProgress else { return localized("Unavailable") }
+        return "\(Int(jobDisplayProgress.rounded())) \(localized("percent"))"
+    }
+
+    private func localized(_ english: String) -> String {
+        TransferPresentationLocalization.text(english, locale: locale)
     }
 
     private var displayCurrentFile: String {
-        TransferRuntimeMetricPresentation.currentFileValue(
+        localized(TransferRuntimeMetricPresentation.currentFileValue(
             currentFile: viewModel.currentFile,
             state: viewModel.transferState
-        )
+        ))
     }
 
     private var runtimeFileMetricTitle: String {
-        TransferRuntimeMetricPresentation.currentFileTitle(
+        localized(TransferRuntimeMetricPresentation.currentFileTitle(
             currentFile: viewModel.currentFile,
             state: viewModel.transferState
-        )
+        ))
     }
 
     private var verifyEtaValue: String {
         if viewModel.progress >= 0.99 {
-            return "Finalizing..."
+            return localized("Finalizing...")
         }
         guard viewModel.eta > 0, viewModel.verifyElapsedSeconds > 0 else {
-            return "Estimating..."
+            return localized("Estimating...")
         }
-        return "~\(formatTransferTime(viewModel.eta)) remaining"
+        return TransferPresentationLocalization.remainingTime("~\(formatTransferTime(viewModel.eta)) remaining", locale: locale)
     }
 
     private func runtimeMetric(title: String, value: String) -> some View {
@@ -526,7 +536,7 @@ public struct TransferControlsView: View {
 
     private var copyEtaValue: String {
         if let etaSeconds = viewModel.copyRuntimeSnapshot?.etaSeconds {
-            return "\(formatTransferTime(etaSeconds)) remaining"
+            return TransferPresentationLocalization.remainingTime("\(formatTransferTime(etaSeconds)) remaining", locale: locale)
         }
 
         return formatTransferTime(viewModel.eta)

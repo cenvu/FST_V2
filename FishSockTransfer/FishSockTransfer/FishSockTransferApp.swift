@@ -11,9 +11,17 @@ import SwiftUI
 
 @main
 struct FishSockTransferApp: App {
+    @StateObject private var languagePreference = AppLanguagePreference()
+
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .environment(\.locale, languagePreference.language.locale)
+        }
+
+        Settings {
+            SettingsView(languagePreference: languagePreference)
+                .environment(\.locale, languagePreference.language.locale)
         }
     }
 }

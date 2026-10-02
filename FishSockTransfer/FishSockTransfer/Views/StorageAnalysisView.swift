@@ -3,6 +3,7 @@
 import SwiftUI
 
 public struct StorageAnalysisView: View {
+    @Environment(\.locale) private var locale
     @ObservedObject var viewModel: TransferViewModel
     
     public init(viewModel: TransferViewModel) {
@@ -36,7 +37,7 @@ public struct StorageAnalysisView: View {
             HStack(spacing: 8) {
                 ProgressView()
                     .controlSize(.small)
-                Text("Analyzing storage…")
+                Text(TransferPresentationLocalization.text("Analyzing storage…", locale: locale))
                     .font(.system(size: 13))
                     .foregroundStyle(.secondary)
             }
@@ -50,7 +51,7 @@ public struct StorageAnalysisView: View {
                         tint: .orange
                     )
                     if let storageWarningMessage = viewModel.storageWarningMessage {
-                        Text(storageWarningMessage)
+                        Text(TransferPresentationLocalization.text(storageWarningMessage, locale: locale))
                             .font(.system(size: 12))
                             .foregroundStyle(.orange)
                             .fixedSize(horizontal: false, vertical: true)
@@ -75,7 +76,7 @@ public struct StorageAnalysisView: View {
                 }
 
                 if assessment.passesCapacityPrecheck {
-                    Text(assessment.supportingText)
+                    Text(TransferPresentationLocalization.text(assessment.supportingText, locale: locale))
                         .font(.system(size: 12))
                         .foregroundStyle(assessment.hasUnvalidatedAllocation ? Color.orange : Color.secondary)
                         .fixedSize(horizontal: false, vertical: true)
@@ -112,21 +113,22 @@ public struct StorageAnalysisView: View {
         tint: Color,
         help: String? = nil
     ) -> some View {
-        HStack(spacing: 8) {
+        let localizedTitle = TransferPresentationLocalization.text(title, locale: locale)
+        return HStack(spacing: 8) {
             Image(systemName: systemImage)
                 .foregroundStyle(tint)
-            Text(title)
+            Text(localizedTitle)
                 .font(.system(size: 13, weight: .semibold))
                 .foregroundStyle(tint)
                 .fixedSize(horizontal: false, vertical: true)
         }
         .accessibilityElement(children: .combine)
-        .help(help ?? title)
+        .help(TransferPresentationLocalization.text(help ?? title, locale: locale))
     }
 
     private func valueRow(_ title: String, value: String) -> some View {
         VStack(alignment: .leading, spacing: 2) {
-            Text(title)
+            Text(TransferPresentationLocalization.text(title, locale: locale))
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
             Text(value)

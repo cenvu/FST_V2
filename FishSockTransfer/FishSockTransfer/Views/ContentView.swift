@@ -3,6 +3,8 @@
 import SwiftUI
 
 public struct ContentView: View {
+    @Environment(\.locale) private var locale
+
     private enum MainTab {
         case transfer
         case notification
@@ -73,10 +75,13 @@ public struct ContentView: View {
         VStack(spacing: 0) {
             Divider().overlay(FSTPalette.line)
             HStack(spacing: 12) {
-                Text(TransferControlsActionPresentation.stateTitle(
-                    for: viewModel.transferState,
-                    canStartTransfer: viewModel.canStartTransfer,
-                    errorMessage: viewModel.errorMessage
+                Text(TransferPresentationLocalization.text(
+                    TransferControlsActionPresentation.stateTitle(
+                        for: viewModel.transferState,
+                        canStartTransfer: viewModel.canStartTransfer,
+                        errorMessage: viewModel.errorMessage
+                    ),
+                    locale: locale
                 ))
                 Text("Source protection · Read-only")
                 Spacer(minLength: 8)

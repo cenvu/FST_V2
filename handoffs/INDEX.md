@@ -91,3 +91,4 @@ new handoffs that reference the older handoff; history is never erased.
 | 2026-10-02T17:54:04+07:00 | 20261002-175404_codex-cli_patch5-final-polish.md | NORMAL | Codex CLI/GPT-6 | patch5-final-polish/PATCH_5_FINAL_POLISH | main@28c8a48 | modified | NONE |
 | 2026-10-02T18:23:16+07:00 | 20261002-182316_codex-cli_transfer-card-readability-typography-bump.md | NORMAL | Codex CLI/UNVERIFIED | transfer-card-readability-typography-bump/PRODUCTION_PRESENTATION_PATCH | main@21d7e35 | modified | NONE |
 | 2026-10-02T18:47:53+07:00 | 20261002-184753_codex-cli_transfer-card-readability-typography-retune.md | NORMAL | Codex CLI/UNVERIFIED | transfer-card-readability-typography-retune/BOUNDED_PRESENTATION_REPAIR | main@523a38b | modified | NONE |
+| 2026-10-02T20:39:09+07:00 | 20261002-203909_codex_fst-en-vi-localization-l1-settings-transfer.md | NORMAL | Codex/GPT-6 | FST EN/VI Localization L1 — Settings + Transfer/LOCALIZATION_L1 | main@6f1c605 | modified | NONE |

@@ -1,0 +1,1276 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "Admission Floor": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mức tối thiểu cần có"
+          }
+        }
+      }
+    },
+    "Allocation overhead is not validated for this filesystem. The current capacity snapshot covers logical payload only and does not guarantee the transfer will fit.": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chi phí cấp phát chưa được xác thực cho hệ tệp này. Dung lượng ghi nhận hiện tại chỉ tính theo dữ liệu logic và không bảo đảm bản sao sẽ vừa."
+          }
+        }
+      }
+    },
+    "Analyzing destination metadata…": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đang phân tích thông tin đích…"
+          }
+        }
+      }
+    },
+    "Analyzing source metadata…": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đang phân tích thông tin nguồn…"
+          }
+        }
+      }
+    },
+    "Analyzing storage…": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đang phân tích dung lượng…"
+          }
+        }
+      }
+    },
+    "Application Language": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ngôn ngữ ứng dụng"
+          }
+        }
+      }
+    },
+    "Available": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Khả dụng"
+          }
+        }
+      }
+    },
+    "AVERAGE COPY SPEED": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TỐC ĐỘ TRUNG BÌNH"
+          }
+        }
+      }
+    },
+    "Bandwidth": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Giới hạn tốc độ"
+          }
+        }
+      }
+    },
+    "Bandwidth Limit": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Giới hạn tốc độ"
+          }
+        }
+      }
+    },
+    "CANCEL": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HỦY"
+          }
+        }
+      }
+    },
+    "Cancel Transfer": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hủy sao chép"
+          }
+        }
+      }
+    },
+    "Cancel Transfer?": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hủy quá trình sao chép?"
+          }
+        }
+      }
+    },
+    "CANCELLED": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ĐÃ HỦY"
+          }
+        }
+      }
+    },
+    "Capacity is a snapshot, not a reservation. Transfer preflight remains authoritative.": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dung lượng hiện có chỉ là ảnh chụp tại thời điểm kiểm tra, không phải dung lượng được giữ chỗ. Kiểm tra trước khi sao chép vẫn là bước quyết định."
+          }
+        }
+      }
+    },
+    "CAPACITY PRECHECK PASSED": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "KIỂM TRA DUNG LƯỢNG ĐẠT"
+          }
+        }
+      }
+    },
+    "Change…": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đổi…"
+          }
+        }
+      }
+    },
+    "Changes apply immediately.": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Thay đổi được áp dụng ngay."
+          }
+        }
+      }
+    },
+    "Choose Destination Folder": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chọn thư mục đích"
+          }
+        }
+      }
+    },
+    "Choose Source Folder": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chọn thư mục nguồn"
+          }
+        }
+      }
+    },
+    "Choose…": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chọn…"
+          }
+        }
+      }
+    },
+    "Clear Destination Folder": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Xóa lựa chọn đích"
+          }
+        }
+      }
+    },
+    "Clear Source Folder": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Xóa lựa chọn nguồn"
+          }
+        }
+      }
+    },
+    "Click to begin copy.": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nhấn để bắt đầu sao chép."
+          }
+        }
+      }
+    },
+    "Comparing source and destination hashes.": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đang so sánh mã băm của nguồn và đích."
+          }
+        }
+      }
+    },
+    "Complete transfer setup.": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hoàn tất thiết lập sao chép."
+          }
+        }
+      }
+    },
+    "Continue Transfer": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tiếp tục sao chép"
+          }
+        }
+      }
+    },
+    "COPIED": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ĐÃ SAO CHÉP"
+          }
+        }
+      }
+    },
+    "Copy completed. Verification was disabled.": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đã sao chép xong. Tính năng xác minh đã bị tắt."
+          }
+        }
+      }
+    },
+    "COPY ELAPSED": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "THỜI GIAN ĐÃ SAO CHÉP"
+          }
+        }
+      }
+    },
+    "COPY ETA": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "THỜI GIAN CÒN LẠI"
+          }
+        }
+      }
+    },
+    "Copy in progress. Do not remove media.": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đang sao chép. Không tháo phương tiện lưu trữ."
+          }
+        }
+      }
+    },
+    "COPY ONLY — Fastest": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CHỈ SAO CHÉP — Nhanh nhất"
+          }
+        }
+      }
+    },
+    "Copy only. No hash verification by FST.": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chỉ sao chép. FST không xác minh mã băm."
+          }
+        }
+      }
+    },
+    "COPY PROGRESS": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TIẾN ĐỘ SAO CHÉP"
+          }
+        }
+      }
+    },
+    "Copy speed cap": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Giới hạn tốc độ sao chép"
+          }
+        }
+      }
+    },
+    "COPYING": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ĐANG SAO CHÉP"
+          }
+        }
+      }
+    },
+    "CURRENT COPY SPEED": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TỐC ĐỘ HIỆN TẠI"
+          }
+        }
+      }
+    },
+    "CURRENT FILE": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TỆP HIỆN TẠI"
+          }
+        }
+      }
+    },
+    "CURRENT ITEM": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TỆP HIỆN TẠI"
+          }
+        }
+      }
+    },
+    "CURRENT SPEED": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TỐC ĐỘ HIỆN TẠI"
+          }
+        }
+      }
+    },
+    "CURRENT VERIFY FILE": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TỆP ĐANG XÁC MINH"
+          }
+        }
+      }
+    },
+    "Destination": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đích"
+          }
+        }
+      }
+    },
+    "Destination metadata unavailable.": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Không đọc được thông tin đích."
+          }
+        }
+      }
+    },
+    "DESTINATION NOT WRITABLE": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ĐÍCH KHÔNG THỂ GHI"
+          }
+        }
+      }
+    },
+    "Destination path:": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đường dẫn đích:"
+          }
+        }
+      }
+    },
+    "Destination path: %@": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đường dẫn đích: %@"
+          }
+        }
+      }
+    },
+    "Destination target preview:": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Xem trước đích:"
+          }
+        }
+      }
+    },
+    "Destination target preview: %@": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Xem trước đích: %@"
+          }
+        }
+      }
+    },
+    "Drop folder here": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Thả thư mục vào đây"
+          }
+        }
+      }
+    },
+    "Elapsed: %@": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đã chạy: %@"
+          }
+        }
+      }
+    },
+    "Estimating...": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đang ước tính..."
+          }
+        }
+      }
+    },
+    "FILES": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TỆP"
+          }
+        }
+      }
+    },
+    "FILESYSTEM": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HỆ TỆP"
+          }
+        }
+      }
+    },
+    "Finalizing...": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đang hoàn tất..."
+          }
+        }
+      }
+    },
+    "FOLDERS": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "THƯ MỤC"
+          }
+        }
+      }
+    },
+    "FREE SPACE": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DUNG LƯỢNG TRỐNG"
+          }
+        }
+      }
+    },
+    "FULL 100% — Maximum confidence": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ĐẦY ĐỦ 100% — Mức tin cậy cao nhất"
+          }
+        }
+      }
+    },
+    "General": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chung"
+          }
+        }
+      }
+    },
+    "INSUFFICIENT DESTINATION SPACE": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "KHÔNG ĐỦ DUNG LƯỢNG ĐÍCH"
+          }
+        }
+      }
+    },
+    "Job Status": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trạng thái tác vụ"
+          }
+        }
+      }
+    },
+    "Language": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ngôn ngữ"
+          }
+        }
+      }
+    },
+    "MANUAL CHECK REQUIRED": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CẦN KIỂM TRA THỦ CÔNG"
+          }
+        }
+      }
+    },
+    "Margin Above Floor": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Phần dư trên mức tối thiểu"
+          }
+        }
+      }
+    },
+    "NO": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "KHÔNG"
+          }
+        }
+      }
+    },
+    "NOTIFICATION": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "THÔNG BÁO"
+          }
+        }
+      }
+    },
+    "Open Technical Log": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mở nhật ký kỹ thuật"
+          }
+        }
+      }
+    },
+    "Payload": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dữ liệu"
+          }
+        }
+      }
+    },
+    "percent": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "phần trăm"
+          }
+        }
+      }
+    },
+    "PHASE ETA": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "THỜI GIAN CÒN LẠI CỦA GIAI ĐOẠN"
+          }
+        }
+      }
+    },
+    "PHASE PROGRESS": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TIẾN ĐỘ GIAI ĐOẠN"
+          }
+        }
+      }
+    },
+    "PREPARING": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ĐANG CHUẨN BỊ"
+          }
+        }
+      }
+    },
+    "Preparing Transfer": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đang chuẩn bị sao chép"
+          }
+        }
+      }
+    },
+    "PREPARING TRANSFER": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ĐANG CHUẨN BỊ SAO CHÉP"
+          }
+        }
+      }
+    },
+    "Preparing verification...": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đang chuẩn bị xác minh..."
+          }
+        }
+      }
+    },
+    "Processing CinemaDNG frame sequence...": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đang xử lý chuỗi khung CinemaDNG..."
+          }
+        }
+      }
+    },
+    "READY": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SẴN SÀNG"
+          }
+        }
+      }
+    },
+    "Ready to transfer": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sẵn sàng sao chép"
+          }
+        }
+      }
+    },
+    "remaining": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "còn lại"
+          }
+        }
+      }
+    },
+    "Removes this destination selection from FST only. The folder or drive on disk is never deleted or modified.": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chỉ gỡ lựa chọn đích này khỏi FST. Thư mục hoặc ổ đĩa sẽ không bị xóa hoặc thay đổi."
+          }
+        }
+      }
+    },
+    "Removes this source selection from FST only. The folder on disk is never deleted or modified.": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chỉ gỡ lựa chọn nguồn này khỏi FST. Thư mục trên ổ đĩa sẽ không bị xóa hoặc thay đổi."
+          }
+        }
+      }
+    },
+    "Report saved:": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đã lưu báo cáo:"
+          }
+        }
+      }
+    },
+    "Report skipped: no report was written because the destination was unsafe for report output.": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đã bỏ qua báo cáo: không ghi báo cáo vì đích không an toàn để lưu báo cáo."
+          }
+        }
+      }
+    },
+    "Report warning:": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cảnh báo báo cáo:"
+          }
+        }
+      }
+    },
+    "RETRY": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "THỬ LẠI"
+          }
+        }
+      }
+    },
+    "Retry Transfer": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Thử lại"
+          }
+        }
+      }
+    },
+    "Review the error before retrying.": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hãy xem lại lỗi trước khi thử lại."
+          }
+        }
+      }
+    },
+    "SAFE TO EJECT": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CÓ THỂ THÁO Ổ AN TOÀN"
+          }
+        }
+      }
+    },
+    "SAMPLE 33% — Balanced": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MẪU 33% — Cân bằng"
+          }
+        }
+      }
+    },
+    "Scanning source and checking destination...": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đang quét nguồn và kiểm tra đích..."
+          }
+        }
+      }
+    },
+    "Select Destination": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chọn đích"
+          }
+        }
+      }
+    },
+    "Select Source": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chọn nguồn"
+          }
+        }
+      }
+    },
+    "Select source and destination.": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chọn nguồn và đích."
+          }
+        }
+      }
+    },
+    "SETUP REQUIRED": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CẦN THIẾT LẬP"
+          }
+        }
+      }
+    },
+    "SHA256 sample verification. Approximately 33% coverage.": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Xác minh mẫu bằng SHA256. Phạm vi bao phủ khoảng 33%."
+          }
+        }
+      }
+    },
+    "Source": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nguồn"
+          }
+        }
+      }
+    },
+    "Source metadata unavailable.": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Không đọc được thông tin nguồn."
+          }
+        }
+      }
+    },
+    "Source path:": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đường dẫn nguồn:"
+          }
+        }
+      }
+    },
+    "Source path: %@": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đường dẫn nguồn: %@"
+          }
+        }
+      }
+    },
+    "Source protection · Read-only": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bảo vệ nguồn · Chỉ đọc"
+          }
+        }
+      }
+    },
+    "START NEW TRANSFER": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SAO CHÉP MỚI"
+          }
+        }
+      }
+    },
+    "START TRANSFER": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "BẮT ĐẦU SAO CHÉP"
+          }
+        }
+      }
+    },
+    "Technical Details": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chi tiết kỹ thuật"
+          }
+        }
+      }
+    },
+    "TECHNICAL LOG": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "NHẬT KÝ KỸ THUẬT"
+          }
+        }
+      }
+    },
+    "The current capacity snapshot meets the validated APFS allocation floor. Filesystem overhead and other writers may still require additional space.": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dung lượng ghi nhận hiện tại đáp ứng mức cấp phát APFS đã được xác thực. Chi phí phụ của hệ tệp và các tiến trình ghi khác vẫn có thể cần thêm dung lượng."
+          }
+        }
+      }
+    },
+    "The current transfer will stop. Source and destination selections will remain available.": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quá trình sao chép hiện tại sẽ dừng. Các lựa chọn nguồn và đích vẫn được giữ lại."
+          }
+        }
+      }
+    },
+    "TOTAL SIZE": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TỔNG DUNG LƯỢNG"
+          }
+        }
+      }
+    },
+    "TRANSFER": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SAO CHÉP"
+          }
+        }
+      }
+    },
+    "TRANSFER COMPLETE": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SAO CHÉP HOÀN TẤT"
+          }
+        }
+      }
+    },
+    "TRANSFER ERROR": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "LỖI SAO CHÉP"
+          }
+        }
+      }
+    },
+    "Transfer was cancelled.": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quá trình sao chép đã bị hủy."
+          }
+        }
+      }
+    },
+    "Unavailable": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Không khả dụng"
+          }
+        }
+      }
+    },
+    "Unlimited": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Không giới hạn"
+          }
+        }
+      }
+    },
+    "Verification": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Xác minh"
+          }
+        }
+      }
+    },
+    "Verification completed successfully.": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Xác minh hoàn tất thành công."
+          }
+        }
+      }
+    },
+    "Verification did not pass. Review before using media.": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Xác minh không đạt. Hãy kiểm tra trước khi sử dụng phương tiện."
+          }
+        }
+      }
+    },
+    "Verification in progress. Do not remove media.": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đang xác minh. Không tháo phương tiện lưu trữ."
+          }
+        }
+      }
+    },
+    "Verification Mode": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chế độ xác minh"
+          }
+        }
+      }
+    },
+    "VERIFY ELAPSED": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "THỜI GIAN ĐÃ XÁC MINH"
+          }
+        }
+      }
+    },
+    "VERIFY ETA": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "THỜI GIAN XÁC MINH CÒN LẠI"
+          }
+        }
+      }
+    },
+    "VERIFY PROGRESS": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TIẾN ĐỘ XÁC MINH"
+          }
+        }
+      }
+    },
+    "VERIFYING": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ĐANG XÁC MINH"
+          }
+        }
+      }
+    },
+    "Waiting for first file...": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đang chờ tệp đầu tiên..."
+          }
+        }
+      }
+    },
+    "Will create:": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sẽ tạo:"
+          }
+        }
+      }
+    },
+    "WRITABLE": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CÓ THỂ GHI"
+          }
+        }
+      }
+    },
+    "xxHash64 full verification. Fast, non-cryptographic.": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Xác minh toàn bộ bằng xxHash64. Nhanh, không phải hàm băm mật mã."
+          }
+        }
+      }
+    },
+    "YES": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CÓ"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

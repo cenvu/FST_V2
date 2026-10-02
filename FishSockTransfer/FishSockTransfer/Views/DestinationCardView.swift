@@ -3,6 +3,7 @@
 import SwiftUI
 
 public struct DestinationCardView: View {
+    @Environment(\.locale) private var locale
     @ObservedObject var viewModel: TransferViewModel
     @State private var isDropTargeted = false
     
@@ -44,23 +45,27 @@ public struct DestinationCardView: View {
                         .truncationMode(.middle)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .help(url.path)
-                        .accessibilityLabel("Destination path: \(url.path)")
+                        .accessibilityLabel(TransferPresentationLocalization.destinationPathLabel(url.path, locale: locale))
 
                     if viewModel.destinationMetadata == nil {
                         let metadataUnavailable = viewModel.errorMessage == "Unable to analyze destination folder."
-                        Text(metadataUnavailable ? "Destination metadata unavailable." : "Analyzing destination metadata…")
+                        Text(TransferPresentationLocalization.text(
+                            metadataUnavailable ? "Destination metadata unavailable." : "Analyzing destination metadata…",
+                            locale: locale
+                        ))
                             .font(.system(size: 12))
                             .foregroundStyle(metadataUnavailable ? Color.orange : Color.secondary)
                     }
 
                     if let destinationTargetPreview = viewModel.destinationTargetPreview {
-                        Label(destinationTargetPreview, systemImage: "arrow.turn.down.right")
+                        let localizedPreview = TransferPresentationLocalization.destinationTargetPreview(destinationTargetPreview, locale: locale)
+                        Label(localizedPreview, systemImage: "arrow.turn.down.right")
                             .font(.system(size: 12, design: .monospaced))
                             .foregroundStyle(FSTPalette.muted)
                             .lineLimit(1)
                             .truncationMode(.middle)
-                            .help(destinationTargetPreview)
-                            .accessibilityLabel("Destination target preview: \(destinationTargetPreview)")
+                            .help(localizedPreview)
+                            .accessibilityLabel("\(TransferPresentationLocalization.text("Destination target preview:", locale: locale)) \(localizedPreview)")
                     }
                 } else {
                     VStack(alignment: .leading, spacing: 4) {
@@ -124,10 +129,10 @@ public struct DestinationCardView: View {
 
     private func metadataValue(title: String, value: String, isWarning: Bool = false) -> some View {
         VStack(alignment: .leading, spacing: 2) {
-            Text(title)
+            Text(TransferPresentationLocalization.text(title, locale: locale))
                 .font(.system(size: 12))
                 .foregroundStyle(FSTPalette.muted)
-            Text(value)
+            Text(TransferPresentationLocalization.text(value, locale: locale))
                 .font(.system(size: 12, design: .monospaced))
                 .fontWeight(.semibold)
                 .foregroundStyle(isWarning ? Color.orange : Color.primary)
