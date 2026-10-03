@@ -1,61 +1,40 @@
-# FST v1.4.0 — UI, Localization, and Transfer Safety
+# FST v1.4.0 — Redesign
 
-## v1.4.0 - 2026-10-03
+FST v1.4.0 redesigns the macOS interface for clearer media offload, progress tracking and verification results. Version 1.4.0, build 20261003, is available as separate Apple Silicon and Intel packages.
 
-FST v1.4.0 is a major macOS release focused on operator clarity, localization, progress truthfulness, and storage preflight safety.
+## Highlights
 
-### Highlights
-* Refined the production SwiftUI interface across Transfer, Notification, and Technical Log.
-* Refined the Transfer, Notification, and Technical Log workspaces for compact DIT operation.
-* Added persistent in-app English/Vietnamese presentation switching.
-* Finalized bandwidth choices at 50 / 75 / 100 / 125 / 150 / 175 / 200 MB/s and Unlimited.
-* Improved progress2-derived progress, copy speed, average speed, ETA, and current-item presentation.
-* Strengthened destination-capacity readiness and filesystem-aware preflight behavior.
-* Added Copy All Logs and refined Technical Log operator controls.
+- Redesigned Transfer, Notification and Technical Log interface.
+- In-app EN/VI language switching with a saved preference.
+- Bandwidth presets: 50 / 75 / 100 / 125 / 150 / 175 / 200 MB/s / Unlimited.
+- Clearer progress, current speed, average speed and ETA.
+- Improved destination-capacity readiness checks.
+- Copy All Logs and refined log presentation.
+- Apple Silicon arm64 and Intel x86_64 support.
 
-### Verification
-This GitHub Release is created only after the release workflow completes all gates on a GitHub-hosted Apple Silicon macOS runner:
-* full canonical XCTest suite
-* Release build/package for arm64
-* version/build metadata validation
-* bundled rsync 3.4.4 validation
-* bundled dylib architecture/linkage validation
-* ad-hoc codesign verification
-* zip-content validation
-* SHA-256 checksum generation
-* packaged-app privacy scan for local user paths and common credential/token patterns
+## Downloads
 
-### Privacy
-* The owner-provided review screenshots are not included as release assets.
-* Telegram bot tokens, runtime chat settings, local source/destination selections, and machine-specific user paths are not bundled into the release package.
-* Telegram credentials remain runtime user data; the bot token is stored through the app's Keychain-backed flow.
+Requires macOS **13.5+**. Choose the ZIP for your Mac:
 
-### Architecture and downloads
-These are separate architecture-specific packages for macOS 13.5+:
-* Apple Silicon (arm64): [FishSockTransfer-v1.4.0-b20261003-local-macOS13_5plus-arm64.zip](https://github.com/cenvu/FST_V2/releases/download/v1.4.0/FishSockTransfer-v1.4.0-b20261003-local-macOS13_5plus-arm64.zip)
-* Intel Mac (x86_64): [FishSockTransfer-v1.4.0-b20261003-local-macOS13_5plus-x86_64.zip](https://github.com/cenvu/FST_V2/releases/download/v1.4.0/FishSockTransfer-v1.4.0-b20261003-local-macOS13_5plus-x86_64.zip)
-* SHA-256 checksums: [Apple Silicon](https://github.com/cenvu/FST_V2/releases/download/v1.4.0/SHA256SUMS-v1.4.0.txt) / [Intel](https://github.com/cenvu/FST_V2/releases/download/v1.4.0/SHA256SUMS-v1.4.0-x86_64.txt).
+- [Apple Silicon (arm64) ZIP](https://github.com/cenvu/FST_V2/releases/download/v1.4.0/FishSockTransfer-v1.4.0-b20261003-local-macOS13_5plus-arm64.zip)
+- [Intel (x86_64) ZIP](https://github.com/cenvu/FST_V2/releases/download/v1.4.0/FishSockTransfer-v1.4.0-b20261003-local-macOS13_5plus-x86_64.zip)
+- SHA-256 checksums: [Apple Silicon](https://github.com/cenvu/FST_V2/releases/download/v1.4.0/SHA256SUMS-v1.4.0.txt) · [Intel](https://github.com/cenvu/FST_V2/releases/download/v1.4.0/SHA256SUMS-v1.4.0-x86_64.txt).
 
-The Intel package uses the same production application source at the unchanged `v1.4.0` tag (`6843c909bfa47e221ce399fdb92d6e081eca7951`). Its separate [native Intel release workflow](https://github.com/cenvu/FST_V2/actions/runs/37112045530) passed all 301 canonical XCTest tests with zero failures and zero unexpected failures on `macos-15-intel` (`x86_64`). Only disposable test-image cleanup was adjusted to detach by the device proven to belong to the fixture; transfer and verification assertions remain unchanged.
+## Verification
 
-Intel rsync 3.4.4 was built from the checksum-validated official source using included popt/zlib, with optional OpenSSL, xxhash, zstd and lz4 disabled. FST's separate SHA256 and xxHash64 verification remains unchanged. The published ZIP passed native rsync transfer/exclusion smoke tests, every packaged Mach-O architecture/loader audit, privacy checks and strict codesign verification after re-download. Existing ARM64 assets remain unchanged.
+Both architecture-specific packages are built and validated against the project test suite and bundled rsync 3.4.4 requirements.
 
-Intel ZIP SHA-256: `60196c0c21b82abb63307f11d7f19af5d6a83a9408d715379ba39dc2d12b6971`.
+## Safety
 
-### Safety
-* Source media remains read-only.
-* Production transfer continues to use bundled rsync 3.4.4 only.
-* Verification mode None ends at TRANSFER COMPLETE and never SAFE TO EJECT.
-* SAFE TO EJECT still requires successful complete copy and successful required verification.
-* FST does not format or eject source media.
+- Source media remains read-only. FST does not format or eject source media.
+- None performs copy only and ends at **TRANSFER COMPLETE**, never SAFE TO EJECT.
+- Sample 33% uses **SHA256**; Full 100% uses non-cryptographic **xxHash64**.
+- **SAFE TO EJECT** requires complete successful copy and successful required verification. Failure, cancellation, incomplete or uncertain results never authorize it.
 
-### Package
-* Version: 1.4.0
-* Build: 20261003
-* Platform: macOS 13.5+
-* Architectures: Apple Silicon arm64 and Intel x86_64, in separate ZIPs
-* Signing: ad-hoc
-* Not notarized
-* Not Developer ID signed
+## Signing
 
-Because this package is not notarized, macOS may show a security warning on first launch. Right-click → Open may be required.
+The packages are **ad-hoc signed**, **not notarized** and **not Developer ID signed**. macOS may require Right-click → Open on first launch.
+
+## Third-party software
+
+Redistributors should review the third-party licensing and corresponding-source requirements in [docs/legal/THIRD_PARTY_LICENSES.md](https://github.com/cenvu/FST_V2/blob/main/docs/legal/THIRD_PARTY_LICENSES.md).

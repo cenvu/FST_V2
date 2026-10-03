@@ -36,4 +36,4 @@ The FishSock Transfer application bundles third-party software components. These
 
 Full notices, included xxHash attributions, exact upstream sources, corresponding-source obligations and known release-package omissions are documented in `docs/legal/THIRD_PARTY_LICENSES.md` and `docs/legal/LICENSES/`.
 
-Third-party components retain their own licenses and redistribution rights; FST's non-commercial terms do not relicense or restrict them. License compliance does not require adding an MIT badge or endorsement to FST's interface.
+Third-party components retain their own licenses and redistribution rights; FST's non-commercial terms do not relicense or restrict them.

@@ -35,11 +35,9 @@ Select source and destination → check destination storage → copy → verify 
 | --- | --- |
 | ![FST v1.4.0 — Thông báo / Notification](docs/images/fst-v1.4.0-notification.png) | ![FST v1.4.0 — Nhật ký kỹ thuật / Technical Log](docs/images/fst-v1.4.0-technical-log.png) |
 
-*Ảnh giao diện hiện tại; đường dẫn cá nhân và thông tin Telegram đã được che. / Current UI screenshots; personal paths and Telegram settings have been redacted.*
-
 ## Điểm mới trong v1.4.0 / What's new in v1.4.0
 
-- Giao diện production mới đã được phê duyệt cho Sao chép, Thông báo và Nhật ký kỹ thuật. / Approved new production UI for Transfer, Notification, and Technical Log.
+- **Thiết kế lại giao diện** cho Sao chép, Thông báo và Nhật ký kỹ thuật. / **Redesigned interface** for Transfer, Notification, and Technical Log.
 - Chuyển ngôn ngữ EN/VI trong ứng dụng và ghi nhớ lựa chọn. / In-app EN/VI switching with a saved language preference.
 - Bộ mức giới hạn tốc độ hiện tại, được liệt kê bên dưới. / Updated bandwidth presets, listed below.
 - Hiển thị tiến độ, tốc độ hiện tại, tốc độ trung bình và thời gian còn lại (ETA) rõ hơn. / Clearer progress, current speed, average speed, and time remaining (ETA).

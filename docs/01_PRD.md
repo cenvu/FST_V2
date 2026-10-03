@@ -124,8 +124,9 @@ A first-time operator can launch FST, select source, select destination, choose 
 Current release:
 
 - Version: v1.4.0 display 1.4.0 build 20261003
-- Package: `dist/FishSockTransfer-v1.4.0-b20261003-local-macOS13_5plus-arm64.zip`
-- Package type: local owner-side ad-hoc build
+- Apple Silicon package: `FishSockTransfer-v1.4.0-b20261003-local-macOS13_5plus-arm64.zip`
+- Intel package: `FishSockTransfer-v1.4.0-b20261003-local-macOS13_5plus-x86_64.zip`
+- Package type: separate architecture-specific ZIPs
 - Platform: macOS 13.5+, Apple Silicon arm64 and Intel x86_64 (separate packages)
 - Signing: ad-hoc signed, not notarized, not Developer ID signed
 - Scope: one source, one destination, one active job
@@ -505,8 +506,8 @@ Compatibility:
 
 - v1.2 release candidate: macOS 13.5+
 - v1.2 release candidate: Apple Silicon arm64 only
-- Apple Silicon arm64 target
-- Intel Mac target (requires proof of bundled runtime safety and repeatability before claiming support)
+- Current v1.4.0: macOS 13.5+, Apple Silicon arm64 and Intel x86_64 in separate ZIPs
+- Each architecture requires its matching bundled rsync 3.4.4 runtime
 - Never achieve Intel support by silent fallback
 
 Maintainability:

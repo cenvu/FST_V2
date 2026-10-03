@@ -5,7 +5,7 @@
 ## v1.4.0 - 2026-10-03
 
 ### Major update
-* Refined the production macOS interface across Transfer, Notification, and Technical Log.
+* Redesigned the Transfer, Notification, and Technical Log interface.
 * Added in-app English/Vietnamese presentation with a persistent language toggle.
 * Finalized operator bandwidth presets at 50 / 75 / 100 / 125 / 150 / 175 / 200 MB/s and Unlimited, with no custom bandwidth control.
 * Added Copy All Logs / log-detail presentation and refined compact operator status surfaces.
@@ -16,14 +16,10 @@
 * Preserved single-source / single-destination / single-active-job scope, bundled rsync 3.4.4, and read-only source protection.
 * Verification None still ends at TRANSFER COMPLETE; SAFE TO EJECT still requires successful copy and successful verification.
 
-### Verification and release
-* Release packaging targets macOS 13.5+ on Apple Silicon arm64.
-* Release publication is gated by the full canonical XCTest suite, arm64 package validation, bundled-rsync validation, ad-hoc codesign verification, checksum generation, and package privacy checks.
-* Owner screenshots, local source/destination selections, Telegram bot credentials, and runtime chat settings are not release assets.
-
-### Signing
-* The macOS package remains ad-hoc signed.
-* It is not notarized and is not Developer ID signed.
+### Release
+* Added separate Apple Silicon arm64 and Intel x86_64 packages for macOS 13.5+.
+* Both packages use bundled rsync 3.4.4.
+* Packages remain ad-hoc signed, not notarized, and not Developer ID signed.
 
 ## v1.3.5 - 2026-08-02
 

@@ -4,7 +4,7 @@ FST's source-available non-commercial license applies to FST materials, not to t
 
 ## Shipped components
 
-This inventory was checked against the published v1.4.0 ARM64 and Intel ZIPs. The ARM64 dylibs match the repository resources byte for byte. OpenSSL, LZ4, xxHash and Zstandard versions were read through their exported version functions. The popt 1.19 identification is supported by matching the shipped executable code section to the installed 1.19 library; a standalone upstream build record for that binary has not been recovered.
+The following components are included in the v1.4.0 packages. The ARM64 popt library is identified as 1.19, but its original build provenance remains unconfirmed.
 
 | Component | ARM64 package | Intel package | License and authoritative source |
 | --- | --- | --- | --- |
@@ -34,7 +34,7 @@ The exact upstream texts are retained under [LICENSES/](LICENSES/):
 - [xxHash BSD license](LICENSES/xxhash-LICENSE.txt)
 - [Zstandard BSD license](LICENSES/zstd-LICENSE.txt) and [included xxHash notice](LICENSES/zstd-xxhash-LICENSE.txt)
 
-Binary redistribution must carry the applicable license, copyright and disclaimer texts. Retain upstream notices and mark modified source versions where required. Apache-2.0 redistribution must also preserve applicable notices, including any upstream NOTICE supplied with the source; the inspected OpenSSL 3.6.2 root contains `LICENSE.txt` and no separate NOTICE. BSD/MIT attribution belongs in the accompanying materials. The zlib license requires its notice to remain in source distributions; binary documentation acknowledgment is appreciated but not mandatory. These texts do not require an MIT badge, endorsement footer or similar visible attribution in FST's interface. No such interface change is made.
+Binary redistribution must carry the applicable license, copyright and disclaimer texts. Retain upstream notices and mark modified source versions where required. Apache-2.0 redistribution must also preserve applicable notices, including any upstream NOTICE supplied with the source; OpenSSL 3.6.2 supplies `LICENSE.txt` without a separate root NOTICE. BSD/MIT attribution belongs in the accompanying materials. The zlib license requires its notice to remain in source distributions; binary documentation acknowledgment is appreciated but not mandatory.
 
 ## rsync redistribution
 
@@ -46,14 +46,14 @@ The official rsync 3.4.4 source archive is available at [download.samba.org](htt
 
 SHA-256: `bd88cf82fa653da32314fb229136407c5c90f80d1758d8f4b091767877d8fa96`.
 
-For Intel, [the native build script](../../scripts/build-rsync-intel.sh) downloads and checks that archive, uses included popt/zlib, disables optional OpenSSL/xxhash/zstd/lz4, and records the configuration. Future Intel packaging includes that exact source archive and the build script with the app. An available upstream archive plus the current recipe does not retroactively prove every past package complied with distribution requirements.
+For Intel, [the native build script](../../scripts/build-rsync-intel.sh) downloads and checks that archive, uses included popt/zlib, disables optional OpenSSL/xxhash/zstd/lz4, and records the configuration. Future Intel packaging includes that exact source archive and the build script with the app. The archive and recipe alone do not establish compliance of earlier packages.
 
 For ARM64, the exact source, patches, dependency sources and build/install recipe corresponding to the checked-in rsync binary have not all been established. Future ARM64 packaging requires a separately reviewed corresponding-source archive via `RSYNC_ARM64_SOURCE_ARCHIVE`; the script verifies archive readability, not legal completeness. Do not distribute that package until its provenance and source completeness are verified.
 
 ## v1.4.0 remediation status
 
-The already-published ARM64 ZIP contains rsync and five dylibs without accompanying license text. The Intel ZIP contains rsync's `COPYING` but omits the required included-popt notice and package-local corresponding-source instructions. The zlib source-distribution notice is also included in future packaging for completeness; its license does not mandate binary UI attribution. These omissions require release-package remediation. Published bytes are unchanged; replacement or additional release artifacts require a separate release decision.
+The already-published ARM64 ZIP contains rsync and five dylibs without accompanying license text. The Intel ZIP contains rsync's `COPYING` but omits the required included-popt notice and package-local corresponding-source instructions. These notice and source-availability omissions remain unresolved in the published v1.4.0 packages.
 
 Future packaging stages project notices and the applicable third-party license texts in `Contents/Resources/ThirdPartyNotices/`, and supplies the available corresponding-source material under `Contents/Resources/ThirdPartySources/`. See [the packaging helper](../../scripts/stage-third-party-notices.sh).
 
-**NEEDS_LEGAL_REVIEW:** confirm complete ARM64 corresponding source and dependency provenance, and review whether FST/rsync distribution qualifies as aggregation under GPLv3 section 5 rather than a combined work. The current project license itself remains pending formal legal review. This inventory resolves component license identification; it does not certify historical release compliance or decide that legal boundary.
+**NEEDS_LEGAL_REVIEW:** confirm complete ARM64 corresponding source and dependency provenance, and review whether FST/rsync distribution qualifies as aggregation under GPLv3 section 5 rather than a combined work. The current project license itself remains pending formal legal review. The component licenses listed here do not establish compliance of the published packages or resolve that legal boundary.

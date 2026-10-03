@@ -70,9 +70,9 @@ Progress estimates, destination observations and Telegram delivery cannot determ
 
 For a native Intel package, run [scripts/build-rsync-intel.sh](../scripts/build-rsync-intel.sh) on an Intel Mac to build checksum-validated upstream rsync 3.4.4. It uses included popt/zlib with optional OpenSSL, xxhash, zstd and lz4 disabled. Set `RSYNC_INTEL` to the resulting binary, then run `scripts/package-local-intel.sh`. [scripts/audit-intel-package.py](../scripts/audit-intel-package.py) checks the staged app and ZIP, including native architecture, loader dependencies, privacy and a disposable copy smoke test.
 
-See [third-party licenses](legal/THIRD_PARTY_LICENSES.md) for notices and corresponding-source requirements before distribution. The scripts produce local ad-hoc packages; they do not notarize or Developer ID sign them. Existing release tags and assets must not be replaced by packaging work.
+See [third-party licenses](legal/THIRD_PARTY_LICENSES.md) for notices and corresponding-source requirements before distribution. The scripts produce local ad-hoc packages; they do not notarize or Developer ID sign them.
 
-The workflows under `.github/workflows/` record the version-specific ARM64 and Intel release gates. They reject an existing tag or existing Intel asset and are not general update workflows.
+The workflows under `.github/workflows/` provide version-specific build, test and package checks for ARM64 and Intel. When packaging a fork, update version-specific settings and use a new version; existing tags and assets are protected.
 
 ## Further documentation
 
