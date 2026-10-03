@@ -1,4 +1,5 @@
 name: Release FST v1.4.0 arm64
+# Release repair: keep Swift type-checking bounded on GitHub-hosted arm64 runner.
 
 on:
   push:

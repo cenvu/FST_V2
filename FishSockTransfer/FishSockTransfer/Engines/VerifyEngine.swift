@@ -508,14 +508,16 @@ nonisolated public struct XXHash64: Sendable {
     }
 
     private static func readUInt64LE(_ bytes: [UInt8], at index: Int) -> UInt64 {
-        UInt64(bytes[index])
-            | (UInt64(bytes[index + 1]) << 8)
-            | (UInt64(bytes[index + 2]) << 16)
-            | (UInt64(bytes[index + 3]) << 24)
-            | (UInt64(bytes[index + 4]) << 32)
-            | (UInt64(bytes[index + 5]) << 40)
-            | (UInt64(bytes[index + 6]) << 48)
-            | (UInt64(bytes[index + 7]) << 56)
+        let byte0 = UInt64(bytes[index])
+        let byte1 = UInt64(bytes[index + 1]) << 8
+        let byte2 = UInt64(bytes[index + 2]) << 16
+        let byte3 = UInt64(bytes[index + 3]) << 24
+        let byte4 = UInt64(bytes[index + 4]) << 32
+        let byte5 = UInt64(bytes[index + 5]) << 40
+        let byte6 = UInt64(bytes[index + 6]) << 48
+        let byte7 = UInt64(bytes[index + 7]) << 56
+
+        return byte0 | byte1 | byte2 | byte3 | byte4 | byte5 | byte6 | byte7
     }
 
     private static func readUInt32LE(_ bytes: [UInt8], at index: Int) -> UInt32 {
