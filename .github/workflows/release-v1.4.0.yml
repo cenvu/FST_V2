@@ -1,5 +1,6 @@
 name: Release FST v1.4.0 arm64
 # Release repair: keep Swift type-checking bounded on GitHub-hosted arm64 runner.
+# Release repair: verify already-detached disposable test images before accepting cleanup.
 
 on:
   push:

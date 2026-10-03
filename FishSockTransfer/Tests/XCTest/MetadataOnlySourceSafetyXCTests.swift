@@ -1276,6 +1276,20 @@ final class DestinationCapacityImageRuntimeXCTests: XCTestCase {
     func testDisposableAPFSAdmissionAndVerifiedCopy() async throws { try await runImageQA(filesystem: "APFS") }
     func testDisposableExfatLogicalWarningAndVerifiedCopy() async throws { try await runImageQA(filesystem: "ExFAT") }
 
+    private func isImageStillAttached(_ image: URL) -> Bool {
+        guard
+            let data = try? command("/usr/bin/hdiutil", ["info", "-plist"]),
+            let plist = try? PropertyListSerialization.propertyList(from: data, format: nil),
+            let root = plist as? [String: Any],
+            let images = root["images"] as? [[String: Any]]
+        else {
+            // Cleanup verification must fail closed when attachment state cannot be proven.
+            return true
+        }
+
+        return images.contains { ($0["image-path"] as? String) == image.path }
+    }
+
     private func runImageQA(filesystem: String) async throws {
         let fm = FileManager.default
         let root = fm.temporaryDirectory.appendingPathComponent("FSTCapacityImageQA-\(UUID())", isDirectory: true)
@@ -1321,8 +1335,19 @@ final class DestinationCapacityImageRuntimeXCTests: XCTestCase {
         attached = true
         defer {
             if attached {
-                do { _ = try command("/usr/bin/hdiutil", ["detach", mount.path]); attached = false }
-                catch { XCTFail("Image detach failed: \(error)") }
+                do {
+                    _ = try command("/usr/bin/hdiutil", ["detach", mount.path])
+                    attached = false
+                } catch {
+                    if isImageStillAttached(image) {
+                        XCTFail("Image detach failed while the disposable image remains attached: \(error)")
+                    } else {
+                        // GitHub-hosted macOS can auto-detach a full disposable APFS image.
+                        // Treat detach's "not found" result as clean only after hdiutil proves
+                        // the exact image is no longer attached.
+                        attached = false
+                    }
+                }
             }
         }
         let source = root.appendingPathComponent("source", isDirectory: true)
