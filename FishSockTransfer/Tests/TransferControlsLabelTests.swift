@@ -172,7 +172,7 @@ struct TransferControlsLabelTests {
         )
         assertEqual(VerificationMode.none.selectionLabel, "COPY ONLY — Fastest", "copy-only picker label")
         assertEqual(VerificationMode.random33.selectionLabel, "SAMPLE 33% — Balanced", "random33 picker label")
-        assertEqual(VerificationMode.full.selectionLabel, "FULL 100% — Maximum confidence", "full picker label")
+        assertEqual(VerificationMode.full.selectionLabel, "FULL 100% — Verify all files", "full picker label")
         assertEqual(VerificationMode.random33.operatorLabel, "SHA256 Sample 33%", "random33 technical label")
         assertEqual(VerificationMode.full.operatorLabel, "xxHash64 Full 100%", "full technical label")
 

@@ -59,7 +59,7 @@ nonisolated public enum VerificationMode: String, Equatable, Sendable {
         case .random33:
             return "SAMPLE 33% — Balanced"
         case .full:
-            return "FULL 100% — Maximum confidence"
+            return "FULL 100% — Verify all files"
         }
     }
 

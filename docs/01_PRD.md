@@ -327,7 +327,7 @@ Must:
 Presentation labels:
 - COPY ONLY — Fastest
 - SAMPLE 33% — Balanced
-- FULL 100% — Maximum confidence
+- FULL 100% — Verify all files
 
 Backend Modes:
 

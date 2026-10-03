@@ -240,7 +240,7 @@ private enum TransferPresentationKey: String, CaseIterable {
     case unlimited = "Unlimited"
     case copyOnly = "COPY ONLY — Fastest"
     case sample33 = "SAMPLE 33% — Balanced"
-    case full100 = "FULL 100% — Maximum confidence"
+    case full100 = "FULL 100% — Verify all files"
     case copyOnlyDescription = "Copy only. No hash verification by FST."
     case sample33Description = "SHA256 sample verification. Approximately 33% coverage."
     case full100Description = "xxHash64 full verification. Fast, non-cryptographic."

@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+* Clarified the Full 100% verification label to state that it verifies all files. Verification behavior remains unchanged: Full uses non-cryptographic xxHash64 across all transferred files.
+
 ## v1.4.0 - 2026-10-03
 
 ### Major update

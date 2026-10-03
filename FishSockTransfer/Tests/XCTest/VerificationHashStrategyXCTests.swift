@@ -6,7 +6,7 @@ final class VerificationHashStrategyXCTests: XCTestCase {
         let labels: [(VerificationMode, String, String)] = [
             (.none, "COPY ONLY — Fastest", "None"),
             (.random33, "SAMPLE 33% — Balanced", "SHA256 Sample 33%"),
-            (.full, "FULL 100% — Maximum confidence", "xxHash64 Full 100%")
+            (.full, "FULL 100% — Verify all files", "xxHash64 Full 100%")
         ]
         for (mode, selection, technical) in labels {
             XCTAssertEqual(mode.selectionLabel, selection)
