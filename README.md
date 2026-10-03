@@ -1,245 +1,109 @@
-<!-- FST / CenVu | (+84) 842 841 222 -->
+# FST / FishSockTransfer
 
-# FST — FishSock Transfer
+FST là ứng dụng macOS dành cho DIT và Data Wrangler: sao chép media, xác minh dữ liệu và đọc kết quả trước khi bàn giao thiết bị nguồn.
 
-![Last Update](https://img.shields.io/badge/Last%20Update-October%202026-blue)
-[![macOS 13.5+](https://img.shields.io/badge/macOS-13.5%2B-blue.svg)](https://apple.com/macos)
-[![Apple Silicon arm64](https://img.shields.io/badge/architecture-Apple_Silicon_arm64-ff69b4.svg)]()
-[![Swift 5.9+](https://img.shields.io/badge/Swift-5.9%2B-FA7343.svg)](https://swift.org)
-[![Version v1.4.0](https://img.shields.io/badge/version-v1.4.0-success.svg)]()
-[![License](https://img.shields.io/badge/license-Source_Available_/_Non--Commercial-orange.svg)](LICENSE)
+FST is a macOS app for DITs and Data Wranglers: copy media, verify data, and review the result before handing off the source media.
 
-English documentation is included below.
+[![v1.4.0](https://img.shields.io/badge/version-v1.4.0-success.svg)](https://github.com/cenvu/FST_V2/releases/tag/v1.4.0)
+![macOS 13.5+](https://img.shields.io/badge/macOS-13.5%2B-blue.svg)
+![Apple Silicon arm64](https://img.shields.io/badge/architecture-Apple_Silicon_arm64-ff69b4.svg)
 
-FST là công cụ copy/verify/report trên macOS dành cho workflow DIT và Data Wrangler.
-
-FST is a macOS copy/verify/report tool for DIT and Data Wrangler workflows.
-
----
-
-## Disclaimer / Miễn trừ trách nhiệm
-
-FST là công cụ hỗ trợ copy/verify/report, không thay thế phán đoán chuyên môn, backup độc lập, hoặc kiểm tra thủ công.
-
-Không phần mềm nào đảm bảo an toàn dữ liệu tuyệt đối trước mất dữ liệu, hỏng dữ liệu, lỗi phần cứng, lỗi thao tác, lỗi filesystem, hoặc hành vi hệ thống ngoài dự kiến.
-
-Người dùng/người vận hành chịu trách nhiệm chọn đúng source, chọn đúng destination, kiểm tra dung lượng, chọn verification mode phù hợp, theo dõi warning/error, đọc report, duy trì backup độc lập.
-
-Chủ dự án, contributor, và bên phân phối không chịu trách nhiệm với mất dữ liệu do thao tác người dùng hoặc dùng sai cách: chọn sai source/destination, ghi đè, xoá thủ công, format quá sớm, rút ổ không an toàn, bỏ qua failed copy/verify, bỏ qua warning/log/report, dùng phần cứng/ổ/cáp lỗi, force quit hoặc tắt máy khi transfer.
-
-SAFE TO EJECT không phải phê duyệt tự động để format, xoá, hoặc tái sử dụng source media.
-
-Phần mềm được cung cấp theo nguyên trạng “as is”, không có bảo hành.
-
-Khuyến nghị: trước khi format hoặc tái sử dụng source media, nên có ít nhất hai bản copy độc lập đã được verify và đã kiểm tra report/destination data.
-
-FST is a copy/verify/report support tool. It does not replace professional judgment, independent backups, or manual review.
-
-No software can guarantee absolute protection from data loss, corruption, hardware failure, operator error, filesystem issues, or unexpected system behavior.
-
-Users/operators are responsible for selecting the correct source and destination, checking available storage, choosing the appropriate verification mode, monitoring warnings/errors, reviewing reports, and maintaining independent backups.
-
-The project owner, contributors, and distributors are not responsible for data loss caused by user actions or misuse, including wrong source/destination selection, overwriting data, manual deletion, early formatting, unsafe drive removal, ignored copy/verify failures, ignored warnings/logs/reports, unstable hardware/drives/cables, force quitting, or shutting down during transfer.
-
-SAFE TO EJECT is not automatic approval to format, erase, or reuse source media.
-
-The software is provided “as is”, without warranty of any kind.
-
-Recommended practice: before formatting or reusing source media, maintain at least two independent verified copies and review the FST report and destination data.
-
-[docs/legal/DISCLAIMER.md](docs/legal/DISCLAIMER.md)
-
----
+**[Tải bản mới nhất / Download the latest release →](https://github.com/cenvu/FST_V2/releases/latest)**
 
 ## FST là gì? / What is FST?
 
-FST có thể làm gì:
-- chọn một source và một destination
-- copy dữ liệu từ source sang destination
-- verify theo mode đã chọn
-- hiển thị trạng thái tiến trình và log
-- tạo/report kết quả cuối
-- giúp operator có bằng chứng rõ ràng trước khi quyết định rút hoặc bàn giao source media
-- hỗ trợ Telegram notification
-- dùng bundled rsync 3.4.4 cho transfer engine
+FST hỗ trợ offload từ thẻ máy quay hoặc ổ lưu trữ sang một thư mục đích. Mỗi lần chạy dùng **một nguồn, một đích và một tác vụ**.
 
-What FST can currently do:
-- select a single source and single destination
-- copy data from source to destination
-- verify using the selected mode
-- display progress status and logs
-- generate a final result report
-- provide operators with clear evidence before deciding to eject or hand over source media
-- support Telegram notifications
-- use bundled rsync 3.4.4 for the transfer engine
+FST supports media offload from camera cards or storage drives to a destination folder. Each run uses **one source, one destination, and one active job**.
 
-FST không làm gì:
-- không format source media
-- không xoá source media
-- không tự động eject ổ
-- không thay thế quyết định của DIT/Data Wrangler
-- không loại bỏ nhu cầu backup độc lập
-- không đảm bảo an toàn tuyệt đối trước lỗi phần cứng, lỗi người dùng, lỗi filesystem, hoặc lỗi hệ thống
-- phạm vi hiện tại: single source, single destination, single active job
-- chưa phải công cụ multi-destination, queue, LTO, MHL, proxy, DAM, hay MAM
+Chọn nguồn và đích → kiểm tra dung lượng đích → sao chép → xác minh theo chế độ đã chọn → đọc trạng thái cuối và báo cáo TXT. FST cung cấp bằng chứng để người vận hành quyết định bàn giao; không thay thế bản sao lưu độc lập.
 
-What FST cannot / does not do:
-- does not format source media
-- does not erase source media
-- does not automatically eject drives
-- does not replace the DIT/Data Wrangler's decision
-- does not remove the need for independent backups
-- does not guarantee absolute safety against hardware, user, filesystem, or system errors
-- current MVP scope: single source, single destination, single active job
-- is not a multi-destination, queue, LTO, MHL, proxy, DAM, or MAM tool
+Select source and destination → check destination storage → copy → verify using the selected mode → review the final status and TXT report. FST provides evidence for operator handoff decisions; independent backups are still needed.
 
----
+## Giao diện / Interface
 
-## Xem trước giao diện workflow / UI Workflow Preview
+**Sao chép — sẵn sàng bắt đầu / Main Transfer — ready to start**
 
-### 1. Bắt đầu / Start
-![FST Start screen](ui/1_START.png)
+![FST v1.4.0 — màn hình Sao chép / Main Transfer](docs/images/fst-v1.4.0-transfer-main.png)
 
-### 2. Đang chuyển dữ liệu / Transferring
-![FST transferring screen](ui/2_TRANSFERING.png)
+| Giới hạn tốc độ / Bandwidth selector | Chế độ xác minh / Verification selector |
+| --- | --- |
+| ![FST v1.4.0 — chọn tốc độ / Bandwidth](docs/images/fst-v1.4.0-transfer-bandwidth.png) | ![FST v1.4.0 — chọn xác minh / Verification](docs/images/fst-v1.4.0-transfer-verification.png) |
 
-### 3. Đang xác minh / Verifying
-![FST verifying screen](ui/3_VERIFYING.png)
+| Thông báo Telegram / Telegram Notification | Nhật ký kỹ thuật / Technical Log |
+| --- | --- |
+| ![FST v1.4.0 — Thông báo / Notification](docs/images/fst-v1.4.0-notification.png) | ![FST v1.4.0 — Nhật ký kỹ thuật / Technical Log](docs/images/fst-v1.4.0-technical-log.png) |
 
-### 4. An toàn để rút thiết bị / Safe To Eject
-![FST safe to eject screen](ui/4_SAFE_TO_EJECT.png)
+*Ảnh giao diện hiện tại; đường dẫn cá nhân và thông tin Telegram đã được che. / Current UI screenshots; personal paths and Telegram settings have been redacted.*
 
-### 5. Log kỹ thuật / Technical Log
-![FST technical log screen](ui/5_LOG.png)
+## Điểm mới trong v1.4.0 / What's new in v1.4.0
 
-### 6. Thông báo Telegram / Telegram Notification
-![FST Telegram notification screen](ui/6_TELEGRAM.png)
+- Giao diện production mới đã được phê duyệt cho Sao chép, Thông báo và Nhật ký kỹ thuật. / Approved new production UI for Transfer, Notification, and Technical Log.
+- Chuyển ngôn ngữ EN/VI trong ứng dụng và ghi nhớ lựa chọn. / In-app EN/VI switching with a saved language preference.
+- Bộ mức giới hạn tốc độ hiện tại, được liệt kê bên dưới. / Updated bandwidth presets, listed below.
+- Hiển thị tiến độ, tốc độ hiện tại, tốc độ trung bình và thời gian còn lại (ETA) rõ hơn. / Clearer progress, current speed, average speed, and time remaining (ETA).
+- Cải thiện kiểm tra dung lượng đích trước khi chạy. / Improved destination-capacity readiness checks.
+- Tinh chỉnh Thông báo và Nhật ký kỹ thuật, bổ sung sao chép toàn bộ nhật ký. / Refined Notification and Technical Log presentation, including Copy All Logs.
 
----
+[Xem ghi chú phát hành / Read the release notes](docs/releases/release-notes-v1.4.0.md)
 
-## Thông tin sử dụng và phát triển
+## Tính năng chính / Key features
 
-### Trạng thái hiện tại
-- Phiên bản: v1.4.0
-- Nền tảng: macOS 13.5+, Apple Silicon arm64
-- Chữ ký: ad-hoc signed
-- Notarization: không được notarized
-- Phạm vi: một nguồn, một đích, một tác vụ chạy tại một thời điểm
-- Transfer engine: sử dụng rsync 3.4.4 đi kèm
+- **Nguồn và đích / Source & Destination:** chọn thư mục hoặc kéo thả. / Select folders or use drag and drop.
+- **Kiểm tra lưu trữ / Storage readiness:** kiểm tra quyền ghi và dung lượng đích trước khi sao chép. / Check destination writability and capacity before copying.
+- **Sao chép / Copy:** dùng rsync **3.4.4 đi kèm** và giới hạn tốc độ đã chọn. / Use **bundled rsync 3.4.4** with the selected bandwidth limit.
+- **Xác minh / Verification:** None, Sample 33% hoặc Full 100%; chi tiết bên dưới. / None, Sample 33%, or Full 100%; details below.
+- **Theo dõi / Monitoring:** tiến độ, tốc độ, ETA, Nhật ký kỹ thuật và báo cáo TXT. / Progress, speed, ETA, Technical Log, and a TXT report.
+- **Thông báo / Notifications:** hỗ trợ Telegram tùy chọn. / Optional Telegram support. [Hướng dẫn thiết lập / Setup guide](docs/guides/telegram-bot-setup.md)
 
-v1.4.0 là bản cập nhật lớn về giao diện và vận hành: hội tụ giao diện OpenDesign cho Transfer / Notification / Technical Log, bổ sung chuyển ngôn ngữ EN/VI trong ứng dụng, hoàn thiện preset băng thông 50–200 MB/s + Unlimited, cải thiện tiến độ/tốc độ/ETA, và tăng cường kiểm tra dung lượng đích. Các quy tắc an toàn nguồn chỉ đọc, bundled rsync 3.4.4 và SAFE TO EJECT vẫn được giữ nguyên.
+**Giới hạn tốc độ / Bandwidth presets:** 50 / 75 / 100 / 125 / 150 / 175 / 200 MB/s / Unlimited (Không giới hạn).
 
-v1.3.5 bổ sung các nút Clear Folder, hành vi Start-to-Cancel an toàn, tính năng Retry toàn bộ workflow khi có lỗi, lưu quyền truy cập thư mục Source/Destination qua các lần mở lại app, và sửa lỗi hiển thị sai dung lượng trống của ổ cứng ngoài.
+## Xác minh / Verification
 
-v1.3.4 harden Detailed TXT Report V1, bổ sung disclaimer song ngữ gần đầu report, làm rõ kết quả verify thành SAFE TO EJECT DESTINATION, giảm thông tin rsync cho operator còn rsync 3.4.4, và cập nhật test cho wording an toàn. FST chỉ báo cáo kết quả copy và verification. Quyết định xoá, format, hoặc tái sử dụng source media vẫn thuộc trách nhiệm của người dùng.
+| Chế độ / Mode | Sau khi sao chép / After copying | Khi thành công / On success |
+| --- | --- | --- |
+| **None / COPY ONLY** | Không xác minh hash sau sao chép. / No post-copy hash verification. | **TRANSFER COMPLETE**; không phải / never SAFE TO EJECT. |
+| **SAMPLE 33% — SHA256** | Xác minh mẫu khoảng 33% số tệp. / Verify a sample of about 33% of files. | **SAFE TO EJECT**, sau khi sao chép đầy đủ và xác minh mẫu thành công. / After complete successful copy and successful sampled verification. |
+| **FULL 100% — xxHash64** | Xác minh tất cả tệp bằng hash nhanh, phi mật mã. / Verify all files using a fast non-cryptographic hash. | **SAFE TO EJECT**, sau khi sao chép đầy đủ và xác minh toàn bộ thành công. / After complete successful copy and successful full verification. |
 
-v1.3.3 vẫn là bản hotfix quyền mạng outbound của bản build release/packaged bằng cách giữ lại entitlement network client của sandbox.
+**SAFE TO EJECT chỉ xuất hiện khi sao chép đầy đủ và xác minh bắt buộc đều thành công. / SAFE TO EJECT requires complete successful copy and successful required verification.**
 
-### Cài đặt cơ bản
-- Tải file release zip từ GitHub Releases.
-- Di chuyển ứng dụng vào thư mục Applications.
-- Do ứng dụng chưa được notarized, macOS có thể hiện cảnh báo.
-- Sử dụng Chuột phải (Right-click) -> Open để mở ứng dụng.
+Sample kiểm tra một phần số tệp. Full kiểm tra mọi tệp, nhưng xxHash64 không phải hash mật mã và không bảo đảm an toàn tuyệt đối. / Sample checks a subset of files. Full checks every file, but xxHash64 is non-cryptographic and does not provide an absolute safety guarantee.
 
-### Workflow sử dụng cơ bản
-- Mở ứng dụng FST.
-- Chọn thư mục nguồn.
-- Chọn thư mục đích.
-- Chọn chế độ xác minh: none, random33, hoặc full.
-- Bắt đầu sao chép.
-- Theo dõi tiến trình và nhật ký.
-- Kiểm tra báo cáo cuối cùng.
-- Chỉ tiếp tục xử lý thẻ/ổ cứng nguồn khi có thông báo SAFE TO EJECT và bạn đã xác nhận lại yêu cầu workflow.
+## An toàn / Safety
 
-### Telegram Notification
-Nếu bạn muốn dùng tính năng gửi thông báo qua Telegram, xem hướng dẫn:
-[Hướng dẫn tạo Telegram Bot cho FST](docs/guides/telegram-bot-setup.md)
+- **Nguồn chỉ đọc.** FST không sửa dữ liệu, format hay eject thiết bị nguồn. / **Source remains read-only.** FST does not modify source data, format, or eject source media.
+- **Không ghi đè hoặc gộp âm thầm.** Nếu thư mục tác vụ đích đã tồn tại, FST chặn và yêu cầu chọn đích hoặc thư mục mới. / **No silent overwrite or merge.** An existing destination job folder blocks the transfer; choose a new destination or folder.
+- **Không thành công, không SAFE TO EJECT.** Lỗi, hủy, chưa hoàn tất, trạng thái không chắc chắn hoặc None đều không cho phép trạng thái này. / **No success, no SAFE TO EJECT.** Failure, cancellation, incomplete or uncertain state, and None never authorize it.
+- **Thông báo không quyết định kết quả.** Telegram chỉ hỗ trợ theo dõi; gửi thành công hay thất bại không thay đổi kết quả sao chép hoặc xác minh. / **Notifications do not determine success.** Telegram provides visibility; delivery success or failure does not change copy or verification results.
 
-### Tài liệu kỹ thuật và phát triển
-Tài liệu chi tiết về kiến trúc và quy định phát triển được lưu tại thư mục `docs`, không đặt tại README.
-Xem chi tiết tại:
-- [docs/README.md](docs/README.md)
-- [docs/releases/README.md](docs/releases/README.md)
-- [FST_AI/README.md](FST_AI/README.md)
-- [AGENTS.md](AGENTS.md)
+Luôn đọc trạng thái cuối và báo cáo, giữ bản sao lưu độc lập. SAFE TO EJECT không tự động cho phép xóa, format hoặc tái sử dụng nguồn. Nếu kết quả không chắc chắn, giữ nguyên nguồn và không xóa hay tái sử dụng. / Review the final status and report, and maintain independent backups. SAFE TO EJECT is not automatic approval to erase, format, or reuse the source. If the result is uncertain, preserve the source and do not erase or reuse it.
 
-### Giấy phép, thương mại, thương hiệu
-- FST công khai mã nguồn để kiểm tra, học tập, và sử dụng phi thương mại.
-- Đây không phải phần mềm open-source chuẩn OSI.
-- Mọi hoạt động sử dụng thương mại cần có sự cho phép bằng văn bản từ dự án.
-- Tên FishSock, FishSock Transfer, thương hiệu, logo, biểu tượng, và nhận diện thiết kế không được cấp quyền cùng source code.
-- Các phần mềm third-party giữ nguyên giấy phép của chúng.
-Xem chi tiết:
-- [LICENSE](LICENSE)
-- [NOTICE](NOTICE)
-- [docs/legal/README.md](docs/legal/README.md)
+[Trách nhiệm người vận hành / Operator responsibility](docs/legal/DISCLAIMER.md)
 
-### Ghi nhận đóng góp
-- Vũ Huy Hùng / Cen — chủ dự án, định hướng sản phẩm, thiết kế workflow DIT.
-- Hà Minh Quang — đóng góp logo và biểu tượng ứng dụng.
+## Cài đặt / Installation
 
----
+1. Tải file **ZIP** tại [GitHub Releases — bản mới nhất / latest release](https://github.com/cenvu/FST_V2/releases/latest). / Download the **ZIP** from the latest release.
+2. Giải nén, có thể chuyển ứng dụng vào Applications, rồi mở FST. / Unzip, optionally move the app to Applications, and open FST.
+3. Bản hiện tại ký **ad-hoc**, chưa notarized và không ký bằng Developer ID. macOS có thể yêu cầu **Chuột phải → Open** khi mở lần đầu. / The current build is **ad-hoc signed**, not notarized, and not Developer ID signed. macOS may require **Right-click → Open** on first launch.
 
-## Usage and development information
+**Sử dụng / Use:** chọn Source và Destination, kiểm tra dung lượng, chọn tốc độ và xác minh, rồi Start. Theo dõi tiến trình và đọc kết quả cuối trước khi bàn giao. / Select Source and Destination, review storage readiness, choose bandwidth and verification, then Start. Monitor progress and review the final result before handoff.
 
-### Current status
-- Version: v1.4.0
-- Platform: macOS 13.5+, Apple Silicon arm64
-- Signing: ad-hoc signed
-- Notarization: not notarized
-- Scope: single source, single destination, single active job
-- Transfer engine: bundled rsync 3.4.4
+## Phiên bản hiện tại / Current release
 
-v1.4.0 is a major UI and operator-workflow update: OpenDesign visual convergence across Transfer / Notification / Technical Log, in-app EN/VI switching, finalized 50–200 MB/s + Unlimited bandwidth presets, improved progress/speed/ETA presentation, and stronger destination-capacity checks. Read-only source protection, bundled rsync 3.4.4, and SAFE TO EJECT safety semantics remain intact.
+| Thông tin / Detail | Giá trị / Value |
+| --- | --- |
+| Phiên bản / Version | **1.4.0** |
+| Build | **20261003** |
+| Nền tảng / Platform | macOS **13.5+** |
+| Kiến trúc / Architecture | **Apple Silicon arm64** |
+| rsync đi kèm / Bundled rsync | **3.4.4** |
+| Chữ ký / Signing | Ad-hoc; chưa notarized; không Developer ID / not notarized; not Developer ID signed |
 
-v1.3.5 packages the Clear Folder controls, safe Start-to-Cancel behavior, full-workflow Retry, persistent security-scoped folder access, and fixes misleading external-volume free space reporting.
+**[Bản phát hành v1.4.0 / v1.4.0 release](https://github.com/cenvu/FST_V2/releases/tag/v1.4.0)**
 
-v1.3.4 hardens Detailed TXT Report V1, adds a bilingual disclaimer near the top of reports, clarifies verified success as SAFE TO EJECT DESTINATION, reduces operator-facing rsync detail to rsync 3.4.4, and updates tests for report wording safety. FST reports copy and verification results only. Decisions to erase, format, or reuse source media remain the user's responsibility.
+## Giấy phép và ghi nhận / License & credits
 
-v1.3.3 remains the packaged/release outbound network permission hotfix that preserves the app's sandbox network client entitlement.
+Mã nguồn được công khai cho sử dụng phi thương mại; sử dụng thương mại cần có sự cho phép bằng văn bản. / Source is available for non-commercial use; commercial use requires written permission. [LICENSE](LICENSE) · [NOTICE](NOTICE)
 
-### Basic installation
-- Download the release zip from GitHub Releases.
-- Move the app to the Applications folder.
-- Because the app is not notarized, macOS may show a warning.
-- Use Right-click -> Open to run the app.
-
-### Basic operator workflow
-- Open FST.
-- Select source.
-- Select destination.
-- Choose verification mode: none, random33, full.
-- Start transfer.
-- Monitor progress and logs.
-- Review final report.
-- Only proceed when SAFE TO EJECT is shown and operator has verified workflow requirements.
-
-### Telegram Notification
-For Telegram notification setup, see:
-[Telegram Bot Setup Guide for FST](docs/guides/telegram-bot-setup.md)
-
-### Technical and development docs
-Detailed architecture and development rules live in `docs`, not in the README.
-See:
-- [docs/README.md](docs/README.md)
-- [docs/releases/README.md](docs/releases/README.md)
-- [FST_AI/README.md](FST_AI/README.md)
-- [AGENTS.md](AGENTS.md)
-
-### License, commercial use, and branding
-- FST is source-available for review, learning, and non-commercial use.
-- FST is not OSI-approved open-source software.
-- Commercial use requires written permission.
-- FishSock/FST branding, logo, icon, and visual identity are not licensed with the source code.
-- Third-party components remain under their own licenses.
-See:
-- [LICENSE](LICENSE)
-- [NOTICE](NOTICE)
-- [docs/legal/README.md](docs/legal/README.md)
-
-### Credits
-- Vũ Huy Hùng / Cen — project owner, product direction, DIT workflow design.
-- Hà Minh Quang — logo and app icon contribution.
-
----
-From Cen Vũ with love!
+Vũ Huy Hùng / Cen — chủ dự án / project owner. Hà Minh Quang — logo và biểu tượng ứng dụng / logo and app icon.
