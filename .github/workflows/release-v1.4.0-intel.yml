@@ -44,7 +44,7 @@ jobs:
           python3 - <<'PY'
           from pathlib import Path
           for name in Path('evidence/source-diff.txt').read_text().splitlines():
-              assert name in ('README.md',) or name.startswith(('scripts/', '.github/workflows/', 'docs/', 'FST_AI/memory/')), f'Unexpected production difference: {name}'
+              assert name in ('README.md', 'FishSockTransfer/Tests/XCTest/MetadataOnlySourceSafetyXCTests.swift') or name.startswith(('scripts/', '.github/workflows/', 'docs/', 'FST_AI/memory/')), f'Unexpected production difference: {name}'
           PY
           gh release view v1.4.0 --json tagName,isDraft,assets > evidence/release-before.json
           python3 - <<'PY'
@@ -59,6 +59,8 @@ jobs:
           gh release download v1.4.0 --pattern "$ARM_PACKAGE" --pattern "$ARM_CHECKSUM" --dir "$RUNNER_TEMP/arm-before"
           (cd "$RUNNER_TEMP/arm-before" && shasum -a 256 "$ARM_PACKAGE" "$ARM_CHECKSUM") > evidence/arm-before-sha256.txt
           git worktree add --detach "$RUNNER_TEMP/fst-intel-source" "$TAG_SHA"
+          # Only the disposable-image cleanup helper differs from tag tests.
+          cp FishSockTransfer/Tests/XCTest/MetadataOnlySourceSafetyXCTests.swift "$RUNNER_TEMP/fst-intel-source/FishSockTransfer/Tests/XCTest/MetadataOnlySourceSafetyXCTests.swift"
           echo "FST_SOURCE_ROOT=$RUNNER_TEMP/fst-intel-source" >> "$GITHUB_ENV"
           echo "FST_DIST_DIR=$GITHUB_WORKSPACE/dist" >> "$GITHUB_ENV"
           echo "RSYNC_INTEL=$RUNNER_TEMP/fst-rsync-intel/rsync" >> "$GITHUB_ENV"
@@ -112,7 +114,7 @@ jobs:
           test -f "dist/$PACKAGE_NAME"
           test -f "dist/$CHECKSUM_NAME"
           # Xcode may update extraction metadata. Shipped input was the exact tag.
-          git diff "$TAG_SHA" -- FishSockTransfer > evidence/canonical-production-diff.txt
+          git diff "$TAG_SHA" -- FishSockTransfer/FishSockTransfer FishSockTransfer/FishSockTransfer.xcodeproj > evidence/canonical-production-diff.txt
           test ! -s evidence/canonical-production-diff.txt
 
       - name: Attach only new Intel assets to existing release

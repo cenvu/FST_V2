@@ -1290,6 +1290,26 @@ final class DestinationCapacityImageRuntimeXCTests: XCTestCase {
         return images.contains { ($0["image-path"] as? String) == image.path }
     }
 
+    private func detachDisposableImage(_ image: URL) throws {
+        let data = try command("/usr/bin/hdiutil", ["info", "-plist"])
+        let plist = try XCTUnwrap(PropertyListSerialization.propertyList(from: data, format: nil) as? [String: Any])
+        let images = try XCTUnwrap(plist["images"] as? [[String: Any]])
+        guard let fixture = images.first(where: { ($0["image-path"] as? String) == image.path }) else { return }
+        let entities = try XCTUnwrap(fixture["system-entities"] as? [[String: Any]])
+        let device = try XCTUnwrap(entities.compactMap { $0["dev-entry"] as? String }.first)
+        // APFS can lose its mountpoint while its backing image remains attached.
+        // Detach only a device from this exact UUID fixture's live hdiutil record.
+        do {
+            _ = try command("/usr/bin/hdiutil", ["detach", device])
+        } catch {
+            if isImageStillAttached(image) { throw error }
+        }
+        guard !isImageStillAttached(image) else {
+            throw NSError(domain: "FSTImageQA", code: 3,
+                          userInfo: [NSLocalizedDescriptionKey: "Disposable image remains attached after device detach"])
+        }
+    }
+
     private func runImageQA(filesystem: String) async throws {
         let fm = FileManager.default
         let root = fm.temporaryDirectory.appendingPathComponent("FSTCapacityImageQA-\(UUID())", isDirectory: true)
@@ -1336,7 +1356,7 @@ final class DestinationCapacityImageRuntimeXCTests: XCTestCase {
         defer {
             if attached {
                 do {
-                    _ = try command("/usr/bin/hdiutil", ["detach", mount.path])
+                    try detachDisposableImage(image)
                     attached = false
                 } catch {
                     if isImageStillAttached(image) {
@@ -1460,7 +1480,7 @@ final class DestinationCapacityImageRuntimeXCTests: XCTestCase {
         XCTAssertEqual(observer.totalBytes, Int64(count))
         XCTAssertEqual(observer.copiedBytes, Int64(count))
         print("FST_CAPACITY_QA FS=\(filesystem) F_GE_FLOOR_PASS=YES RSYNC=3.4.4 HASH_FILES=\(count) HASH=PASS OBSERVER_L=\(count) GUARANTEED_FIT_CLAIM=NONE")
-        _ = try command("/usr/bin/hdiutil", ["detach", mount.path])
+        try detachDisposableImage(image)
         attached = false
         let devices = try command("/usr/bin/hdiutil", ["info", "-plist"])
         XCTAssertFalse(String(decoding: devices, as: UTF8.self).contains(image.path))
