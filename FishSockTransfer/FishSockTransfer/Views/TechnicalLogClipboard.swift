@@ -1,4 +1,3 @@
-// FST / CenVu | (+84) 842 841 222
 
 import AppKit
 import Foundation

@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 
-# FST / CenVu | (+84) 842 841 222
 
 set -euo pipefail
 
