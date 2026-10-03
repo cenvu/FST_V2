@@ -10,6 +10,7 @@ curl --fail --location --retry 3 https://download.samba.org/pub/rsync/src/rsync-
 [[ "$(shasum -a 256 "$OUTPUT/rsync-3.4.4.tar.gz" | awk '{print $1}')" == "$SOURCE_SHA" ]] || { echo 'rsync source checksum mismatch' >&2; exit 1; }
 tar -xzf "$OUTPUT/rsync-3.4.4.tar.gz" -C "$OUTPUT"
 cd "$OUTPUT/rsync-3.4.4"
+trap 'if [[ -f config.log ]]; then cp config.log "$OUTPUT/config.log"; fi' EXIT
 ./configure --help > "$OUTPUT/configure-help.txt"
 FLAGS=(--disable-debug --disable-md2man --disable-openssl --disable-xxhash --disable-zstd --disable-lz4 --with-included-popt --with-included-zlib)
 for flag in "${FLAGS[@]}"; do
@@ -18,10 +19,13 @@ done
 # Keep build paths and Homebrew discovery out of the runtime binary.
 unset CPPFLAGS LDFLAGS LIBS CPATH LIBRARY_PATH PKG_CONFIG_PATH
 export MACOSX_DEPLOYMENT_TARGET=13.5
-export CC="$(xcrun --find clang)" CXX="$(xcrun --find clang++)"
-export CFLAGS="-O2 -arch x86_64 -mmacosx-version-min=13.5 -ffile-prefix-map=$OUTPUT=/rsync-source"
+CC="$(xcrun --find clang)"
+CXX="$(xcrun --find clang++)"
+SDKROOT="$(xcrun --sdk macosx --show-sdk-path)"
+export CC CXX SDKROOT
+export CFLAGS="-O2 -arch x86_64 -mmacosx-version-min=13.5 -isysroot $SDKROOT -ffile-prefix-map=$OUTPUT=/rsync-source"
 export CXXFLAGS="$CFLAGS"
-export LDFLAGS='-arch x86_64 -mmacosx-version-min=13.5'
+export LDFLAGS="-arch x86_64 -mmacosx-version-min=13.5 -isysroot $SDKROOT"
 ./configure "${FLAGS[@]}"
 make -j "$(sysctl -n hw.ncpu)" rsync
 cp rsync "$OUTPUT/rsync"

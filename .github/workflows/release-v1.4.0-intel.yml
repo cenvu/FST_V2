@@ -157,6 +157,14 @@ jobs:
           test "$(git ls-remote origin refs/tags/v1.4.0 | awk '{print $1}')" = "$TAG_SHA"
           echo 'PUBLICATION=PASS EXISTING_ARM_ASSET_PRESERVED=YES' | tee evidence/publication.txt
 
+      - name: Collect rsync configure diagnostics
+        if: always()
+        run: |
+          mkdir -p evidence
+          if test -f "$RUNNER_TEMP/fst-rsync-intel/config.log"; then
+            cp "$RUNNER_TEMP/fst-rsync-intel/config.log" evidence/rsync-config.log
+          fi
+
       - name: Preserve gate evidence and Intel artifacts
         if: always()
         uses: actions/upload-artifact@v4
