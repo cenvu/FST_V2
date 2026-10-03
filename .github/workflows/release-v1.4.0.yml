@@ -1,0 +1,113 @@
+name: Release FST v1.4.0 arm64
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/release-v1.4.0.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: fst-v1.4.0-release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: macos-15
+    env:
+      APP_VERSION: "1.4.0"
+      BUILD_NUMBER: "20261003"
+      TAG_NAME: "v1.4.0"
+      PACKAGE_NAME: "FishSockTransfer-v1.4.0-b20261003-local-macOS13_5plus-arm64.zip"
+      CHECKSUM_NAME: "SHA256SUMS-v1.4.0.txt"
+    steps:
+      - name: Checkout canonical release commit
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify Apple Silicon runner and release metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(uname -m)" = "arm64"
+          xcodebuild -version
+          test "$(grep -c 'MARKETING_VERSION = 1.4.0;' FishSockTransfer/FishSockTransfer.xcodeproj/project.pbxproj)" -eq 2
+          test "$(grep -c 'CURRENT_PROJECT_VERSION = 20261003;' FishSockTransfer/FishSockTransfer.xcodeproj/project.pbxproj)" -eq 2
+          if git rev-parse "refs/tags/$TAG_NAME" >/dev/null 2>&1; then
+            echo "Tag $TAG_NAME already exists." >&2
+            exit 1
+          fi
+
+      - name: Run full canonical XCTest suite
+        shell: bash
+        run: |
+          set -euo pipefail
+          xcodebuild             -project FishSockTransfer/FishSockTransfer.xcodeproj             -scheme FishSockTransfer             -destination 'platform=macOS,arch=arm64'             -derivedDataPath "$RUNNER_TEMP/FST-v1.4.0-Tests"             CODE_SIGNING_ALLOWED=NO             -parallel-testing-enabled NO             test
+
+      - name: Build and validate arm64 package
+        shell: bash
+        run: |
+          set -euo pipefail
+          APP_VERSION="$APP_VERSION" BUILD_NUMBER="$BUILD_NUMBER" ./scripts/package-local-arm64.sh
+          test -f "dist/$PACKAGE_NAME"
+          shasum -a 256 "dist/$PACKAGE_NAME" > "dist/$CHECKSUM_NAME"
+
+      - name: Privacy and package-content gate
+        shell: bash
+        run: |
+          set -euo pipefail
+          UNPACK="$RUNNER_TEMP/fst-v1.4.0-unpack"
+          rm -rf "$UNPACK"
+          mkdir -p "$UNPACK"
+          /usr/bin/ditto -x -k "dist/$PACKAGE_NAME" "$UNPACK"
+          APP="$UNPACK/FishSockTransfer.app"
+          test -d "$APP"
+
+          if find "$APP" \( -name '.DS_Store' -o -name '.git' -o -name '*.swift' \) -print | grep -q .; then
+            echo "Unexpected development/source artifact found in packaged app." >&2
+            find "$APP" \( -name '.DS_Store' -o -name '.git' -o -name '*.swift' \) -print >&2
+            exit 1
+          fi
+
+          TMP_STRINGS="$RUNNER_TEMP/fst-v1.4.0-package-strings.txt"
+          : > "$TMP_STRINGS"
+          while IFS= read -r -d '' file; do
+            /usr/bin/strings "$file" >> "$TMP_STRINGS" 2>/dev/null || true
+          done < <(find "$APP" -type f -print0)
+
+          if grep -E '/Users/[^/[:space:]]+' "$TMP_STRINGS"; then
+            echo "Machine-specific user path found in release package." >&2
+            exit 1
+          fi
+          if grep -E '(github_pat_|ghp_[A-Za-z0-9]{20,}|sk-[A-Za-z0-9_-]{20,}|[0-9]{6,12}:[A-Za-z0-9_-]{25,})' "$TMP_STRINGS"; then
+            echo "Credential/token-like material found in release package." >&2
+            exit 1
+          fi
+
+          /usr/bin/codesign --verify --deep --strict --verbose=4 "$APP"
+          /usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$APP/Contents/Info.plist" | grep -Fx '1.4.0'
+          /usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$APP/Contents/Info.plist" | grep -Fx '20261003'
+          /usr/bin/lipo -archs "$APP/Contents/MacOS/FishSockTransfer" | grep -w arm64
+          "$APP/Contents/Resources/rsync" --version | head -n 1 | grep -F '3.4.4'
+
+      - name: Publish GitHub Release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh release create "$TAG_NAME"             "dist/$PACKAGE_NAME"             "dist/$CHECKSUM_NAME"             --repo "${{ github.repository }}"             --target "$GITHUB_SHA"             --title "FST v1.4.0 — OpenDesign UI, Localization, and Transfer Safety"             --notes-file docs/releases/release-notes-v1.4.0.md
+
+      - name: Verify published assets
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh release view "$TAG_NAME" --repo "${{ github.repository }}" --json tagName,isDraft,isPrerelease,assets
+          gh release download "$TAG_NAME" --repo "${{ github.repository }}" --pattern "$CHECKSUM_NAME" --dir "$RUNNER_TEMP/release-check"
+          diff -u "dist/$CHECKSUM_NAME" "$RUNNER_TEMP/release-check/$CHECKSUM_NAME"

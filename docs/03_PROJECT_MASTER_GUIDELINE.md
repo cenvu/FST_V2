@@ -2,7 +2,7 @@
 
 # FST - Project Master Guideline
 
-Version: 2026-08-02
+Version: 2026-10-03
 Status: Architecture Locked  
 Codename: FishSock Transfer / Focused Secure Transfer
 
@@ -120,8 +120,8 @@ Meaningful work includes:
 
 ## 4. Technical Baseline
 
-- current version v1.3.5 display 1.3.5 build 20260802
-- local package `dist/FishSockTransfer-v1.3.5-b20260802-local-macOS13_5plus-arm64.zip`
+- current version v1.4.0 display 1.4.0 build 20261003
+- local package `dist/FishSockTransfer-v1.4.0-b20261003-local-macOS13_5plus-arm64.zip`
 - macOS 13.5+
 - Apple Silicon arm64 package
 - ad-hoc signed, not notarized, not Developer ID signed
@@ -140,6 +140,8 @@ Meaningful work includes:
 - TXT report
 - Apple Silicon arm64 target
 - Intel Mac target (requires proof of bundled runtime safety)
+
+v1.4.0 is the major OpenDesign/UI-localization release with EN/VI switching, finalized bandwidth presets, progress/ETA presentation repairs, and strengthened destination-capacity readiness while preserving FST safety invariants.
 
 v1.3.5 packages the Clear Folder controls, safe Start-to-Cancel behavior, full-workflow Retry, persistent security-scoped folder access, and fixes misleading external-volume free space reporting.
 

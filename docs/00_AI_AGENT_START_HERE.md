@@ -74,8 +74,8 @@ handoffs provide context only.
 
 ## Current Release Snapshot
 
-- Version: v1.3.5 display 1.3.5 build 20260802
-- Package: `dist/FishSockTransfer-v1.3.5-b20260802-local-macOS13_5plus-arm64.zip`
+- Version: v1.4.0 display 1.4.0 build 20261003
+- Package: `dist/FishSockTransfer-v1.4.0-b20261003-local-macOS13_5plus-arm64.zip`
 - Platform: macOS 13.5+, Apple Silicon arm64 only
 - Package type: local owner-side ad-hoc build
 - Signing: ad-hoc signed, not notarized, not Developer ID signed
@@ -84,6 +84,8 @@ handoffs provide context only.
 - Transfer engine: bundled rsync 3.4.4 only
 
 FST does not format media and does not eject media.
+
+v1.4.0 is the major OpenDesign/UI-localization release with EN/VI switching, finalized bandwidth presets, progress/ETA presentation repairs, and strengthened destination-capacity readiness while preserving FST safety invariants.
 
 v1.3.5 packages the Clear Folder controls, safe Start-to-Cancel behavior, full-workflow Retry, persistent security-scoped folder access, and fixes misleading external-volume free space reporting.
 

@@ -2,6 +2,7 @@
 
 Release notes are listed in reverse chronological order:
 
+- [v1.4.0](release-notes-v1.4.0.md)
 - [v1.3.5](release-notes-v1.3.5.md)
 - [v1.3.4](release-notes-v1.3.4.md)
 - [v1.3.3](release-notes-v1.3.3.md)

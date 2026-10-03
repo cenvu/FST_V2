@@ -2,6 +2,29 @@
 
 # Changelog
 
+## v1.4.0 - 2026-10-03
+
+### Major update
+* Converged the production macOS UI on the approved OpenDesign Hybrid Progressive direction across Transfer, Notification, and Technical Log.
+* Added in-app English/Vietnamese presentation with a persistent language toggle.
+* Finalized operator bandwidth presets at 50 / 75 / 100 / 125 / 150 / 175 / 200 MB/s and Unlimited, with no custom bandwidth control.
+* Added Copy All Logs / log-detail presentation and refined compact operator status surfaces.
+
+### Transfer and safety
+* Improved rsync progress2 parsing and operator-facing progress, current speed, average speed, ETA, and current-item semantics.
+* Strengthened destination-capacity preflight and filesystem-aware storage readiness behavior.
+* Preserved single-source / single-destination / single-active-job scope, bundled rsync 3.4.4, and read-only source protection.
+* Verification None still ends at TRANSFER COMPLETE; SAFE TO EJECT still requires successful copy and successful verification.
+
+### Verification and release
+* Release packaging targets macOS 13.5+ on Apple Silicon arm64.
+* Release publication is gated by the full canonical XCTest suite, arm64 package validation, bundled-rsync validation, ad-hoc codesign verification, checksum generation, and package privacy checks.
+* Owner screenshots, local source/destination selections, Telegram bot credentials, and runtime chat settings are not release assets.
+
+### Signing
+* The macOS package remains ad-hoc signed.
+* It is not notarized and is not Developer ID signed.
+
 ## v1.3.5 - 2026-08-02
 
 ### Added

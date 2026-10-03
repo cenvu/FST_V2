@@ -2,11 +2,11 @@
 
 # FST — FishSock Transfer
 
-![Last Update](https://img.shields.io/badge/Last%20Update-July%202026-blue)
+![Last Update](https://img.shields.io/badge/Last%20Update-October%202026-blue)
 [![macOS 13.5+](https://img.shields.io/badge/macOS-13.5%2B-blue.svg)](https://apple.com/macos)
 [![Apple Silicon arm64](https://img.shields.io/badge/architecture-Apple_Silicon_arm64-ff69b4.svg)]()
 [![Swift 5.9+](https://img.shields.io/badge/Swift-5.9%2B-FA7343.svg)](https://swift.org)
-[![Version v1.3.5](https://img.shields.io/badge/version-v1.3.5-success.svg)]()
+[![Version v1.4.0](https://img.shields.io/badge/version-v1.4.0-success.svg)]()
 [![License](https://img.shields.io/badge/license-Source_Available_/_Non--Commercial-orange.svg)](LICENSE)
 
 English documentation is included below.
@@ -120,12 +120,14 @@ What FST cannot / does not do:
 ## Thông tin sử dụng và phát triển
 
 ### Trạng thái hiện tại
-- Phiên bản: v1.3.5
+- Phiên bản: v1.4.0
 - Nền tảng: macOS 13.5+, Apple Silicon arm64
 - Chữ ký: ad-hoc signed
 - Notarization: không được notarized
 - Phạm vi: một nguồn, một đích, một tác vụ chạy tại một thời điểm
 - Transfer engine: sử dụng rsync 3.4.4 đi kèm
+
+v1.4.0 là bản cập nhật lớn về giao diện và vận hành: hội tụ giao diện OpenDesign cho Transfer / Notification / Technical Log, bổ sung chuyển ngôn ngữ EN/VI trong ứng dụng, hoàn thiện preset băng thông 50–200 MB/s + Unlimited, cải thiện tiến độ/tốc độ/ETA, và tăng cường kiểm tra dung lượng đích. Các quy tắc an toàn nguồn chỉ đọc, bundled rsync 3.4.4 và SAFE TO EJECT vẫn được giữ nguyên.
 
 v1.3.5 bổ sung các nút Clear Folder, hành vi Start-to-Cancel an toàn, tính năng Retry toàn bộ workflow khi có lỗi, lưu quyền truy cập thư mục Source/Destination qua các lần mở lại app, và sửa lỗi hiển thị sai dung lượng trống của ổ cứng ngoài.
 
@@ -181,12 +183,14 @@ Xem chi tiết:
 ## Usage and development information
 
 ### Current status
-- Version: v1.3.5
+- Version: v1.4.0
 - Platform: macOS 13.5+, Apple Silicon arm64
 - Signing: ad-hoc signed
 - Notarization: not notarized
 - Scope: single source, single destination, single active job
 - Transfer engine: bundled rsync 3.4.4
+
+v1.4.0 is a major UI and operator-workflow update: OpenDesign visual convergence across Transfer / Notification / Technical Log, in-app EN/VI switching, finalized 50–200 MB/s + Unlimited bandwidth presets, improved progress/speed/ETA presentation, and stronger destination-capacity checks. Read-only source protection, bundled rsync 3.4.4, and SAFE TO EJECT safety semantics remain intact.
 
 v1.3.5 packages the Clear Folder controls, safe Start-to-Cancel behavior, full-workflow Retry, persistent security-scoped folder access, and fixes misleading external-volume free space reporting.
 
