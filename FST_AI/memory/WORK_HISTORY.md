@@ -21,6 +21,21 @@ Each entry must include:
 
 ## Recent History
 
+### 2026-10-03 - FST_V1_4_0_INTEL_RELEASE
+
+- Agent/role: Codex, RELEASE_ENGINEER_WORKER; worker evidence complete, BRAIN review pending.
+- Start: owner worktree main `c3403f15695ec00cf2b41910849846cf10d5114d` with pre-existing dirty localization catalog preserved; isolated clean worktree started at fetched main `2e4f7dfb09862a9ad6f06370a3ae8bc2c3050ca2`.
+- Scope: Intel rsync build/package/audit scripts, dispatch-only `macos-15-intel` workflow, exact-device cleanup for disposable test images, README/release notes and these history records. Production app source/project diff versus tag is empty; no production behavior changes. CodeGraph unavailable; exact source/tests inspected directly.
+- Commits: packaging `778482e57dd83cd98cadd2686896cfef7a831521`; SDK fix `1eb25ac194c76e61de308633a0fb3bc05c82d117`; xcresult field fix `271b8b07497ff8923a1e78dc1e0007ec1a5fab1f`; test-fixture cleanup `126b785388a3ddfa4b435e5fed1b33af3250e0d2`; normal pushes to main, no tag creation/movement.
+- Diagnostics: run 37111077356 failed compiler initialization (missing explicit SDK root, reproduced as libSystem linker failure); 37111180339 passed 301 tests but failed the tooling JSON key check; 37111487586 failed APFS fixture detach-by-mountpoint (301 tests, 3 failures, 1 unexpected), with actual APFS copy/hash proof passing. Fixed cleanup to query the exact fixture's live device, detach without force and prove absence; no assertion waived.
+- Successful native run: https://github.com/cenvu/FST_V2/actions/runs/37112045530 — x86_64, macOS 15.7.9, Xcode 16.4; 301 tests passed, 0 failures, 0 unexpected, 0 skipped. Canonical real-binary BundledRsyncService standalone test passed.
+- rsync: official 3.4.4 source SHA-256 `bd88cf82fa653da32314fb229136407c5c90f80d1758d8f4b091767877d8fa96`; included popt/zlib, disabled optional OpenSSL/xxhash/zstd/lz4, protocol 32, x86_64, only system dylibs. Production Swift hashing and rsync arguments unchanged.
+- Publication: existing release https://github.com/cenvu/FST_V2/releases/tag/v1.4.0; immutable tag `6843c909bfa47e221ce399fdb92d6e081eca7951`. Added only `FishSockTransfer-v1.4.0-b20261003-local-macOS13_5plus-x86_64.zip` and `SHA256SUMS-v1.4.0-x86_64.txt`; ZIP SHA-256 `60196c0c21b82abb63307f11d7f19af5d6a83a9408d715379ba39dc2d12b6971`.
+- Gates: native staged/ZIP/re-downloaded package audits PASS for architecture, system-only loader paths, version 1.4.0/build 20261003/minimum 13.5, signed-package disposable transfers (Unlimited + all seven bandwidth mappings), exclusions, source content/mode/mtime preservation, privacy and codesign deep/strict. Ad-hoc only; not notarized, not Developer ID signed.
+- ARM preservation: asset IDs/digests/size/timestamps unchanged; before/after downloaded ARM ZIP SHA-256 `361b1c7353f7e624cf2d0ae1713626cdd4a3da3591fcdcfdb943b1740f03cec3` and ARM checksum SHA-256 `6d7dfa226867b5823552b61cbd60b85de3436d9d35aa56fd8a2c1ac329345650` identical.
+- Evidence: GitHub run artifact `fst-v1.4.0-intel-evidence`; local isolated worktree `dist/release-intel/run-37112045530/` and independently re-downloaded `dist/release-intel/published/`. Independent local ZIP hash, metadata, thin x86_64 app/rsync and ad-hoc codesign checks also passed.
+- Documentation updated only after native publication PASS; UI gallery preserved. Worker proposed next only: `RETURN_TO_BRAIN_FOR_INTEL_RELEASE_REVIEW`; no BRAIN acceptance/classification or active-next state authored.
+
 ### 2026-10-03 - Localization Catalog Reconciliation + c248 Verification
 
 - Task ID `RECONCILE_PREEXISTING_LOCALIZATION_CATALOG_AND_VERIFY_C248`; workstream `OPENDESIGN_TRANSFER_CONTROLS_LANGUAGE_TOGGLE`; Codex verifier/finalizer

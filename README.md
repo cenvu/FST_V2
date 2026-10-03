@@ -7,6 +7,7 @@ FST is a macOS app for DITs and Data Wranglers: copy media, verify data, and rev
 [![v1.4.0](https://img.shields.io/badge/version-v1.4.0-success.svg)](https://github.com/cenvu/FST_V2/releases/tag/v1.4.0)
 ![macOS 13.5+](https://img.shields.io/badge/macOS-13.5%2B-blue.svg)
 ![Apple Silicon arm64](https://img.shields.io/badge/architecture-Apple_Silicon_arm64-ff69b4.svg)
+![Intel x86_64](https://img.shields.io/badge/architecture-Intel_x86__64-ff69b4.svg)
 
 **[Tải bản mới nhất / Download the latest release →](https://github.com/cenvu/FST_V2/releases/latest)**
 
@@ -83,7 +84,7 @@ Luôn đọc trạng thái cuối và báo cáo, giữ bản sao lưu độc l�
 
 ## Cài đặt / Installation
 
-1. Tải file **ZIP** tại [GitHub Releases — bản mới nhất / latest release](https://github.com/cenvu/FST_V2/releases/latest). / Download the **ZIP** from the latest release.
+1. Tải file **ZIP** đúng kiến trúc máy tại [GitHub Releases — bản mới nhất / latest release](https://github.com/cenvu/FST_V2/releases/latest): Apple Silicon (arm64) hoặc Intel Mac (x86_64). / Download the **ZIP** matching your Mac: Apple Silicon (arm64) or Intel Mac (x86_64).
 2. Giải nén, có thể chuyển ứng dụng vào Applications, rồi mở FST. / Unzip, optionally move the app to Applications, and open FST.
 3. Bản hiện tại ký **ad-hoc**, chưa notarized và không ký bằng Developer ID. macOS có thể yêu cầu **Chuột phải → Open** khi mở lần đầu. / The current build is **ad-hoc signed**, not notarized, and not Developer ID signed. macOS may require **Right-click → Open** on first launch.
 
@@ -96,11 +97,20 @@ Luôn đọc trạng thái cuối và báo cáo, giữ bản sao lưu độc l�
 | Phiên bản / Version | **1.4.0** |
 | Build | **20261003** |
 | Nền tảng / Platform | macOS **13.5+** |
-| Kiến trúc / Architecture | **Apple Silicon arm64** |
+| Kiến trúc / Architecture | **Apple Silicon arm64** và / and **Intel x86_64**, hai ZIP riêng / two separate ZIPs |
 | rsync đi kèm / Bundled rsync | **3.4.4** |
 | Chữ ký / Signing | Ad-hoc; chưa notarized; không Developer ID / not notarized; not Developer ID signed |
 
 **[Bản phát hành v1.4.0 / v1.4.0 release](https://github.com/cenvu/FST_V2/releases/tag/v1.4.0)**
+
+v1.4.0 có hai gói riêng theo kiến trúc, cùng version/build và yêu cầu macOS 13.5+. / v1.4.0 provides two separate architecture-specific packages with the same version/build and macOS 13.5+ requirement.
+
+| Máy / Mac | ZIP |
+| --- | --- |
+| Apple Silicon (arm64) | [FishSockTransfer-v1.4.0-b20261003-local-macOS13_5plus-arm64.zip](https://github.com/cenvu/FST_V2/releases/download/v1.4.0/FishSockTransfer-v1.4.0-b20261003-local-macOS13_5plus-arm64.zip) |
+| Intel Mac (x86_64) | [FishSockTransfer-v1.4.0-b20261003-local-macOS13_5plus-x86_64.zip](https://github.com/cenvu/FST_V2/releases/download/v1.4.0/FishSockTransfer-v1.4.0-b20261003-local-macOS13_5plus-x86_64.zip) |
+
+SHA-256: [Apple Silicon](https://github.com/cenvu/FST_V2/releases/download/v1.4.0/SHA256SUMS-v1.4.0.txt) · [Intel](https://github.com/cenvu/FST_V2/releases/download/v1.4.0/SHA256SUMS-v1.4.0-x86_64.txt).
 
 ## Giấy phép và ghi nhận / License & credits
 
