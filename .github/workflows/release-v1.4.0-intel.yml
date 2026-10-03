@@ -100,7 +100,8 @@ jobs:
           print(json.dumps(result, indent=2))
           assert result['totalTestCount'] == 301 and result['passedTests'] == 301
           assert result['failedTests'] == 0 and result['skippedTests'] == 0
-          assert result['testResult'] == 'Passed'
+          assert result['result'] == 'Passed' and result['expectedFailures'] == 0
+          assert all(d['device']['architecture'] == 'x86_64' for d in result['devicesAndConfigurations'])
           PY
           grep -Eq 'Executed 301 tests, with 0 failures \(0 unexpected\)' "$GITHUB_WORKSPACE/evidence/xctest.log"
 
