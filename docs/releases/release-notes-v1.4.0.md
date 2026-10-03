@@ -8,7 +8,7 @@ FST v1.4.0 redesigns the macOS interface for clearer media offload, progress tra
 - In-app EN/VI language switching with a saved preference.
 - Bandwidth presets: 50 / 75 / 100 / 125 / 150 / 175 / 200 MB/s / Unlimited.
 - Clearer progress, current speed, average speed and ETA.
-- Improved destination-capacity readiness checks.
+- Clearer checks that the destination has enough free space before copying.
 - Copy All Logs and refined log presentation.
 - Apple Silicon arm64 and Intel x86_64 support.
 
@@ -22,7 +22,7 @@ Requires macOS **13.5+**. Choose the ZIP for your Mac:
 
 ## Verification
 
-Both architecture-specific packages are built and validated against the project test suite and bundled rsync 3.4.4 requirements.
+Both Mac packages were tested before release and use bundled rsync 3.4.4.
 
 ## Safety
 

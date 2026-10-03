@@ -16,7 +16,7 @@
 * Fixed late bookmark save and restore operations overwriting newer folder choices.
 
 ### Verification
-* Confirmed the full canonical XCTest suite passes before release.
+* Confirmed the full XCTest suite passes before release.
 * Confirmed the packaged app reports version 1.3.5 build 20260802.
 * Confirmed the packaged app contains bundled rsync 3.4.4.
 * Confirmed sandbox, network-client, user-selected read-write, and app-scoped bookmark entitlements are preserved.

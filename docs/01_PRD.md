@@ -1,9 +1,7 @@
-<!-- FST / CenVu | (+84) 842 841 222 -->
-
-# PRD - FST Focused Secure Transfer
+# FST Product Specification
 
 Version: 2026-10-03
-Status: MVP Scope Locked  
+Status: Current Product Scope
 Platform: macOS 13.5+  
 Language: Swift 5.9+ / Swift 6 compatible  
 Framework: SwiftUI  
@@ -86,7 +84,7 @@ A first-time operator can launch FST, select source, select destination, choose 
 
 ---
 
-## 4. MVP Scope
+## 4. Product Scope
 
 ### In Scope
 
@@ -103,7 +101,7 @@ A first-time operator can launch FST, select source, select destination, choose 
 - SHA256 sample verification and xxHash64 full verification
 - logs
 - TXT report
-- Safe To Eject gate
+- SAFE TO EJECT only after successful copy and required verification
 
 ### Out of Scope
 
@@ -130,7 +128,7 @@ Current release:
 - Platform: macOS 13.5+, Apple Silicon arm64 and Intel x86_64 (separate packages)
 - Signing: ad-hoc signed, not notarized, not Developer ID signed
 - Scope: one source, one destination, one active job
-- Verified operator-facing success: SAFE TO EJECT
+- Successful verified copy: SAFE TO EJECT; copy-only success: TRANSFER COMPLETE
 
 Current repository structure expects:
 
@@ -162,20 +160,6 @@ Rules:
 - Use dependency flow: View -> ViewModel -> Coordinator -> Engine -> Service.
 - Never mutate source media.
 - Never run rsync, hashing, scanning, or report generation on MainActor.
-
-v1.4.0 is the major interface and localization release with EN/VI switching, finalized bandwidth presets, progress/ETA presentation repairs, and strengthened destination-capacity readiness while preserving FST safety invariants.
-
-v1.3.5 packages the Clear Folder controls, safe Start-to-Cancel behavior, full-workflow Retry, persistent security-scoped folder access, and fixes misleading external-volume free space reporting.
-
-v1.3.4 hardens Detailed TXT Report V1 and safety wording. It does not change transfer, verify, rsync, Telegram, update-check, or UI layout behavior.
-
-v1.3.3 remains the packaged/release build outbound network permission hotfix. It preserves the app's sandbox network client entitlement so manual GitHub update-check and Telegram notification workflows can use outbound HTTPS as intended.
-
-Truth layers:
-
-- Safety truth: verification result, report generation, and SAFE TO EJECT.
-- Transfer truth: bundled rsync 3.4.4 lifecycle, exit status, errors, and cancellation.
-- Operator truth: UI progress metrics and optional Telegram notifications for visibility only.
 
 Notification delivery and observer metrics are estimates/visibility tools. They must never mark copy success, verification success, or SAFE TO EJECT.
 
@@ -265,7 +249,7 @@ Must:
 - report exit status
 - preserve source media
 
-Current audit:
+Runtime requirements:
 
 - bundled rsync 3.4.4 path/version detection is required
 - app version and rsync version must remain separate
@@ -316,13 +300,13 @@ High-File-Count / CinemaDNG Behavior:
 - Exact media-extension policy is an implementation decision requiring real production samples (do not invent taxonomy without evidence).
 - Advanced/technical surfaces may expose exact current filenames.
 
-ETA Trust Contract:
-- ETA is a responsive truthful estimate, not an exact future truth.
+ETA requirements:
+- ETA should respond to transfer conditions and remain an estimate.
 - Normal estimation warm-up <= 120 seconds.
 - Adaptation <= 10 seconds after a material sustained throughput change.
 - Never show per-file ETA as whole-job ETA.
 - Never leave stale ETA presented as current.
-- ETA estimate must never affect safety truth or SAFE TO EJECT.
+- ETA must never determine transfer success or SAFE TO EJECT.
 - Preferred display: ~18 min remaining. Warm-up display: Estimating...
 - If unable to estimate, use a truthful degraded state (e.g. ETA unavailable) rather than indefinite Estimating.
 
@@ -360,11 +344,11 @@ full -> xxHash64
 
 Rules:
 
-- `none` skips hashing and ends at COPY COMPLETE.
+- `none` skips hashing and ends at TRANSFER COMPLETE.
 - `random33` verifies about one third of transferred files with SHA256.
 - `full` verifies all transferred files with xxHash64 fast non-cryptographic verification.
 - Any failure blocks SAFE TO EJECT.
-- No MD5, CRC32, or MHL in MVP.
+- No MD5, CRC32, or MHL verification.
 
 ### FR-010 SAFE TO EJECT
 
@@ -377,13 +361,13 @@ SAFE TO EJECT = copy success AND verification success
 If verification mode is `none`:
 
 ```text
-Final state = COPY COMPLETE
+Final state = TRANSFER COMPLETE
 Never SAFE TO EJECT
 ```
 
 No operator override. No warning bypass. No auto-approval.
 
-Operator-facing terminal language:
+Final status labels:
 
 - Copy-only success with verification disabled = TRANSFER COMPLETE
 - Verified success = SAFE TO EJECT
@@ -504,8 +488,6 @@ Performance:
 
 Compatibility:
 
-- v1.2 release candidate: macOS 13.5+
-- v1.2 release candidate: Apple Silicon arm64 only
 - Current v1.4.0: macOS 13.5+, Apple Silicon arm64 and Intel x86_64 in separate ZIPs
 - Each architecture requires its matching bundled rsync 3.4.4 runtime
 - Never achieve Intel support by silent fallback
@@ -520,9 +502,9 @@ Maintainability:
 
 ---
 
-## 9. MVP Exit Criteria
+## 9. Acceptance Criteria
 
-MVP is complete only when:
+The product must meet these requirements:
 
 - picker and drag/drop work
 - bookmarks restore access
@@ -530,14 +512,14 @@ MVP is complete only when:
 - bundled rsync path/version are correct
 - app version and rsync version are separate
 - speed limiter is accurate
-- `.DS_Store` hang is fixed or safely mitigated
-- progress/speed/ETA are operator-trustworthy
+- metadata-only folders cannot stall transfer
+- progress, speed and ETA reflect the transfer
 - cancellation cannot create false success
-- verification none ends COPY COMPLETE
+- verification none ends TRANSFER COMPLETE
 - random33 verification works
 - full verification works
 - SAFE TO EJECT cannot bypass verification
-- logs and TXT report reflect final truth
+- logs and TXT report reflect the final result
 - production-scale transfer test passes without crash
 
 ---

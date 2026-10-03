@@ -6,7 +6,7 @@
 - Removed obsolete safety wording from active report output.
 - Clarified final verified success wording as SAFE TO EJECT DESTINATION.
 - Updated report filenames and job IDs so they no longer use the source name.
-- Reduced operator-facing rsync detail to rsync 3.4.4.
+- Reduced displayed rsync details to rsync 3.4.4.
 - Added a technical log sharing note to report output.
 - Updated report wording safety tests.
 

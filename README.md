@@ -1,8 +1,8 @@
 # FST / FishSockTransfer
 
-FST là ứng dụng macOS dành cho DIT và Data Wrangler: sao chép media, xác minh dữ liệu và đọc kết quả trước khi bàn giao thiết bị nguồn.
+FST giúp DIT và Data Wrangler sao chép dữ liệu từ thẻ hoặc ổ nguồn sang thư mục đích, xác minh bản sao và đọc kết quả trước khi bàn giao thiết bị nguồn. Mỗi lần chạy có một nguồn, một đích và một tác vụ.
 
-FST is a macOS app for DITs and Data Wranglers: copy media, verify data, and review the result before handing off the source media.
+FST is a macOS app for DITs and Data Wranglers. Copy media from a card or drive to a destination folder, verify the copy, and check the result before handing off the source. Each run handles one source and one destination.
 
 [![v1.4.0](https://img.shields.io/badge/version-v1.4.0-success.svg)](https://github.com/cenvu/FST_V2/releases/tag/v1.4.0)
 ![macOS 13.5+](https://img.shields.io/badge/macOS-13.5%2B-blue.svg)
@@ -10,16 +10,6 @@ FST is a macOS app for DITs and Data Wranglers: copy media, verify data, and rev
 ![Intel x86_64](https://img.shields.io/badge/architecture-Intel_x86__64-ff69b4.svg)
 
 **[Tải bản mới nhất / Download the latest release →](https://github.com/cenvu/FST_V2/releases/latest)**
-
-## FST là gì? / What is FST?
-
-FST hỗ trợ offload từ thẻ máy quay hoặc ổ lưu trữ sang một thư mục đích. Mỗi lần chạy dùng **một nguồn, một đích và một tác vụ**.
-
-FST supports media offload from camera cards or storage drives to a destination folder. Each run uses **one source, one destination, and one active job**.
-
-Chọn nguồn và đích → kiểm tra dung lượng đích → sao chép → xác minh theo chế độ đã chọn → đọc trạng thái cuối và báo cáo TXT. FST cung cấp bằng chứng để người vận hành quyết định bàn giao; không thay thế bản sao lưu độc lập.
-
-Select source and destination → check destination storage → copy → verify using the selected mode → review the final status and TXT report. FST provides evidence for operator handoff decisions; independent backups are still needed.
 
 ## Giao diện / Interface
 
@@ -35,102 +25,99 @@ Select source and destination → check destination storage → copy → verify 
 | --- | --- |
 | ![FST v1.4.0 — Thông báo / Notification](docs/images/fst-v1.4.0-notification.png) | ![FST v1.4.0 — Nhật ký kỹ thuật / Technical Log](docs/images/fst-v1.4.0-technical-log.png) |
 
-## Điểm mới trong v1.4.0 / What's new in v1.4.0
+## FST làm được gì? / What does FST do?
 
-- **Thiết kế lại giao diện** cho Sao chép, Thông báo và Nhật ký kỹ thuật. / **Redesigned interface** for Transfer, Notification, and Technical Log.
-- Chuyển ngôn ngữ EN/VI trong ứng dụng và ghi nhớ lựa chọn. / In-app EN/VI switching with a saved language preference.
-- Bộ mức giới hạn tốc độ hiện tại, được liệt kê bên dưới. / Updated bandwidth presets, listed below.
-- Hiển thị tiến độ, tốc độ hiện tại, tốc độ trung bình và thời gian còn lại (ETA) rõ hơn. / Clearer progress, current speed, average speed, and time remaining (ETA).
-- Cải thiện kiểm tra dung lượng đích trước khi chạy. / Improved destination-capacity readiness checks.
-- Tinh chỉnh Thông báo và Nhật ký kỹ thuật, bổ sung sao chép toàn bộ nhật ký. / Refined Notification and Technical Log presentation, including Copy All Logs.
+### Tiếng Việt
 
-[Xem ghi chú phát hành / Read the release notes](docs/releases/release-notes-v1.4.0.md)
+- Chọn nguồn và đích bằng kéo thả hoặc hộp chọn thư mục.
+- Kiểm tra quyền ghi và dung lượng trống ở đích trước khi bắt đầu.
+- Chọn giới hạn tốc độ, sao chép và xác minh theo chế độ đã chọn.
+- Theo dõi tiến độ, tốc độ hiện tại, tốc độ trung bình và thời gian còn lại.
+- Đọc trạng thái cuối, lưu báo cáo TXT hoặc xem Nhật ký kỹ thuật khi cần xử lý lỗi.
+- Nhận thông báo Telegram nếu muốn; [hướng dẫn thiết lập](docs/guides/telegram-bot-setup.md).
 
-## Tính năng chính / Key features
+v1.4.0 thiết kế lại giao diện Sao chép, Thông báo và Nhật ký kỹ thuật, bổ sung chuyển ngôn ngữ EN/VI và làm rõ tiến độ, dung lượng đích cùng kết quả xác minh.
 
-- **Nguồn và đích / Source & Destination:** chọn thư mục hoặc kéo thả. / Select folders or use drag and drop.
-- **Kiểm tra lưu trữ / Storage readiness:** kiểm tra quyền ghi và dung lượng đích trước khi sao chép. / Check destination writability and capacity before copying.
-- **Sao chép / Copy:** dùng rsync **3.4.4 đi kèm** và giới hạn tốc độ đã chọn. / Use **bundled rsync 3.4.4** with the selected bandwidth limit.
-- **Xác minh / Verification:** None, Sample 33% hoặc Full 100%; chi tiết bên dưới. / None, Sample 33%, or Full 100%; details below.
-- **Theo dõi / Monitoring:** tiến độ, tốc độ, ETA, Nhật ký kỹ thuật và báo cáo TXT. / Progress, speed, ETA, Technical Log, and a TXT report.
-- **Thông báo / Notifications:** hỗ trợ Telegram tùy chọn. / Optional Telegram support. [Hướng dẫn thiết lập / Setup guide](docs/guides/telegram-bot-setup.md)
+### English
 
-**Giới hạn tốc độ / Bandwidth presets:** 50 / 75 / 100 / 125 / 150 / 175 / 200 MB/s / Unlimited (Không giới hạn).
+- Pick a source and destination with drag and drop or the folder picker.
+- Check destination write access and available space before starting.
+- Choose a speed limit, copy, and optionally verify the files.
+- Follow progress, current and average speed, and time remaining.
+- Read the final status, save a TXT report, and use the Technical Log to troubleshoot.
+- Enable optional Telegram notifications; see the [setup guide](docs/guides/telegram-bot-setup.md).
+
+v1.4.0 redesigns Transfer, Notification and Technical Log, adds EN/VI switching, and makes progress, destination space and verification results easier to read. [Release notes](docs/releases/release-notes-v1.4.0.md).
+
+Giới hạn tốc độ / Speed limits: **50 / 75 / 100 / 125 / 150 / 175 / 200 MB/s / Unlimited**.
 
 ## Xác minh / Verification
 
-| Chế độ / Mode | Sau khi sao chép / After copying | Khi thành công / On success |
+| Chế độ / Mode | Kiểm tra bản sao / Copy check | Kết quả khi thành công / Successful result |
 | --- | --- | --- |
-| **None / COPY ONLY** | Không xác minh hash sau sao chép. / No post-copy hash verification. | **TRANSFER COMPLETE**; không phải / never SAFE TO EJECT. |
-| **SAMPLE 33% — SHA256** | Xác minh mẫu khoảng 33% số tệp. / Verify a sample of about 33% of files. | **SAFE TO EJECT**, sau khi sao chép đầy đủ và xác minh mẫu thành công. / After complete successful copy and successful sampled verification. |
-| **FULL 100% — xxHash64** | Xác minh tất cả tệp bằng hash nhanh, phi mật mã. / Verify all files using a fast non-cryptographic hash. | **SAFE TO EJECT**, sau khi sao chép đầy đủ và xác minh toàn bộ thành công. / After complete successful copy and successful full verification. |
+| None | Chỉ sao chép, không kiểm tra hash sau đó. Copy only, no post-copy hash check. | TRANSFER COMPLETE; never SAFE TO EJECT |
+| Sample 33% | Kiểm tra khoảng một phần ba số tệp bằng SHA256. Check about one third of files with SHA256. | SAFE TO EJECT after complete copy and successful sample verification |
+| Full 100% | Kiểm tra mọi tệp bằng xxHash64, hash nhanh phi mật mã. Check every file with fast, non-cryptographic xxHash64. | SAFE TO EJECT after complete copy and successful full verification |
 
-**SAFE TO EJECT chỉ xuất hiện khi sao chép đầy đủ và xác minh bắt buộc đều thành công. / SAFE TO EJECT requires complete successful copy and successful required verification.**
+### Tiếng Việt
 
-Sample kiểm tra một phần số tệp. Full kiểm tra mọi tệp, nhưng xxHash64 không phải hash mật mã và không bảo đảm an toàn tuyệt đối. / Sample checks a subset of files. Full checks every file, but xxHash64 is non-cryptographic and does not provide an absolute safety guarantee.
+**SAFE TO EJECT** chỉ xuất hiện sau khi sao chép đầy đủ và xác minh theo chế độ đã chọn đều thành công. None chỉ báo **TRANSFER COMPLETE**. Nếu lỗi, hủy, chưa hoàn tất hoặc kết quả không rõ, giữ nguyên nguồn, không xóa hay tái sử dụng.
 
-## An toàn / Safety
+FST chỉ đọc nguồn; không sửa dữ liệu, format hay eject thiết bị. Nếu thư mục tác vụ ở đích đã tồn tại, FST chặn thay vì âm thầm gộp hoặc ghi đè. Telegram không quyết định kết quả. Luôn giữ bản sao lưu độc lập; SAFE TO EJECT không tự cho phép xóa, format hoặc tái sử dụng nguồn.
 
-- **Nguồn chỉ đọc.** FST không sửa dữ liệu, format hay eject thiết bị nguồn. / **Source remains read-only.** FST does not modify source data, format, or eject source media.
-- **Không ghi đè hoặc gộp âm thầm.** Nếu thư mục tác vụ đích đã tồn tại, FST chặn và yêu cầu chọn đích hoặc thư mục mới. / **No silent overwrite or merge.** An existing destination job folder blocks the transfer; choose a new destination or folder.
-- **Không thành công, không SAFE TO EJECT.** Lỗi, hủy, chưa hoàn tất, trạng thái không chắc chắn hoặc None đều không cho phép trạng thái này. / **No success, no SAFE TO EJECT.** Failure, cancellation, incomplete or uncertain state, and None never authorize it.
-- **Thông báo không quyết định kết quả.** Telegram chỉ hỗ trợ theo dõi; gửi thành công hay thất bại không thay đổi kết quả sao chép hoặc xác minh. / **Notifications do not determine success.** Telegram provides visibility; delivery success or failure does not change copy or verification results.
+### English
 
-Luôn đọc trạng thái cuối và báo cáo, giữ bản sao lưu độc lập. SAFE TO EJECT không tự động cho phép xóa, format hoặc tái sử dụng nguồn. Nếu kết quả không chắc chắn, giữ nguyên nguồn và không xóa hay tái sử dụng. / Review the final status and report, and maintain independent backups. SAFE TO EJECT is not automatic approval to erase, format, or reuse the source. If the result is uncertain, preserve the source and do not erase or reuse it.
+**SAFE TO EJECT** requires a complete successful copy and successful verification in the selected mode. None ends at **TRANSFER COMPLETE**. If a job fails, is cancelled, is incomplete or has an uncertain result, keep the source intact and do not erase or reuse it.
 
-[Trách nhiệm người vận hành / Operator responsibility](docs/legal/DISCLAIMER.md)
+FST keeps the source read-only and does not format or eject media. An existing destination job folder blocks the copy instead of silently merging or overwriting. Telegram delivery does not determine success. Keep independent backups; SAFE TO EJECT is not permission to erase, format or reuse the source. See [operator responsibility](docs/legal/DISCLAIMER.md).
 
-## Cài đặt / Installation
+## Cách dùng nhanh / Quick start
 
-1. Tải file **ZIP** đúng kiến trúc máy tại [GitHub Releases — bản mới nhất / latest release](https://github.com/cenvu/FST_V2/releases/latest): Apple Silicon (arm64) hoặc Intel Mac (x86_64). / Download the **ZIP** matching your Mac: Apple Silicon (arm64) or Intel Mac (x86_64).
-2. Giải nén, có thể chuyển ứng dụng vào Applications, rồi mở FST. / Unzip, optionally move the app to Applications, and open FST.
-3. Bản hiện tại ký **ad-hoc**, chưa notarized và không ký bằng Developer ID. macOS có thể yêu cầu **Chuột phải → Open** khi mở lần đầu. / The current build is **ad-hoc signed**, not notarized, and not Developer ID signed. macOS may require **Right-click → Open** on first launch.
+### Tiếng Việt
 
-**Sử dụng / Use:** chọn Source và Destination, kiểm tra dung lượng, chọn tốc độ và xác minh, rồi Start. Theo dõi tiến trình và đọc kết quả cuối trước khi bàn giao. / Select Source and Destination, review storage readiness, choose bandwidth and verification, then Start. Monitor progress and review the final result before handoff.
+1. Chọn **Source**: thẻ hoặc thư mục cần sao chép.
+2. Chọn **Destination**: thư mục lưu bản sao.
+3. Kiểm tra dung lượng trống và xử lý cảnh báo trước khi chạy.
+4. Chọn **Bandwidth** phù hợp với ổ đích.
+5. Chọn **Verification** theo bảng trên.
+6. Nhấn **Start Transfer** và theo dõi tiến trình.
+7. Đọc trạng thái cuối và báo cáo trước khi xử lý thiết bị nguồn.
 
-## Phiên bản hiện tại / Current release
+### English
 
-| Thông tin / Detail | Giá trị / Value |
+1. Select **Source**: the card or folder to copy.
+2. Select **Destination**: where to store the copy.
+3. Check free space and resolve any warnings.
+4. Choose **Bandwidth** for the destination drive.
+5. Choose **Verification** using the table above.
+6. Click **Start Transfer** and follow progress.
+7. Read the final status and report before handling the source media.
+
+## Tải xuống / Download
+
+**v1.4.0 · build 20261003 · macOS 13.5+**
+
+Máy dùng chip Apple M-series (M1/M2/M3/M4 và mới hơn): tải **Apple Silicon**. Máy Mac dùng bộ xử lý Intel: tải **Intel**.
+
+For a Mac with an Apple M-series chip, choose **Apple Silicon**. For an Intel-based Mac, choose **Intel**. These are separate ZIP packages.
+
+| Máy / Mac | Gói tải xuống / Package |
 | --- | --- |
-| Phiên bản / Version | **1.4.0** |
-| Build | **20261003** |
-| Nền tảng / Platform | macOS **13.5+** |
-| Kiến trúc / Architecture | **Apple Silicon arm64** và / and **Intel x86_64**, hai ZIP riêng / two separate ZIPs |
-| rsync đi kèm / Bundled rsync | **3.4.4** |
-| Chữ ký / Signing | Ad-hoc; chưa notarized; không Developer ID / not notarized; not Developer ID signed |
-
-**[Bản phát hành v1.4.0 / v1.4.0 release](https://github.com/cenvu/FST_V2/releases/tag/v1.4.0)**
-
-v1.4.0 có hai gói riêng theo kiến trúc, cùng version/build và yêu cầu macOS 13.5+. / v1.4.0 provides two separate architecture-specific packages with the same version/build and macOS 13.5+ requirement.
-
-| Máy / Mac | ZIP |
-| --- | --- |
-| Apple Silicon (arm64) | [FishSockTransfer-v1.4.0-b20261003-local-macOS13_5plus-arm64.zip](https://github.com/cenvu/FST_V2/releases/download/v1.4.0/FishSockTransfer-v1.4.0-b20261003-local-macOS13_5plus-arm64.zip) |
-| Intel Mac (x86_64) | [FishSockTransfer-v1.4.0-b20261003-local-macOS13_5plus-x86_64.zip](https://github.com/cenvu/FST_V2/releases/download/v1.4.0/FishSockTransfer-v1.4.0-b20261003-local-macOS13_5plus-x86_64.zip) |
+| Apple Silicon — arm64 | [Apple Silicon ZIP](https://github.com/cenvu/FST_V2/releases/download/v1.4.0/FishSockTransfer-v1.4.0-b20261003-local-macOS13_5plus-arm64.zip) |
+| Intel — x86_64 | [Intel ZIP](https://github.com/cenvu/FST_V2/releases/download/v1.4.0/FishSockTransfer-v1.4.0-b20261003-local-macOS13_5plus-x86_64.zip) |
 
 SHA-256: [Apple Silicon](https://github.com/cenvu/FST_V2/releases/download/v1.4.0/SHA256SUMS-v1.4.0.txt) · [Intel](https://github.com/cenvu/FST_V2/releases/download/v1.4.0/SHA256SUMS-v1.4.0-x86_64.txt).
 
+Giải nén ZIP, chuyển ứng dụng vào Applications nếu muốn rồi mở FST. Các gói ký ad-hoc, chưa notarized và không ký bằng Developer ID; macOS có thể yêu cầu **Chuột phải → Open** lần đầu.
+
+Unzip, optionally move the app to Applications, and launch FST. The packages are ad-hoc signed, not notarized and not Developer ID signed; macOS may require **Right-click → Open** on first launch.
+
 ## Build from source
 
-FST is a native macOS SwiftUI app for macOS 13.5+, with separate arm64 and x86_64 packages. Open `FishSockTransfer/FishSockTransfer.xcodeproj` in Xcode and select the `FishSockTransfer` scheme. Production source is in `FishSockTransfer/FishSockTransfer/`.
+FST is a native SwiftUI app for macOS 13.5+. Open `FishSockTransfer/FishSockTransfer.xcodeproj` in Xcode and select the `FishSockTransfer` scheme. App source is in `FishSockTransfer/FishSockTransfer/`; XCTest tests are in `FishSockTransfer/Tests/XCTest/`.
 
-On Apple Silicon, from the repository root:
+Transfer requires bundled rsync **3.4.4**. The [technical guide](docs/02_FST_TECHNICAL_GUIDE.md) covers build, tests and packaging for Apple Silicon and Intel, including the matching runtime for each Mac.
 
-```sh
-xcodebuild -project FishSockTransfer/FishSockTransfer.xcodeproj \
-  -scheme FishSockTransfer -destination 'platform=macOS,arch=arm64' \
-  -derivedDataPath .build/Developer CODE_SIGNING_ALLOWED=NO build
+## License
 
-xcodebuild -project FishSockTransfer/FishSockTransfer.xcodeproj \
-  -scheme FishSockTransfer -destination 'platform=macOS,arch=arm64' \
-  -derivedDataPath .build/DeveloperTests CODE_SIGNING_ALLOWED=NO \
-  -parallel-testing-enabled NO test
-```
-
-On Intel, use `arch=x86_64`. The canonical XCTest suite contains 301 tests. Production requires **bundled rsync 3.4.4**; the checked-in runtime resources are ARM64. Intel distribution requires the native runtime built and staged by `scripts/build-rsync-intel.sh` and `scripts/package-local-intel.sh`. `scripts/package-local-arm64.sh` packages Apple Silicon builds. Read the [technical guide](docs/02_FST_TECHNICAL_GUIDE.md) and [redistribution requirements](docs/legal/THIRD_PARTY_LICENSES.md) before packaging a fork.
-
-## Giấy phép và ghi nhận / License & credits
-
-Mã nguồn được công khai cho sử dụng phi thương mại; sử dụng thương mại cần có sự cho phép bằng văn bản. / Source is available for non-commercial use; commercial use requires written permission. [LICENSE](LICENSE) · [NOTICE](NOTICE)
-
-Vũ Huy Hùng / Cen — chủ dự án / project owner. Hà Minh Quang — logo và biểu tượng ứng dụng / logo and app icon.
+Mã nguồn được cung cấp cho sử dụng phi thương mại; sử dụng thương mại cần sự cho phép bằng văn bản. Source is available for non-commercial use; commercial use requires written permission. See [LICENSE](LICENSE), [NOTICE](NOTICE) and [third-party licensing](docs/legal/THIRD_PARTY_LICENSES.md).

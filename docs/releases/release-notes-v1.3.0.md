@@ -1,5 +1,3 @@
-<!-- FST / CenVu | (+84) 842 841 222 -->
-
 # FST v1.3.0 — Telegram Notification MVP
 
 Local Apple Silicon build for testing and early use.

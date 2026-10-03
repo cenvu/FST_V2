@@ -19,11 +19,11 @@ xcodebuild -project FishSockTransfer/FishSockTransfer.xcodeproj \
   -parallel-testing-enabled NO test
 ```
 
-On an Intel Mac, use `arch=x86_64`. The XCTest baseline is 301 tests. Some resource and presentation checks also have standalone entry points under `FishSockTransfer/Tests/`; see [XCTest coverage](../FishSockTransfer/Tests/XCTest/README.md). Use disposable fixtures for filesystem tests.
+On an Intel Mac, use `arch=x86_64`. The XCTest suite contains 301 tests. Some resource and presentation checks also have standalone entry points under `FishSockTransfer/Tests/`; see [XCTest coverage](../FishSockTransfer/Tests/XCTest/README.md). Use disposable fixtures for filesystem tests.
 
-## Source layout and ownership
+## Source layout
 
-Production source is under `FishSockTransfer/FishSockTransfer/`. Tests linked to the Xcode scheme are under `FishSockTransfer/Tests/XCTest/`. The top-level `Tests/UnitTests/` directory contains additional test sources; it is not the canonical Xcode test target.
+Production source is under `FishSockTransfer/FishSockTransfer/`. Tests linked to the Xcode scheme are under `FishSockTransfer/Tests/XCTest/`. The top-level `Tests/UnitTests/` directory contains additional test sources; it is not linked to the Xcode test target.
 
 The dependency flow is:
 
@@ -44,7 +44,7 @@ Copying, hashing, scanning and report work must stay off the UI thread. Cancella
 
 Production transfer must use bundled **rsync 3.4.4**. `BundledRsyncService` validates the binary and version; failure must be explicit. Do not fall back to system, Homebrew or MacPorts rsync.
 
-The canonical resources under `FishSockTransfer/FishSockTransfer/` include the ARM64 rsync binary and its supporting dylibs. The Xcode build copies these into the app. An Intel application build alone is therefore insufficient for an Intel package: [the Intel packaging script](../scripts/package-local-intel.sh) replaces only the staged runtime with a separately validated native Intel rsync binary and removes the ARM dylibs from staging.
+The checked-in resources under `FishSockTransfer/FishSockTransfer/` include the ARM64 rsync binary and its supporting dylibs. The Xcode build copies these into the app. An Intel application build alone is therefore insufficient for an Intel package: [the Intel packaging script](../scripts/package-local-intel.sh) replaces only the staged runtime with a separately validated native Intel rsync binary and removes the ARM dylibs from staging.
 
 Bandwidth presets are 50 / 75 / 100 / 125 / 150 / 175 / 200 MB/s. Unlimited omits `--bwlimit`. Metadata exclusions must remain explicit and must never delete or modify source contents. An existing destination job folder blocks the operation rather than silently merging or overwriting.
 

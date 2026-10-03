@@ -1,5 +1,3 @@
-<!-- FST / CenVu | (+84) 842 841 222 -->
-
 # Changelog
 
 ## v1.4.0 - 2026-10-03
@@ -11,7 +9,7 @@
 * Added Copy All Logs / log-detail presentation and refined compact operator status surfaces.
 
 ### Transfer and safety
-* Improved rsync progress2 parsing and operator-facing progress, current speed, average speed, ETA, and current-item semantics.
+* Improved rsync progress2 parsing and displayed progress, current speed, average speed, ETA, and current-item semantics.
 * Strengthened destination-capacity preflight and filesystem-aware storage readiness behavior.
 * Preserved single-source / single-destination / single-active-job scope, bundled rsync 3.4.4, and read-only source protection.
 * Verification None still ends at TRANSFER COMPLETE; SAFE TO EJECT still requires successful copy and successful verification.
@@ -37,7 +35,7 @@
 * Fixed late bookmark save and restore operations overwriting newer folder choices.
 
 ### Verification
-* Confirmed the full canonical XCTest suite passes before release.
+* Confirmed the full XCTest suite passes before release.
 * Confirmed the packaged app reports version 1.3.5 build 20260802.
 * Confirmed the packaged app contains bundled rsync 3.4.4.
 * Confirmed sandbox, network-client, user-selected read-write, and app-scoped bookmark entitlements are preserved.
@@ -57,7 +55,7 @@
 * Removed obsolete safety wording from active report output.
 * Clarified final verified success wording as SAFE TO EJECT DESTINATION.
 * Updated report filenames and job IDs so they no longer use the source name.
-* Reduced operator-facing rsync detail to rsync 3.4.4.
+* Reduced displayed rsync details to rsync 3.4.4.
 * Added a technical log sharing note to report output.
 * Updated tests for report wording safety.
 

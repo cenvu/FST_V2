@@ -1,5 +1,3 @@
-<!-- FST / CenVu | (+84) 842 841 222 -->
-
 # FST v1.1 Release Notes
 
 Version: 1.1  
@@ -91,4 +89,4 @@ SAFE TO EJECT is shown only after copy success and verification pass.
 
 Verification disabled ends at TRANSFER COMPLETE / COPY COMPLETE, never SAFE TO EJECT.
 
-Operator-facing formatting language is forbidden in production workflow wording. The app does not format media.
+FST does not format media. Its completion messages do not authorize formatting.

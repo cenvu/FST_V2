@@ -1,12 +1,7 @@
-<!-- FST / CenVu | (+84) 842 841 222 -->
-
 # FST XCTest Coverage
 
-`xcodebuild test` now runs the primary XCTest regression suite for pure model, parser, report, metadata-only safety, and bundled-rsync validation behavior.
+Run the XCTest suite with `xcodebuild test` or Product → Test in Xcode using the `FishSockTransfer` scheme. See the [technical guide](../../../docs/02_FST_TECHNICAL_GUIDE.md) for commands.
 
-Some standalone tests remain part of the full safety suite until they can be migrated without broadening the initial XCTest target:
+The suite covers models, progress parsing, reports, source-safety checks, bundled-rsync validation, localization and transfer lifecycle behavior.
 
-- `TransferControlsLabelTests`
-- actual bundled rsync binary fixture/path validation in `BundledRsyncServiceTests`
-
-This split is intentional for now. It avoids pulling SwiftUI/app entry-point dependencies or resource-path complexity into the first XCTest target while keeping those checks available in the standalone safety suite.
+`TransferControlsLabelTests.swift` and `BundledRsyncServiceTests.swift` also have standalone entry points in the parent test directory for control labels and the checked-in runtime. Keep those checks available when changing the corresponding controls or bundled resources.
