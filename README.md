@@ -112,6 +112,25 @@ v1.4.0 có hai gói riêng theo kiến trúc, cùng version/build và yêu cầu
 
 SHA-256: [Apple Silicon](https://github.com/cenvu/FST_V2/releases/download/v1.4.0/SHA256SUMS-v1.4.0.txt) · [Intel](https://github.com/cenvu/FST_V2/releases/download/v1.4.0/SHA256SUMS-v1.4.0-x86_64.txt).
 
+## Build from source
+
+FST is a native macOS SwiftUI app for macOS 13.5+, with separate arm64 and x86_64 packages. Open `FishSockTransfer/FishSockTransfer.xcodeproj` in Xcode and select the `FishSockTransfer` scheme. Production source is in `FishSockTransfer/FishSockTransfer/`.
+
+On Apple Silicon, from the repository root:
+
+```sh
+xcodebuild -project FishSockTransfer/FishSockTransfer.xcodeproj \
+  -scheme FishSockTransfer -destination 'platform=macOS,arch=arm64' \
+  -derivedDataPath .build/Developer CODE_SIGNING_ALLOWED=NO build
+
+xcodebuild -project FishSockTransfer/FishSockTransfer.xcodeproj \
+  -scheme FishSockTransfer -destination 'platform=macOS,arch=arm64' \
+  -derivedDataPath .build/DeveloperTests CODE_SIGNING_ALLOWED=NO \
+  -parallel-testing-enabled NO test
+```
+
+On Intel, use `arch=x86_64`. The canonical XCTest suite contains 301 tests. Production requires **bundled rsync 3.4.4**; the checked-in runtime resources are ARM64. Intel distribution requires the native runtime built and staged by `scripts/build-rsync-intel.sh` and `scripts/package-local-intel.sh`. `scripts/package-local-arm64.sh` packages Apple Silicon builds. Read the [technical guide](docs/02_FST_TECHNICAL_GUIDE.md) and [redistribution requirements](docs/legal/THIRD_PARTY_LICENSES.md) before packaging a fork.
+
 ## Giấy phép và ghi nhận / License & credits
 
 Mã nguồn được công khai cho sử dụng phi thương mại; sử dụng thương mại cần có sự cho phép bằng văn bản. / Source is available for non-commercial use; commercial use requires written permission. [LICENSE](LICENSE) · [NOTICE](NOTICE)

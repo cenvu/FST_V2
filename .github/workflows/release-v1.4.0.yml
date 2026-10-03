@@ -3,10 +3,6 @@ name: Release FST v1.4.0 arm64
 # Release repair: verify already-detached disposable test images before accepting cleanup.
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - ".github/workflows/release-v1.4.0.yml"
   workflow_dispatch:
 
 permissions:
@@ -102,7 +98,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          gh release create "$TAG_NAME"             "dist/$PACKAGE_NAME"             "dist/$CHECKSUM_NAME"             --repo "${{ github.repository }}"             --target "$GITHUB_SHA"             --title "FST v1.4.0 — OpenDesign UI, Localization, and Transfer Safety"             --notes-file docs/releases/release-notes-v1.4.0.md
+          gh release create "$TAG_NAME"             "dist/$PACKAGE_NAME"             "dist/$CHECKSUM_NAME"             --repo "${{ github.repository }}"             --target "$GITHUB_SHA"             --title "FST v1.4.0 — UI, Localization, and Transfer Safety"             --notes-file docs/releases/release-notes-v1.4.0.md
 
       - name: Verify published assets
         shell: bash

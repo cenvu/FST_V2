@@ -35,7 +35,7 @@ Product priority:
 Data Integrity -> Reliability -> Transparency -> Simplicity -> Performance -> Extra Features
 ```
 
-FST is not a DAM, MAM, cloud sync app, project manager, media browser, database, or AI product.
+FST is not a DAM, MAM, cloud sync app, project manager, media browser, database.
 
 ---
 
@@ -116,7 +116,6 @@ A first-time operator can launch FST, select source, select destination, choose 
 - metadata browser
 - history database
 - cloud/team collaboration
-- AI features inside the app
 
 ---
 
@@ -127,7 +126,7 @@ Current release:
 - Version: v1.4.0 display 1.4.0 build 20261003
 - Package: `dist/FishSockTransfer-v1.4.0-b20261003-local-macOS13_5plus-arm64.zip`
 - Package type: local owner-side ad-hoc build
-- Platform: macOS 13.5+, Apple Silicon arm64 only
+- Platform: macOS 13.5+, Apple Silicon arm64 and Intel x86_64 (separate packages)
 - Signing: ad-hoc signed, not notarized, not Developer ID signed
 - Scope: one source, one destination, one active job
 - Verified operator-facing success: SAFE TO EJECT
@@ -163,7 +162,7 @@ Rules:
 - Never mutate source media.
 - Never run rsync, hashing, scanning, or report generation on MainActor.
 
-v1.4.0 is the major OpenDesign/UI-localization release with EN/VI switching, finalized bandwidth presets, progress/ETA presentation repairs, and strengthened destination-capacity readiness while preserving FST safety invariants.
+v1.4.0 is the major interface and localization release with EN/VI switching, finalized bandwidth presets, progress/ETA presentation repairs, and strengthened destination-capacity readiness while preserving FST safety invariants.
 
 v1.3.5 packages the Clear Folder controls, safe Start-to-Cancel behavior, full-workflow Retry, persistent security-scoped folder access, and fixes misleading external-volume free space reporting.
 

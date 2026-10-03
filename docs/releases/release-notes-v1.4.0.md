@@ -1,11 +1,11 @@
-# FST v1.4.0 — OpenDesign UI, Localization, and Transfer Safety
+# FST v1.4.0 — UI, Localization, and Transfer Safety
 
 ## v1.4.0 - 2026-10-03
 
 FST v1.4.0 is a major macOS release focused on operator clarity, localization, progress truthfulness, and storage preflight safety.
 
 ### Highlights
-* Converged the production SwiftUI interface on the approved OpenDesign Hybrid Progressive direction.
+* Refined the production SwiftUI interface across Transfer, Notification, and Technical Log.
 * Refined the Transfer, Notification, and Technical Log workspaces for compact DIT operation.
 * Added persistent in-app English/Vietnamese presentation switching.
 * Finalized bandwidth choices at 50 / 75 / 100 / 125 / 150 / 175 / 200 MB/s and Unlimited.

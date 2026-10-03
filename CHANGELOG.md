@@ -5,7 +5,7 @@
 ## v1.4.0 - 2026-10-03
 
 ### Major update
-* Converged the production macOS UI on the approved OpenDesign Hybrid Progressive direction across Transfer, Notification, and Technical Log.
+* Refined the production macOS interface across Transfer, Notification, and Technical Log.
 * Added in-app English/Vietnamese presentation with a persistent language toggle.
 * Finalized operator bandwidth presets at 50 / 75 / 100 / 125 / 150 / 175 / 200 MB/s and Unlimited, with no custom bandwidth control.
 * Added Copy All Logs / log-detail presentation and refined compact operator status surfaces.
