@@ -1,3 +1,0 @@
-# Preserve raw xcodebuild console evidence byte-for-byte. Compiler output can
-# contain trailing spaces and blank EOF lines; authored records use normal checks.
-*.log -whitespace

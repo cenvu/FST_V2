@@ -2,7 +2,7 @@
 
 import SwiftUI
 
-/// OpenDesign operational colors adapt to the window's native appearance.
+/// Operational colors adapt to the window's native appearance.
 nonisolated public enum FSTPalette {
     public static let background = adaptive(0x161a1f, light: .windowBackgroundColor)
     public static let surface = adaptive(0x20252c, light: .controlBackgroundColor)

@@ -1,9 +1,0 @@
-Writing result bundle at path:
-	/Users/cenvu/DEV/FST_V2/.build/FST-C248-Reconciliation-FullCanonical-20261003.xcresult
-
-ld: warning: building for macOS-13.5, but linking with dylib '@rpath/XCTest.framework/Versions/A/XCTest' which was built for newer version 14.0
-ld: warning: building for macOS-13.5, but linking with dylib '@rpath/libXCTestSwiftSupport.dylib' which was built for newer version 14.0
-2026-10-03 12:16:30.528 xcodebuild[53732:90132413] [MT] IDETestOperationsObserverDebug: 27.697 elapsed -- Testing started completed.
-2026-10-03 12:16:30.528 xcodebuild[53732:90132413] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
-2026-10-03 12:16:30.528 xcodebuild[53732:90132413] [MT] IDETestOperationsObserverDebug: 27.697 sec, +27.697 sec -- end
-Testing started

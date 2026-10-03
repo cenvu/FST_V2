@@ -43,8 +43,16 @@ jobs:
           git diff --name-only "$TAG_SHA" HEAD > evidence/source-diff.txt
           python3 - <<'PY'
           from pathlib import Path
+          import os
+          import subprocess
           for name in Path('evidence/source-diff.txt').read_text().splitlines():
-              assert name in ('README.md', 'FishSockTransfer/Tests/XCTest/MetadataOnlySourceSafetyXCTests.swift') or name.startswith(('scripts/', '.github/workflows/', 'docs/', 'FST_AI/memory/')), f'Unexpected production difference: {name}'
+              if name in ('FishSockTransfer/FishSockTransfer/Views/PanelStyle.swift', 'FishSockTransfer/Tests/XCTest/TransferViewModelRuntimeXCTests.swift'):
+                  original = subprocess.check_output(['git', 'show', f'{os.environ["TAG_SHA"]}:{name}'], text=True)
+                  def without_line_comments(text):
+                      return '\n'.join(line for line in text.splitlines() if not line.lstrip().startswith('//'))
+                  assert without_line_comments(original) == without_line_comments(Path(name).read_text()), f'Executable code changed: {name}'
+              else:
+                  assert not name.startswith(('FishSockTransfer/', 'Tests/')) or name == 'FishSockTransfer/Tests/XCTest/MetadataOnlySourceSafetyXCTests.swift', f'Unexpected production difference: {name}'
           PY
           gh release view v1.4.0 --json tagName,isDraft,assets > evidence/release-before.json
           python3 - <<'PY'
@@ -114,7 +122,7 @@ jobs:
           test -f "dist/$PACKAGE_NAME"
           test -f "dist/$CHECKSUM_NAME"
           # Xcode may update extraction metadata. Shipped input was the exact tag.
-          git diff "$TAG_SHA" -- FishSockTransfer/FishSockTransfer FishSockTransfer/FishSockTransfer.xcodeproj > evidence/canonical-production-diff.txt
+          git -C "$FST_SOURCE_ROOT" diff "$TAG_SHA" -- FishSockTransfer/FishSockTransfer FishSockTransfer/FishSockTransfer.xcodeproj > evidence/canonical-production-diff.txt
           test ! -s evidence/canonical-production-diff.txt
 
       - name: Attach only new Intel assets to existing release

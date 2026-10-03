@@ -1,1 +1,0 @@
-ae7aa5b1ff430b7ce6a40f9d9957ea381f99d24f8ab143b8a815970815009190  FishSockTransfer/FishSockTransfer/Localizable.xcstrings (HEAD)

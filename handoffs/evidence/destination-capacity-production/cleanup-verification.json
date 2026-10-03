@@ -1,9 +1,0 @@
-{
-  "verified_at": "2026-10-01T09:47:29.250545+00:00",
-  "attached_task_images": [],
-  "remaining_image_source_destination_fixtures": [],
-  "earlier_detached_fixture_removed": "FSTCapacityImageQA-FF025DDB-8E5F-418C-944F-E3DF2E25151D",
-  "owner_media_touched": "NONE",
-  "runtime_writes": "UUID temp source fixture creation; disposable image mounts; no production source writes",
-  "result": "PASS"
-}

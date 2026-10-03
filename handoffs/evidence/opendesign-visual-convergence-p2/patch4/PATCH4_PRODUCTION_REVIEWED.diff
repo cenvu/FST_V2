@@ -1,4 +1,0 @@
-# Reviewed production diff
-
-The exact two-file Git diff is preserved byte-for-byte in
-`PATCH4_PRODUCTION_REVIEWED.diff.gz`.

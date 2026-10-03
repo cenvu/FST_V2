@@ -235,7 +235,7 @@ final class TransferViewModelRuntimeXCTests: XCTestCase {
         XCTAssertNil(viewModel.startBlockedReason)
     }
 
-    // MARK: - Prompt 5 deterministic Retry admission ordering
+    // MARK: - deterministic Retry admission ordering
 
     /// Proves the required terminal-ordering invariant directly: while the
     /// first workflow's terminal-tail cleanup is deterministically paused
@@ -1264,7 +1264,7 @@ final class TransferViewModelRuntimeXCTests: XCTestCase {
         XCTAssertFalse(logMessages.contains("TRANSFER COMPLETE. Verification disabled."))
     }
 
-    // MARK: - Prompt 5 configuration-change safety before Retry
+    // MARK: - configuration-change safety before Retry
 
     func testClearingSourceBeforeRetryPreventsAutomaticWorkflowStart() throws {
         let root = FileManager.default.temporaryDirectory
@@ -1355,7 +1355,7 @@ final class TransferViewModelRuntimeXCTests: XCTestCase {
         )
     }
 
-    // MARK: - Prompt 5 full-workflow Retry and duplicate-Retry evidence
+    // MARK: - full-workflow Retry and duplicate-Retry evidence
 
     func testFullWorkflowRetryValidatesCopiesAndVerifiesAgainUsingCurrentConfiguration() async throws {
         let root = FileManager.default.temporaryDirectory
@@ -1436,7 +1436,7 @@ final class TransferViewModelRuntimeXCTests: XCTestCase {
         try await waitForViewModelState(.cancelled, on: viewModel)
     }
 
-    // MARK: - Prompt 2 FR-003 BookmarkAccessCoordinator (generation-aware lease safety)
+    // MARK: - BookmarkAccessCoordinator (generation-aware lease safety)
 
     func testBookmarkAccessCoordinatorStopsSuccessfulAccessExactlyOnce() async throws {
         let provider = FakeSecurityScopedAccessProvider()
@@ -1540,7 +1540,7 @@ final class TransferViewModelRuntimeXCTests: XCTestCase {
         XCTAssertEqual(freshStops, 0, "The winning fresh lease must never be touched by the loser.")
     }
 
-    // MARK: - Prompt 2 FR-003 Selection saves a bookmark
+    // MARK: - Selection saves a bookmark
 
     func testValidSourceSelectionSavesSourceBookmark() async throws {
         let source = try makeBookmarkTestDirectory(name: "select-save-source")
@@ -1654,7 +1654,7 @@ final class TransferViewModelRuntimeXCTests: XCTestCase {
         XCTAssertEqual(saveCount, 0, "An invalid Destination selection must never be persisted.")
     }
 
-    // MARK: - Prompt 2 FR-003 Relaunch restoration
+    // MARK: - Relaunch restoration
 
     func testFreshViewModelRestoresSourceAndDestinationFromSameIsolatedStore() async throws {
         let source = try makeBookmarkTestDirectory(name: "restore-source")
@@ -1739,7 +1739,7 @@ final class TransferViewModelRuntimeXCTests: XCTestCase {
         XCTAssertEqual(removeCount, 1)
     }
 
-    // MARK: - Prompt 2 FR-003 Stale bookmark behavior
+    // MARK: - Stale bookmark behavior
 
     func testStaleUsableSourceBookmarkRefreshesAndRestoresSelection() async throws {
         let source = try makeBookmarkTestDirectory(name: "stale-usable-source")
@@ -1784,7 +1784,7 @@ final class TransferViewModelRuntimeXCTests: XCTestCase {
         XCTAssertEqual(destinationRemoveCount, 0)
     }
 
-    // MARK: - Prompt 2 FR-003 Restore-vs-Select/Clear race safety
+    // MARK: - Restore-vs-Select/Clear race safety
 
     func testManualSourceSelectionWinsOverLateRestore() async throws {
         let staleSource = try makeBookmarkTestDirectory(name: "race-select-stale-source")
@@ -1884,7 +1884,7 @@ final class TransferViewModelRuntimeXCTests: XCTestCase {
         XCTAssertEqual(staleStops, 1, "The abandoned restore attempt must release the access it acquired.")
     }
 
-    // MARK: - Prompt 2 FR-003 Clear integration
+    // MARK: - Clear integration
 
     func testClearSourceRemovesPersistenceAndReleasesAccessExactlyOncePreservingDestination() async throws {
         let source = try makeBookmarkTestDirectory(name: "clear-source-integration")
@@ -1960,7 +1960,7 @@ final class TransferViewModelRuntimeXCTests: XCTestCase {
         XCTAssertTrue(FileManager.default.fileExists(atPath: destination.path))
     }
 
-    // MARK: - Prompt 2 FR-003 Replacement lifecycle
+    // MARK: - Replacement lifecycle
 
     func testReplacingSourceReleasesOldAccessExactlyOnceAndPreservesDestination() async throws {
         let oldSource = try makeBookmarkTestDirectory(name: "replace-lifecycle-old-source")
