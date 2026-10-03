@@ -1,0 +1,168 @@
+name: Release FST v1.4.0 Intel
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: fst-v1.4.0-release
+  cancel-in-progress: false
+
+jobs:
+  intel:
+    runs-on: macos-15-intel
+    timeout-minutes: 60
+    env:
+      TAG_SHA: 6843c909bfa47e221ce399fdb92d6e081eca7951
+      PACKAGE_NAME: FishSockTransfer-v1.4.0-b20261003-local-macOS13_5plus-x86_64.zip
+      CHECKSUM_NAME: SHA256SUMS-v1.4.0-x86_64.txt
+      ARM_PACKAGE: FishSockTransfer-v1.4.0-b20261003-local-macOS13_5plus-arm64.zip
+      ARM_CHECKSUM: SHA256SUMS-v1.4.0.txt
+      GH_TOKEN: ${{ github.token }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify native runner, immutable tag, source scope and existing assets
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = cenvu/FST_V2
+          test "$GITHUB_REF" = refs/heads/main
+          test "$(uname -m)" = x86_64
+          xcodebuild -version
+          git fetch origin
+          test "$(git rev-parse 'v1.4.0^{commit}')" = "$TAG_SHA"
+          test "$(git ls-remote origin refs/tags/v1.4.0 | awk '{print $1}')" = "$TAG_SHA"
+          mkdir -p evidence dist
+          git diff --name-only "$TAG_SHA" HEAD > evidence/source-diff.txt
+          python3 - <<'PY'
+          from pathlib import Path
+          for name in Path('evidence/source-diff.txt').read_text().splitlines():
+              assert name in ('README.md',) or name.startswith(('scripts/', '.github/workflows/', 'docs/', 'FST_AI/memory/')), f'Unexpected production difference: {name}'
+          PY
+          gh release view v1.4.0 --json tagName,isDraft,assets > evidence/release-before.json
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          release = json.loads(Path('evidence/release-before.json').read_text())
+          assert release['tagName'] == 'v1.4.0' and not release['isDraft']
+          names = {a['name'] for a in release['assets']}
+          assert os.environ['ARM_PACKAGE'] in names and os.environ['ARM_CHECKSUM'] in names
+          assert os.environ['PACKAGE_NAME'] not in names and os.environ['CHECKSUM_NAME'] not in names, 'Intel asset already exists'
+          PY
+          gh release download v1.4.0 --pattern "$ARM_PACKAGE" --pattern "$ARM_CHECKSUM" --dir "$RUNNER_TEMP/arm-before"
+          (cd "$RUNNER_TEMP/arm-before" && shasum -a 256 "$ARM_PACKAGE" "$ARM_CHECKSUM") > evidence/arm-before-sha256.txt
+          git worktree add --detach "$RUNNER_TEMP/fst-intel-source" "$TAG_SHA"
+          echo "FST_SOURCE_ROOT=$RUNNER_TEMP/fst-intel-source" >> "$GITHUB_ENV"
+          echo "FST_DIST_DIR=$GITHUB_WORKSPACE/dist" >> "$GITHUB_ENV"
+          echo "RSYNC_INTEL=$RUNNER_TEMP/fst-rsync-intel/rsync" >> "$GITHUB_ENV"
+
+      - name: Build exact upstream rsync 3.4.4 for Intel
+        run: |
+          set -euo pipefail
+          ./scripts/build-rsync-intel.sh "$RUNNER_TEMP/fst-rsync-intel" 2>&1 | tee evidence/rsync-build.log
+          cp "$RUNNER_TEMP/fst-rsync-intel/configure-help.txt" evidence/
+          # Disposable isolated source tree only; repository ARM resources stay intact.
+          cp "$RSYNC_INTEL" "$FST_SOURCE_ROOT/FishSockTransfer/FishSockTransfer/rsync"
+          chmod 755 "$FST_SOURCE_ROOT/FishSockTransfer/FishSockTransfer/rsync"
+
+      - name: Canonical bundled-rsync real-binary test
+        run: |
+          set -euo pipefail
+          cd "$FST_SOURCE_ROOT"
+          xcrun swiftc -parse-as-library -target x86_64-apple-macosx13.5 \
+            FishSockTransfer/FishSockTransfer/Services/BundledRsyncService.swift \
+            FishSockTransfer/Tests/BundledRsyncServiceTests.swift \
+            -o "$RUNNER_TEMP/BundledRsyncServiceTests"
+          "$RUNNER_TEMP/BundledRsyncServiceTests" 2>&1 | tee "$GITHUB_WORKSPACE/evidence/bundled-rsync-tests.log"
+
+      - name: Full canonical native Intel XCTest gate
+        run: |
+          set -euo pipefail
+          cd "$FST_SOURCE_ROOT"
+          xcodebuild -project FishSockTransfer/FishSockTransfer.xcodeproj \
+            -scheme FishSockTransfer -destination 'platform=macOS,arch=x86_64' \
+            -derivedDataPath "$RUNNER_TEMP/FST-Intel-Tests" \
+            -resultBundlePath "$GITHUB_WORKSPACE/evidence/Intel.xcresult" \
+            CODE_SIGNING_ALLOWED=NO ARCHS=x86_64 ONLY_ACTIVE_ARCH=YES \
+            -parallel-testing-enabled NO test 2>&1 | tee "$GITHUB_WORKSPACE/evidence/xctest.log"
+          xcrun xcresulttool get test-results summary --path "$GITHUB_WORKSPACE/evidence/Intel.xcresult" > "$GITHUB_WORKSPACE/evidence/xctest-summary.json"
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          result = json.loads((Path(os.environ['GITHUB_WORKSPACE']) / 'evidence/xctest-summary.json').read_text())
+          print(json.dumps(result, indent=2))
+          assert result['totalTestCount'] == 301 and result['passedTests'] == 301
+          assert result['failedTests'] == 0 and result['skippedTests'] == 0
+          assert result['testResult'] == 'Passed'
+          PY
+          grep -Eq 'Executed 301 tests, with 0 failures \(0 unexpected\)' "$GITHUB_WORKSPACE/evidence/xctest.log"
+
+      - name: Build, stage, sign, ZIP, privacy and native transfer audits
+        run: |
+          set -euo pipefail
+          ./scripts/package-local-intel.sh 2>&1 | tee evidence/package-audit.log
+          test -f "dist/$PACKAGE_NAME"
+          test -f "dist/$CHECKSUM_NAME"
+          # Xcode may update extraction metadata. Shipped input was the exact tag.
+          git diff "$TAG_SHA" -- FishSockTransfer > evidence/canonical-production-diff.txt
+          test ! -s evidence/canonical-production-diff.txt
+
+      - name: Attach only new Intel assets to existing release
+        run: |
+          set -euo pipefail
+          test "$(git ls-remote origin refs/tags/v1.4.0 | awk '{print $1}')" = "$TAG_SHA"
+          gh release view v1.4.0 --json assets > evidence/release-pre-upload.json
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          before = json.loads(Path('evidence/release-before.json').read_text())['assets']
+          current = json.loads(Path('evidence/release-pre-upload.json').read_text())['assets']
+          def identity(a):
+              return tuple(a.get(k) for k in ('name', 'id', 'size', 'digest', 'createdAt', 'updatedAt'))
+          assert {identity(a) for a in before}.issubset({identity(a) for a in current})
+          names = {a['name'] for a in current}
+          assert os.environ['PACKAGE_NAME'] not in names and os.environ['CHECKSUM_NAME'] not in names, 'Intel asset already exists'
+          PY
+          gh release upload v1.4.0 "dist/$PACKAGE_NAME" "dist/$CHECKSUM_NAME"
+
+      - name: Re-download published Intel package and verify ARM preservation
+        run: |
+          set -euo pipefail
+          gh release view v1.4.0 --json tagName,url,assets > evidence/release-after.json
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          before = json.loads(Path('evidence/release-before.json').read_text())['assets']
+          after = json.loads(Path('evidence/release-after.json').read_text())['assets']
+          def identity(a):
+              return tuple(a.get(k) for k in ('name', 'id', 'size', 'digest', 'createdAt', 'updatedAt'))
+          assert {identity(a) for a in before}.issubset({identity(a) for a in after})
+          names = {a['name'] for a in after}
+          assert os.environ['PACKAGE_NAME'] in names and os.environ['CHECKSUM_NAME'] in names
+          PY
+          gh release download v1.4.0 --pattern "$PACKAGE_NAME" --pattern "$CHECKSUM_NAME" --dir "$RUNNER_TEMP/intel-published"
+          diff -u "dist/$CHECKSUM_NAME" "$RUNNER_TEMP/intel-published/$CHECKSUM_NAME"
+          (cd "$RUNNER_TEMP/intel-published" && shasum -a 256 -c "$CHECKSUM_NAME")
+          python3 scripts/audit-intel-package.py "$RUNNER_TEMP/intel-published/$PACKAGE_NAME" 2>&1 | tee evidence/published-audit.log
+          gh release download v1.4.0 --pattern "$ARM_PACKAGE" --pattern "$ARM_CHECKSUM" --dir "$RUNNER_TEMP/arm-after"
+          (cd "$RUNNER_TEMP/arm-after" && shasum -a 256 "$ARM_PACKAGE" "$ARM_CHECKSUM") > evidence/arm-after-sha256.txt
+          diff -u evidence/arm-before-sha256.txt evidence/arm-after-sha256.txt
+          test "$(git ls-remote origin refs/tags/v1.4.0 | awk '{print $1}')" = "$TAG_SHA"
+          echo 'PUBLICATION=PASS EXISTING_ARM_ASSET_PRESERVED=YES' | tee evidence/publication.txt
+
+      - name: Preserve gate evidence and Intel artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fst-v1.4.0-intel-evidence
+          path: |
+            evidence/
+            dist/
+          retention-days: 30
