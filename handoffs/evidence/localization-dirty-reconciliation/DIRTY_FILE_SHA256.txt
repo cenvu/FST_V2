@@ -1,0 +1,1 @@
+5e4de30b240f7b34d92682c161c3a5e7ebf915e7e885fc9d3f0dec32b342d215  FishSockTransfer/FishSockTransfer/Localizable.xcstrings (working tree)

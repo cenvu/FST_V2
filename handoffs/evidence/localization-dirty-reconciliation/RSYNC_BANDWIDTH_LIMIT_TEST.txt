@@ -1,0 +1,4 @@
+COMPILE_EXIT=0
+
+RUN_EXIT=0
+RsyncBandwidthLimitTests passed

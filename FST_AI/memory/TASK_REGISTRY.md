@@ -33,6 +33,20 @@ This appears to have been run before as <entry>. Do you want to rerun it, contin
 
 ## Recent Tasks
 
+### 2026-10-03 - RECONCILE_PREEXISTING_LOCALIZATION_CATALOG_AND_VERIFY_C248
+
+- Task name: Localization Catalog Reconciliation + c248 Verification
+- Agent: Codex, verifier/finalizer
+- Status: canonical verification complete; BRAIN review pending
+- Start: fetched `main=origin/main=c248f7033e36c14866202b3d61e6f2ce4ff3de7f`; no task issue returned; only the expected `Localizable.xcstrings` path was dirty
+- Catalog: exact patch and before hashes preserved; normalized comparison found 24 `extractionState=stale` metadata changes, no shared EN/VI value or string-unit-state changes, and one removed unlocalized/non-runtime auto-generated catalog record; classified case B, then restored only the authorized catalog path to c248
+- Evidence: `handoffs/evidence/localization-dirty-reconciliation/` contains raw patch/hash, semantic comparison, restoration record, source behavior review, build/test logs and exact xcresult summaries
+- Safety impact: no UI/backend implementation edits; c248 transfer start, picker, bandwidth, verification, language persistence and TransferViewModel identity contracts source-reviewed unchanged; no transfer, notification send, or update request
+- Checks: Debug build exit 0; LocalizationPresentationXCTests 16/0/0; standalone TransferControlsLabelTests and RsyncBandwidthLimitTests pass; full fresh canonical XCTest suite 301/0/0; built app contains `vi.lproj/Localizable.strings`; diff check pass
+- Commit/tag/release: finalization-only evidence/handoff/memory commit pushed; no tag/release
+- Worker proposed next: `RETURN_TO_BRAIN_FOR_OWNER_VISUAL_GATE`; BRAIN review pending, classification/accepted state unset, active-next none
+
+
 ### 2026-10-03 - OPENDESIGN_TRANSFER_CONTROLS_LANGUAGE_TOGGLE
 
 - Task name: Visual Convergence Final Bounded Repair — Transfer Controls + Header Language Toggle

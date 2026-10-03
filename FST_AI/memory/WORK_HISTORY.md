@@ -21,6 +21,20 @@ Each entry must include:
 
 ## Recent History
 
+### 2026-10-03 - Localization Catalog Reconciliation + c248 Verification
+
+- Task ID `RECONCILE_PREEXISTING_LOCALIZATION_CATALOG_AND_VERIFY_C248`; workstream `OPENDESIGN_TRANSFER_CONTROLS_LANGUAGE_TOGGLE`; Codex verifier/finalizer
+- Reanchored after fetch at `HEAD=origin/main=c248f7033e36c14866202b3d61e6f2ce4ff3de7f`; only the expected `Localizable.xcstrings` file was dirty
+- Preserved exact pre-restore patch and both SHA-256 digests. Structured JSON comparison: one removed record (`CenVu D.I.T Tools`) with no translations and auto-generated comment; 24 `extractionState=stale`; no EN/VI values or `stringUnit.state` changes. Current localization lookup source does not use the removed record, and raw ReportEngine literal remains unchanged. Dirty provenance/author/intent remains unknown
+- Classified case B based on unchanged runtime strings and non-runtime extraction metadata; restored only the catalog to canonical c248 after preserving evidence. Post-restore catalog diff empty
+- Evidence: `handoffs/evidence/localization-dirty-reconciliation/`
+- Source review: c248 callback/gating, picker actions, option values/Unlimited nil, verification enum selection, app language preference key/toggle, and stable TransferViewModel identity retained. No app source implementation changes in this task
+- Checks: canonical Debug build exit 0; LocalizationPresentationXCTests 16 passed/0 failed/0 skipped; standalone TransferControlsLabelTests and RsyncBandwidthLimitTests passed; full fresh canonical XCTest 301 passed/0 failed/0 skipped; built app includes `vi.lproj/Localizable.strings`; `git diff --check` passed
+- Safety: no transfer or verification job, Telegram send, update request, UI mutation, backend mutation, or safety semantics change
+- Finalization: evidence, handoff and memory-only commit pushed; no tag/release
+- Worker proposed next: `RETURN_TO_BRAIN_FOR_OWNER_VISUAL_GATE`; BRAIN review pending; classification/accepted state unset; active-next none
+
+
 ### 2026-10-03 - Visual Convergence Final Bounded Repair — Transfer Controls + Header Language Toggle
 
 - Task ID `OPENDESIGN_TRANSFER_CONTROLS_LANGUAGE_TOGGLE`; Codex implementer; started at fetched `main=origin/main=fcef3aaebce499059801da1703c7a24257d5d557`; no matching GitHub issue; CodeGraph unavailable; OpenDesign transport closed

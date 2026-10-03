@@ -1,0 +1,30 @@
+COMPILE_EXIT=0
+FishSockTransfer/FishSockTransfer/Views/NotificationTabView.swift:42:10: warning: 'onChange(of:perform:)' was deprecated in macOS 14.0: Use `onChange` with a two or zero parameter action closure instead. [#DeprecatedDeclaration]
+ 40 |         }
+ 41 |         .foregroundStyle(FSTPalette.text)
+ 42 |         .onChange(of: viewModel.notificationSettings) { _ in
+    |          `- warning: 'onChange(of:perform:)' was deprecated in macOS 14.0: Use `onChange` with a two or zero parameter action closure instead. [#DeprecatedDeclaration]
+ 43 |             viewModel.persistNotificationSettings()
+ 44 |         }
+
+FishSockTransfer/FishSockTransfer/Views/NotificationTabView.swift:45:10: warning: 'onChange(of:perform:)' was deprecated in macOS 14.0: Use `onChange` with a two or zero parameter action closure instead. [#DeprecatedDeclaration]
+ 43 |             viewModel.persistNotificationSettings()
+ 44 |         }
+ 45 |         .onChange(of: viewModel.telegramBotToken) { _ in
+    |          `- warning: 'onChange(of:perform:)' was deprecated in macOS 14.0: Use `onChange` with a two or zero parameter action closure instead. [#DeprecatedDeclaration]
+ 46 |             viewModel.persistTelegramBotToken()
+ 47 |         }
+
+[#DeprecatedDeclaration]: <https://docs.swift.org/compiler/documentation/diagnostics/deprecated-declaration>
+FishSockTransfer/FishSockTransfer/Views/TransferControlsView.swift:236:10: warning: 'onChange(of:perform:)' was deprecated in macOS 14.0: Use `onChange` with a two or zero parameter action closure instead. [#DeprecatedDeclaration]
+234 |             Text("The current transfer will stop. Source and destination selections will remain available.")
+235 |         }
+236 |         .onChange(of: viewModel.transferState) { newState in
+    |          `- warning: 'onChange(of:perform:)' was deprecated in macOS 14.0: Use `onChange` with a two or zero parameter action closure instead. [#DeprecatedDeclaration]
+237 |             cancelRequestGuard.reset(for: newState)
+238 |         }
+
+[#DeprecatedDeclaration]: <https://docs.swift.org/compiler/documentation/diagnostics/deprecated-declaration>
+
+RUN_EXIT=0
+TransferControlsLabelTests passed
