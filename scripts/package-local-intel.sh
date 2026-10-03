@@ -32,6 +32,7 @@ find "$STAGED_APP/Contents/Resources" -maxdepth 1 -name 'lib*.dylib' -type f -de
 cp "$RSYNC_INTEL" "$STAGED_APP/Contents/Resources/rsync"
 chmod 755 "$STAGED_APP/Contents/Resources/rsync"
 cp "$(dirname "$RSYNC_INTEL")/rsync-3.4.4/COPYING" "$STAGED_APP/Contents/Resources/rsync-COPYING.txt"
+"$SCRIPT_DIR/stage-third-party-notices.sh" "$STAGED_APP" x86_64
 xattr -cr "$STAGED_APP"
 python3 "$SCRIPT_DIR/audit-intel-package.py" "$STAGED_APP" --unsigned
 codesign --force --deep --sign - \

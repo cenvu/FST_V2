@@ -126,6 +126,10 @@ validate_zip_contains_basename() {
   fi
 }
 
+: "${RSYNC_ARM64_SOURCE_ARCHIVE:?Set RSYNC_ARM64_SOURCE_ARCHIVE to the reviewed complete corresponding-source archive}"
+[[ -f "$RSYNC_ARM64_SOURCE_ARCHIVE" ]] || fail "ARM64 corresponding-source archive missing"
+tar -tzf "$RSYNC_ARM64_SOURCE_ARCHIVE" >/dev/null
+
 echo "Packaging FishSock Transfer local ${PACKAGE_LABEL} build"
 warn "Local owner-side ad-hoc build only."
 warn "Not notarized."
@@ -220,6 +224,8 @@ shopt -u nullglob
 
 COPYFILE_DISABLE=1 /usr/bin/ditto --norsrc "$APP_ENTITLEMENTS" "$LOCAL_ENTITLEMENTS"
 
+"$SCRIPT_DIR/stage-third-party-notices.sh" "$STAGED_APP" arm64
+
 echo "Ad-hoc signing staged app..."
 /usr/bin/codesign --force --deep --sign - --entitlements "$LOCAL_ENTITLEMENTS" --timestamp=none "$STAGED_APP"
 rm -f "$LOCAL_ENTITLEMENTS"
@@ -246,6 +252,8 @@ if echo "$ZIP_LISTING" | /usr/bin/grep -Eq '(^|/)\._'; then
 fi
 validate_zip_entry "$ZIP_LISTING" "FishSockTransfer.app/Contents/MacOS/FishSockTransfer"
 validate_zip_entry "$ZIP_LISTING" "FishSockTransfer.app/Contents/Resources/rsync"
+validate_zip_entry "$ZIP_LISTING" "FishSockTransfer.app/Contents/Resources/ThirdPartyNotices/docs/legal/LICENSES/rsync-COPYING.txt"
+validate_zip_entry "$ZIP_LISTING" "FishSockTransfer.app/Contents/Resources/ThirdPartySources/rsync-arm64-corresponding-source.tar.gz"
 for dylib in "${DYLIBS[@]}"; do
   validate_zip_contains_basename "$ZIP_LISTING" "$(basename "$dylib")"
 done

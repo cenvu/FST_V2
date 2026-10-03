@@ -23,20 +23,17 @@ FST is a DIT/Data Wrangler support tool. It does not replace professional workfl
 
 The FishSock Transfer application bundles third-party software components. These components remain under their own respective licenses.
 
-### rsync
-The application bundles `rsync` version 3.4.4 for file transfer operations.
-License: GPL (General Public License)
-*(See `docs/legal/THIRD_PARTY_LICENSES.md` for more details)*
+### Component notices
 
-### Dynamic Libraries
-The application bundles several dynamic libraries to support the transfer engine:
-- libcrypto
-- liblz4
-- libpopt
-- libxxhash
-- libzstd
+- rsync 3.4.4: GNU GPL version 3 or later, with the upstream OpenSSL/xxhash dynamic-linking exception. Copyright (C) 1996-2026 Andrew Tridgell, Wayne Davison, and others.
+- OpenSSL libcrypto 3.6.2 (ARM64): Apache License 2.0. Copyright (c) 1998-2026 The OpenSSL Project Authors; Copyright (c) 1995-1998 Eric A. Young, Tim J. Hudson.
+- LZ4 1.10.0 (ARM64): BSD 2-Clause. Copyright (c) 2011-2020 Yann Collet.
+- popt 1.19 (ARM64): MIT. Copyright (c) 1998 Red Hat Software.
+- xxHash 0.8.3 (ARM64): BSD 2-Clause. Copyright (c) 2012-2021 Yann Collet.
+- Zstandard 1.5.7 (ARM64): BSD 3-Clause distribution option. Copyright (c) Meta Platforms, Inc. and affiliates.
+- rsync's included popt: MIT-style permission and X Consortium name restriction. Copyright (c) 1998 Red Hat Software.
+- rsync's included modified zlib: zlib license. Copyright (C) 1995-2013 Jean-loup Gailly and Mark Adler.
 
-*(See `docs/legal/THIRD_PARTY_LICENSES.md` for details on other third-party licenses)*
+Full notices, included xxHash attributions, exact upstream sources, corresponding-source obligations and known release-package omissions are documented in `docs/legal/THIRD_PARTY_LICENSES.md` and `docs/legal/LICENSES/`.
 
----
-*All other third-party components remain under their own respective licenses.*
+Third-party components retain their own licenses and redistribution rights; FST's non-commercial terms do not relicense or restrict them. License compliance does not require adding an MIT badge or endorsement to FST's interface.
