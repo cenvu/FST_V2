@@ -88,8 +88,7 @@ public struct DestinationCardView: View {
                 } label: {
                     Text(viewModel.destinationURL == nil ? "Choose…" : "Change…")
                 }
-                .buttonStyle(.bordered)
-                .controlSize(.regular)
+                .buttonStyle(FSTChangeButtonStyle())
                 .accessibilityLabel("Choose Destination Folder")
                 .disabled(viewModel.isTransferConfigurationLocked)
                 .fixedSize()

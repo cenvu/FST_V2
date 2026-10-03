@@ -74,8 +74,7 @@ public struct SourceCardView: View {
                 } label: {
                     Text(viewModel.sourceURL == nil ? "Choose…" : "Change…")
                 }
-                .buttonStyle(.bordered)
-                .controlSize(.regular)
+                .buttonStyle(FSTChangeButtonStyle())
                 .accessibilityLabel("Choose Source Folder")
                 .disabled(viewModel.isTransferConfigurationLocked)
                 .fixedSize()

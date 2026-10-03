@@ -29,6 +29,46 @@ nonisolated public enum FSTPalette {
     }
 }
 
+struct FSTPrimaryActionButtonStyle: ButtonStyle {
+    @Environment(\.isEnabled) private var isEnabled
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(.system(size: 14, weight: .semibold))
+            .foregroundStyle(isEnabled ? Color.white : FSTPalette.muted)
+            .padding(.horizontal, 16)
+            .frame(minHeight: 36)
+            .background(isEnabled ? FSTPalette.primaryAction : FSTPalette.inset)
+            .clipShape(RoundedRectangle(cornerRadius: 4))
+            .overlay {
+                RoundedRectangle(cornerRadius: 4)
+                    .strokeBorder(isEnabled ? FSTPalette.primaryAction : FSTPalette.line, lineWidth: 1)
+                    .allowsHitTesting(false)
+            }
+            .opacity(configuration.isPressed ? 0.86 : 1)
+    }
+}
+
+struct FSTChangeButtonStyle: ButtonStyle {
+    @Environment(\.isEnabled) private var isEnabled
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(.system(size: 13, weight: .medium))
+            .foregroundStyle(isEnabled ? FSTPalette.text : FSTPalette.muted)
+            .padding(.horizontal, 12)
+            .frame(minHeight: 36)
+            .background(isEnabled ? FSTPalette.raised : FSTPalette.inset)
+            .clipShape(RoundedRectangle(cornerRadius: 4))
+            .overlay {
+                RoundedRectangle(cornerRadius: 4)
+                    .strokeBorder(FSTPalette.line, lineWidth: 1)
+                    .allowsHitTesting(false)
+            }
+            .opacity(configuration.isPressed ? 0.84 : 1)
+    }
+}
+
 public extension View {
     /// Flat operational grouping; standardPanel remains available to other tabs.
     func operationalPanel(tint: Color? = nil, background: Color? = nil) -> some View {

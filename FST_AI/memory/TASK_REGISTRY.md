@@ -33,6 +33,19 @@ This appears to have been run before as <entry>. Do you want to rerun it, contin
 
 ## Recent Tasks
 
+### 2026-10-03 - OPENDESIGN_TRANSFER_CONTROLS_LANGUAGE_TOGGLE
+
+- Task name: Visual Convergence Final Bounded Repair — Transfer Controls + Header Language Toggle
+- Agent: Codex, implementer
+- Status: implementation complete; BRAIN review pending
+- Start: fetched `main=origin/main=fcef3aaebce499059801da1703c7a24257d5d557`; GitHub issue not found; a preexisting `Localizable.xcstrings` change was preserved and not staged
+- Production files: `FishSockTransferApp.swift`, `Localization/AppLanguage.swift`, `Views/ContentView.swift`, `Views/PanelStyle.swift`, `Views/SourceCardView.swift`, `Views/DestinationCardView.swift`, `Views/TransferControlsView.swift`, `Tests/XCTest/LocalizationPresentationXCTests.swift`
+- Evidence: `handoffs/evidence/transfer-controls-language-toggle/`; EN/VI nominal/minimum captures, open custom dropdown surfaces, flag toggle captures, synthetic Verifying capture, behavior/validation/scope reports
+- Safety impact: presentation-only. Start/picker callbacks, enabled gating, bandwidth and verification values, transfer/verify/notification/update/capacity/SAFE TO EJECT behavior remain unchanged. No transfer, notification send, or update request occurred during capture
+- Checks: Debug build pass; LocalizationPresentationXCTests 16/0/0; standalone TransferControlsLabelTests and RsyncBandwidthLimitTests pass; `git diff --check` pass
+- Commit/tag/release: evidence, handoff, memory and authorized Swift changes in one task commit; no tag/release; push/export gate evidence is in the handoff and Desktop packet
+- Worker proposed next: `RETURN_TO_BRAIN_FOR_OWNER_VISUAL_GATE`; BRAIN review pending, classification/accepted state unset, active-next none
+
 ### 2026-10-03 - FINAL_OWNER_TARGET_VISUAL_REPAIR
 
 - Task name: Final Owner Target Visual Repair

@@ -4,6 +4,7 @@ import SwiftUI
 
 public struct ContentView: View {
     @Environment(\.locale) private var locale
+    @EnvironmentObject private var languagePreference: AppLanguagePreference
 
     private enum MainTab {
         case transfer
@@ -62,9 +63,21 @@ public struct ContentView: View {
 
     private var headerBar: some View {
         HStack(spacing: 16) {
-            Text("FST")
-                .font(.system(size: 20, weight: .heavy))
-                .tracking(-0.8)
+            HStack(spacing: 6) {
+                Text("FST")
+                    .font(.system(size: 20, weight: .heavy))
+                    .tracking(-0.8)
+                Button(action: languagePreference.toggleLanguage) {
+                    Text(languagePreference.language == .english ? "🇬🇧" : "🇻🇳")
+                        .font(.system(size: 18))
+                        .frame(width: 30, height: 30)
+                        .contentShape(RoundedRectangle(cornerRadius: 4))
+                }
+                .buttonStyle(.plain)
+                .help("Application Language")
+                .accessibilityLabel(Text("Application Language"))
+                .accessibilityValue(Text(verbatim: languagePreference.language.endonym))
+            }
             Divider().frame(height: 24).overlay(FSTPalette.line)
             HeaderSocialLinksView()
             Spacer(minLength: 12)

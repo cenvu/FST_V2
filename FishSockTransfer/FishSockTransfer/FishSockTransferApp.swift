@@ -16,6 +16,7 @@ struct FishSockTransferApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .environmentObject(languagePreference)
                 .environment(\.locale, languagePreference.language.locale)
         }
 

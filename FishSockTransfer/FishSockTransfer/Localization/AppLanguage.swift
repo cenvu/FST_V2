@@ -40,4 +40,8 @@ public final class AppLanguagePreference: ObservableObject {
         self.language = language
         userDefaults.set(language.rawValue, forKey: Self.storageKey)
     }
+
+    public func toggleLanguage() {
+        select(language == .english ? .vietnamese : .english)
+    }
 }

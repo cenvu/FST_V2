@@ -21,6 +21,17 @@ Each entry must include:
 
 ## Recent History
 
+### 2026-10-03 - Visual Convergence Final Bounded Repair — Transfer Controls + Header Language Toggle
+
+- Task ID `OPENDESIGN_TRANSFER_CONTROLS_LANGUAGE_TOGGLE`; Codex implementer; started at fetched `main=origin/main=fcef3aaebce499059801da1703c7a24257d5d557`; no matching GitHub issue; CodeGraph unavailable; OpenDesign transport closed
+- Changed production presentation: custom 36pt gray folder buttons, text-only 36pt blue READY action style, dark custom popover fields for Bandwidth/Verification, and an EN/VI flag toggle using the existing persisted `AppLanguagePreference`
+- Evidence: `handoffs/evidence/transfer-controls-language-toggle/` contains EN/VI Ready and minimum captures, both custom menu surfaces, bidirectional flag-toggle captures, a synthetic Verifying layout, and capture/behavior/visual/validation/scope reports
+- Safety: direct bindings retain current bandwidth and verification values; callbacks, transfer gating, services, preflight, capacity, verification, notifications, updates, and SAFE TO EJECT remain unchanged. All capture actions used synthetic fixtures; no transfer, Telegram send, or update request
+- Checks: Debug build passed; LocalizationPresentationXCTests 16 passed/0 failed/0 skipped; standalone TransferControlsLabelTests and RsyncBandwidthLimitTests passed; diff check passed. Full suite not run for this low-risk UI-only change
+- Existing worktree state: pre-task `Localizable.xcstrings` diff (364 insertions/344 deletions) was left untouched and unstaged; final clean-tree/export gate is reported as observed in the task handoff and Desktop packet
+- Publication: one task commit with no tag/release; post-commit push/fetch and Desktop export status are recorded by the canonical handoff/packet
+- Worker proposal only: `RETURN_TO_BRAIN_FOR_OWNER_VISUAL_GATE`; BRAIN review pending, classification/accepted state unset, active-next none
+
 ### 2026-10-03 - Final Owner Target Visual Repair
 
 - Task ID `FINAL_OWNER_TARGET_VISUAL_REPAIR`; workstream `OPENDESIGN_VISUAL_CONVERGENCE_P2`; Codex implementer

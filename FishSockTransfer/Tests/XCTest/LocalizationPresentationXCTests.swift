@@ -41,6 +41,33 @@ final class LocalizationPresentationXCTests: XCTestCase {
         XCTAssertEqual(AppLanguage.vietnamese.endonym, "Tiếng Việt")
     }
 
+    @MainActor
+    func testLanguageToggleSwitchesAndPersistsThePresentationLocale() throws {
+        let suiteName = "FSTLanguageToggleTests-\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        let bundle = try localizationAppBundle()
+        let preference = AppLanguagePreference(userDefaults: defaults)
+
+        XCTAssertEqual(preference.language, .english)
+        XCTAssertEqual(
+            TransferPresentationLocalization.text("READY", locale: preference.language.locale, bundle: bundle),
+            "READY"
+        )
+
+        preference.toggleLanguage()
+        XCTAssertEqual(preference.language, .vietnamese)
+        XCTAssertEqual(defaults.string(forKey: AppLanguagePreference.storageKey), "vi")
+        XCTAssertEqual(
+            TransferPresentationLocalization.text("READY", locale: preference.language.locale, bundle: bundle),
+            "SẴN SÀNG"
+        )
+
+        preference.toggleLanguage()
+        XCTAssertEqual(preference.language, .english)
+        XCTAssertEqual(defaults.string(forKey: AppLanguagePreference.storageKey), "en")
+    }
+
     func testEnglishAndVietnameseStringCatalogLookup() throws {
         let bundle = try localizationAppBundle()
         XCTAssertEqual(

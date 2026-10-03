@@ -2,6 +2,117 @@
 
 import SwiftUI
 
+private struct TransferDropdownOption<Value: Hashable>: Identifiable {
+    let label: String
+    let value: Value
+
+    var id: String { label }
+}
+
+private struct TransferDropdownField<Value: Hashable>: View {
+    @Environment(\.locale) private var locale
+    @Binding var selection: Value
+
+    let accessibilityTitle: LocalizedStringKey
+    let options: [TransferDropdownOption<Value>]
+
+    @State private var isPresented = false
+
+    private var selectedLabel: String {
+        options.first(where: { $0.value == selection })
+            .map { localized($0.label) } ?? "—"
+    }
+
+    var body: some View {
+        GeometryReader { geometry in
+            Button {
+                isPresented = true
+            } label: {
+                HStack(spacing: 10) {
+                    Text(selectedLabel)
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundStyle(FSTPalette.text)
+                        .lineLimit(1)
+                        .truncationMode(.tail)
+                    Spacer(minLength: 4)
+                    Image(systemName: "chevron.down")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(FSTPalette.muted)
+                        .accessibilityHidden(true)
+                }
+                .padding(.horizontal, 10)
+                .frame(width: geometry.size.width, height: geometry.size.height)
+                .background(FSTPalette.inset)
+                .clipShape(RoundedRectangle(cornerRadius: 4))
+                .overlay {
+                    RoundedRectangle(cornerRadius: 4)
+                        .strokeBorder(FSTPalette.line, lineWidth: 1)
+                        .allowsHitTesting(false)
+                }
+                .contentShape(RoundedRectangle(cornerRadius: 4))
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(Text(accessibilityTitle))
+            .accessibilityValue(Text(selectedLabel))
+            .popover(isPresented: $isPresented, arrowEdge: .bottom) {
+                VStack(spacing: 2) {
+                    ForEach(options) { option in
+                        optionButton(option)
+                    }
+                }
+                .padding(5)
+                .frame(width: max(geometry.size.width, 200))
+                .background(FSTPalette.surface)
+                .clipShape(RoundedRectangle(cornerRadius: 6))
+                .overlay {
+                    RoundedRectangle(cornerRadius: 6)
+                        .strokeBorder(FSTPalette.line, lineWidth: 1)
+                        .allowsHitTesting(false)
+                }
+                .presentationBackground(FSTPalette.surface)
+                .presentationCornerRadius(6)
+            }
+        }
+        .frame(height: 36)
+    }
+
+    private func optionButton(_ option: TransferDropdownOption<Value>) -> some View {
+        let isSelected = option.value == selection
+        let label = localized(option.label)
+
+        return Button {
+            selection = option.value
+            isPresented = false
+        } label: {
+            HStack(spacing: 10) {
+                Text(label)
+                    .font(.system(size: 13, weight: isSelected ? .semibold : .regular))
+                    .foregroundStyle(FSTPalette.text)
+                    .lineLimit(1)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                if isSelected {
+                    Image(systemName: "checkmark")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(FSTPalette.active)
+                        .accessibilityHidden(true)
+                }
+            }
+            .padding(.horizontal, 9)
+            .frame(height: 30)
+            .background(isSelected ? FSTPalette.raised : Color.clear)
+            .clipShape(RoundedRectangle(cornerRadius: 4))
+            .contentShape(RoundedRectangle(cornerRadius: 4))
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(Text(label))
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
+    }
+
+    private func localized(_ text: String) -> String {
+        TransferPresentationLocalization.text(text, locale: locale)
+    }
+}
+
 private struct TransferSetupColumnLayout: Layout {
     var spacing: CGFloat
     var verificationRatio: CGFloat
@@ -242,15 +353,13 @@ public struct TransferControlsView: View {
                     .font(.system(size: 14, weight: .medium))
                     .foregroundColor(.secondary)
 
-                Picker("Bandwidth Limit", selection: $viewModel.bandwidthLimit) {
-                    ForEach(bandwidthOptions, id: \.label) { option in
-                        Text(localized(option.label)).tag(option.value)
+                TransferDropdownField(
+                    selection: $viewModel.bandwidthLimit,
+                    accessibilityTitle: "Bandwidth Limit",
+                    options: bandwidthOptions.map {
+                        TransferDropdownOption(label: $0.label, value: $0.value)
                     }
-                }
-                .pickerStyle(.menu)
-                .controlSize(.regular)
-                .labelsHidden()
-                .frame(maxWidth: .infinity, alignment: .leading)
+                )
 
                 Text("Copy speed cap")
                     .font(.system(size: 12))
@@ -265,15 +374,15 @@ public struct TransferControlsView: View {
                     .font(.system(size: 14, weight: .medium))
                     .foregroundColor(.secondary)
 
-                Picker("Verification Mode", selection: $viewModel.verificationMode) {
-                    Text(localized(VerificationMode.none.selectionLabel)).tag(VerificationMode.none)
-                    Text(localized(VerificationMode.random33.selectionLabel)).tag(VerificationMode.random33)
-                    Text(localized(VerificationMode.full.selectionLabel)).tag(VerificationMode.full)
-                }
-                .pickerStyle(.menu)
-                .controlSize(.regular)
-                .labelsHidden()
-                .frame(maxWidth: .infinity, alignment: .leading)
+                TransferDropdownField(
+                    selection: $viewModel.verificationMode,
+                    accessibilityTitle: "Verification Mode",
+                    options: [
+                        TransferDropdownOption(label: VerificationMode.none.selectionLabel, value: .none),
+                        TransferDropdownOption(label: VerificationMode.random33.selectionLabel, value: .random33),
+                        TransferDropdownOption(label: VerificationMode.full.selectionLabel, value: .full)
+                    ]
+                )
 
                 Text(localized(viewModel.verificationMode.operatorDescription))
                     .help(localized(viewModel.verificationMode.operatorDescription))
@@ -337,11 +446,16 @@ public struct TransferControlsView: View {
     private var activeActionButton: some View {
         let state = viewModel.transferState
         let button = Button(action: handleActionButton) {
-            Label(
-                localized(TransferActionPresentation.title(for: state)),
-                systemImage: TransferControlsActionPresentation.icon(for: state)
-            )
-            .fixedSize()
+            if state == .ready {
+                Text(localized(TransferActionPresentation.title(for: state)))
+                    .fixedSize()
+            } else {
+                Label(
+                    localized(TransferActionPresentation.title(for: state)),
+                    systemImage: TransferControlsActionPresentation.icon(for: state)
+                )
+                .fixedSize()
+            }
         }
         .controlSize(.regular)
         .disabled(!isActionButtonEnabled)
@@ -349,8 +463,7 @@ public struct TransferControlsView: View {
 
         if state == .ready {
             button
-                .buttonStyle(.borderedProminent)
-                .tint(FSTPalette.primaryAction)
+                .buttonStyle(FSTPrimaryActionButtonStyle())
         } else {
             button
                 .buttonStyle(.bordered)
